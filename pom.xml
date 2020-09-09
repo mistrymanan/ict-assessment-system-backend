@@ -20,6 +20,7 @@
         <module>user-service</module>
         <module>grading-service</module>
         <module>assignment-service</module>
+        <module>execution-service</module>
     </modules>
     <dependencies>
         <dependency>
