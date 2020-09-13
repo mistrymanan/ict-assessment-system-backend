@@ -1,14 +1,13 @@
-package com.cdad.project.assignmentservice.dto;
+package com.cdad.project.assignmentservice.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
-public class Assignment {
-  private String title;
+public class TestCase {
+  private String input;
+  private String output;
 }

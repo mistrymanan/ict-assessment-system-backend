@@ -1,8 +1,47 @@
 [
   {
-    "title": "DS Programming Test"
+    "title": "DS Programming Test",
+    "slug": "ds-programming-test",
+    "status": "ACTIVE",
+    "isTimed" : true,
+    "duration": 120,
+    "hasStartTime": false,
+    "startTime": null,
+    "hasDeadline": false,
+    "deadline": null,
+    "questions": [
+    ]
   },
   {
-    "title": "Algorithms Programming Test"
+    "title": "Algorithms Programming Test",
+    "slug": "algorithms-programming-test",
+    "status": "ACTIVE",
+    "isTimed" : true,
+    "duration": 120,
+    "hasStartTime": false,
+    "startTime": null,
+    "hasDeadline": false,
+    "deadline": null,
+    "questions": [
+      {
+        "id" : "e917f38a-1d74-4331-858a-47ea341394a4",
+        "title": "Fibonacci Numbers",
+        "slug": "fibonacci-numbers",
+        "allowedLanguages": [
+          "java"
+        ],
+        "totalPoints": 100,
+        "showExpectedOutput": true,
+        "description": "## Fibonacci Series\n---\nWrite a Program to Print Fibonacci Series upto Nth Fibonacci Number.\n\n` 1 1 2 3 5 8 13 ...`\n\n__Sample Input__\n\n    6\n__Sample Output__\n\n    1 1 2 3 5 8\n\n",
+        "solutionCode": "code",
+        "solutionLanguage": "java",
+        "testCases": [
+          {
+            "input": "5",
+            "output": "1 1 2 3 5"
+          }
+        ]
+      }
+    ]
   }
 ]
