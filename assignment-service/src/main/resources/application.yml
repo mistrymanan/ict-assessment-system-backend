@@ -1,0 +1,9 @@
+server:
+  port: 8080
+spring:
+  data:
+    mongodb:
+      authentication-database: admin
+      uri: mongodb+srv://root:root_assessment_system@assessment-system.6fbxs.mongodb.net/assignment-service-db?retryWrites=true&w=majority
+      auto-index-creation: true
+#      uri: mongodb://localhost:27017/assignment-service-db?authSource=admin
