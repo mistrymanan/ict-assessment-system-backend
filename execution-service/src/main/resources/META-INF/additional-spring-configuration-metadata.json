@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "jail.path",
+      "type": "java.lang.String",
+      "description": "Description for jail.path."
+  }
+] }
