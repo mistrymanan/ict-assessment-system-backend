@@ -1,0 +1,14 @@
+apiVersion: skaffold/v2beta7
+kind: Config
+metadata:
+  name: assessment-system-backend
+build:
+  artifacts:
+  - image: programmer/assignment-service
+    context: assignment-service
+deploy:
+  kubectl:
+    manifests:
+    - mongo-db.yml
+    - assignment-service/k8s-assignment-service.yml
+    - assignment-service/target/classes/META-INF/dekorate/kubernetes.yml
