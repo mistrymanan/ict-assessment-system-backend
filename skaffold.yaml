@@ -9,6 +9,5 @@ build:
 deploy:
   kubectl:
     manifests:
-    - mongo-db.yml
-    - assignment-service/k8s-assignment-service.yml
+#    - assignment-service/k8s-assignment-service.yml
     - assignment-service/target/classes/META-INF/dekorate/kubernetes.yml
