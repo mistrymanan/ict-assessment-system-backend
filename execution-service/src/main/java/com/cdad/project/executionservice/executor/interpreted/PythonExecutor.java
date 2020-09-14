@@ -27,12 +27,10 @@ public class PythonExecutor extends BaseExecutor implements InterpretedExecutor 
     @Override
     public Status run() throws InterruptedException, IOException {
         long startTime,endTime;
-        List<String> command=new ArrayList<String>();
-        command.add("sudo chroot /jail/ echo");
-        command.add("cd python/"+getUniquePath()+"/ ");
-        command.add("cat input.txt | timeout "+getTimeout()+" python3 Solution.py");
-        ProcessBuilder processBuilder=new ProcessBuilder().command("/bin/bash","-c",String.join(";",command))
+        ProcessBuilder processBuilder=new ProcessBuilder()
+                .command("/bin/bash","-c","chroot /jail/ timeout "+getTimeout()+" python3.8 /python/"+getUniquePath()+"/Solution.py")
                 .directory(new File(Executor.getJailPath()))
+                .redirectInput( new File(getContainerPath()+"input.txt"))
                 .redirectOutput(new File(this.getContainerPath()+"output.txt"))
                 .redirectError(new File(this.getContainerPath()+"error.txt"));
         startTime=System.nanoTime();
