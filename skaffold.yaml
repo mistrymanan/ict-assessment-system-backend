@@ -4,10 +4,20 @@ metadata:
   name: assessment-system-backend
 build:
   artifacts:
-  - image: programmer/assignment-service
-    context: assignment-service
+    - image: us.gcr.io/classroomict/assignment-service
+      jib:
+        project: assignment-service
+#  - image: us.gcr.io/classroomict/assignment-service
+#    context: assignment-service
 deploy:
   kubectl:
     manifests:
-#    - assignment-service/k8s-assignment-service.yml
-    - assignment-service/target/classes/META-INF/dekorate/kubernetes.yml
+    - ingress.yml
+    - assignment-service/k8s-assignment-service.yml
+profiles:
+  - name: gcp
+    activation:
+      - kubeContext: my-cluster
+    build:
+      googleCloudBuild:
+        projectId: classroomict
