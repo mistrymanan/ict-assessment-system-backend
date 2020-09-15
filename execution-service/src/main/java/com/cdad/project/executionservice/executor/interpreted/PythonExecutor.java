@@ -42,12 +42,10 @@ public class PythonExecutor extends BaseExecutor implements InterpretedExecutor 
         return super.getStatus();
     }
     public void setStatusBasedOnStatusCode(Integer statusCode) {
-        System.out.println("called me to set status");
         if (statusCode.equals(0)) { status=Status.SUCCEED;}
         else if(statusCode.equals(143) || statusCode.equals(124)){
             status=Status.TIMEOUT;
         }
         else{status=Status.RUNTIMEERROR;}
     }
-
 }

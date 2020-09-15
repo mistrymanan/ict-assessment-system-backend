@@ -6,6 +6,8 @@ import com.cdad.project.executionservice.repository.BuildRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class BuildService {
 
@@ -18,4 +20,5 @@ public class BuildService {
         return this.buildRepository.findById(id).get();
     }
     public void save(BuildEntity buildEntity) { this.buildRepository.save(buildEntity); }
+    public List<BuildEntity> getAllBuild(){ return  this.buildRepository.findAll();}
 }

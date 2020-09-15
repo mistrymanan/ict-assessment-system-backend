@@ -20,14 +20,10 @@ import java.util.UUID;
 public class JavaExecutor extends BaseExecutor implements CompiledExecutor {
     //private long memoryConsumption;
 
-    ProcessBuilder processBuilder;
-
     public JavaExecutor(Program program) throws IOException, InterruptedException {
         super(program);
-        this.processBuilder=new ProcessBuilder();
         if(!this.compile().equals(0)){
             this.status=Status.COMPILATIONERROR;
-            System.out.println("compilation error");
         }
     }
 
@@ -45,7 +41,6 @@ public class JavaExecutor extends BaseExecutor implements CompiledExecutor {
                 .redirectError(new File(this.getContainerPath()+"error.txt"));
         Process process=processBuilder.start();
         Integer statusCode=process.waitFor();
-        System.out.println(statusCode);
         return statusCode;
     }
 
@@ -62,7 +57,8 @@ public class JavaExecutor extends BaseExecutor implements CompiledExecutor {
         command.add("cat input.txt | timeout "+this.getTimeout()+" java Solution");
         //this.processBuilder.command("/bin/bash","-c","sudo chroot /jail/ pwd ; cd java/"+this.uniquePath+"/ ; cat input.txt | timeout "+this.getTimeout()+" java Solution")
         //this.processBuilder.command("sudo chroot /jail/ echo ; cd java/"+this.uniquePath+"/ ; cat input.txt | timeout "+this.getTimeout()+" java Solution")
-        this.processBuilder.command("/bin/bash","-c",String.join(" ; ",command))
+
+        ProcessBuilder processBuilder=new ProcessBuilder().command("/bin/bash","-c",String.join(" ; ",command))
                 .directory(new File(getJailPath()))
                 .redirectOutput(new File(getContainerPath()+"output.txt"))
                 .redirectError(new File(getContainerPath()+"error.txt"));
@@ -81,25 +77,4 @@ public class JavaExecutor extends BaseExecutor implements CompiledExecutor {
         }
         else{this.status=Status.RUNTIMEERROR;}
     }
-
-
-//    @Override
-//    public String getOutput() throws IOException, InterruptedException {
-//        if(this.status.equals(Status.TIMEOUT)) {return "TIMEOUT";}
-//        else if (this.status.equals(Status.SUCCEED)){return Files.readString(Paths.get(this.getContainerPath()+"output.txt"));}
-//        return getErrorMessage();
-//    }
-
-//    @Override
-//    public String getErrorMessage() throws IOException, InterruptedException {
-////        if (this.status.equals(Status.COMPILATIONERROR)) return this.getCompilationErrorMessage();
-//        if (this.status.equals(Status.COMPILATIONERROR) || !this.status.equals(Status.SUCCEED)) {
-//            return Files.readString(Paths.get(this.getContainerPath()+"error.txt"));
-//        }
-//        return null;
-//    }
-//    @Override
-//    public String getCompilationErrorMessage() throws IOException, InterruptedException {
-//        return Files.readString(Paths.get(this.getContainerPath()+"error.txt"));
-//    }
 }

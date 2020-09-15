@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("")
@@ -24,12 +25,11 @@ public class BuildController {
         this.buildService = buildService;
     }
 
-    @PostMapping("/build")
+    @PostMapping("/builds")
     public BuildEntity postBuild(@RequestBody Program program) throws IOException, InterruptedException {
 //        PostBuildResponse response=new PostBuildResponse();
         Executor executor=this.executorFactory.createExecutor(program);
         Status status=executor.run();
-        System.out.println("Execution Status"+status);
         BuildEntity build=new BuildEntity();
         build.setStatus(status);
         build.setOutput(executor.getOutput());
@@ -40,19 +40,20 @@ public class BuildController {
         return build;
     }
 
-
-    @GetMapping("/build/{buildId}")
+    @GetMapping("/builds/{buildId}")
     public BuildEntity postBuild(@PathVariable String buildId) throws IOException, InterruptedException {
         return this.buildService.getBuildById(buildId);
     }
 
-
+    @GetMapping("/builds/all")
+    public List<BuildEntity> postBuild() throws IOException, InterruptedException {
+        return this.buildService.getAllBuild();
+    }
 
     @PostMapping("/run")
     public BuildEntity postRun(@RequestBody Program program) throws IOException, InterruptedException {
         Executor executor=this.executorFactory.createExecutor(program);
         Status status=executor.run();
-        System.out.println("Execution Status"+status);
         BuildEntity build=new BuildEntity();
         build.setStatus(status);
         build.setOutput(executor.getOutput());
