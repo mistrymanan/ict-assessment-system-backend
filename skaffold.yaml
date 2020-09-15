@@ -12,8 +12,7 @@ build:
 deploy:
   kubectl:
     manifests:
-    - ingress.yml
-    - assignment-service/k8s-assignment-service.yml
+    - assignment-service/k8s*
 profiles:
   - name: gcp
     activation:
