@@ -15,7 +15,7 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("assignments")
+@RequestMapping("")
 public class AssignmentController {
   private final AssignmentService assignmentService;
   private final ModelMapper mapper;
