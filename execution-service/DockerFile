@@ -1,0 +1,4 @@
+FROM asia.gcr.io/classroomict/jail
+COPY  target/execution-service-0.0.1-SNAPSHOT.jar execution-service.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "assignment-service.jar"]

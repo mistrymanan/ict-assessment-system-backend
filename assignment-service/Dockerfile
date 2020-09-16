@@ -1,0 +1,8 @@
+#FROM maven:3.5-jdk-8-alpine as build
+#COPY . .
+#RUN mvn clean package
+
+FROM adoptopenjdk/openjdk11:alpine-jre
+COPY  target/assignment-service-0.0.1-SNAPSHOT.jar assignment-service.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "assignment-service.jar"]

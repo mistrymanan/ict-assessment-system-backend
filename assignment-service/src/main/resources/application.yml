@@ -1,0 +1,15 @@
+
+server:
+  port: 8080
+spring:
+  data:
+    mongodb:
+#      authentication-database: admin
+      uri: mongodb+srv://root:root_assessment_system@assessment-system.6fbxs.mongodb.net/assignment-service-db?retryWrites=true&w=majority
+#      uri: mongodb+srv://root:root_assessment_system@assessment-system.6fbxs.mongodb.net/assignment-service-db?authSource=admin&replicaSet=atlas-v21o7x-shard-0&w=majority&readPreference=primary&appname=MongoDB%20Compass&retryWrites=true&ssl=true
+#      uri: mongodb://root:root_assessment_system@assessment-system-shard-00-00.6fbxs.mongodb.net:27017,root:root_assessment_system@assessment-system-shard-00-01.6fbxs.mongodb.net:27017,assessment-system-shard-00-02.6fbxs.mongodb.net:27017?
+#      uri: mongodb://root:root_assessment_system@assessment-system-shard-00-00.6fbxs.mongodb.net:27017,assessment-system-shard-00-01.6fbxs.mongodb.net:27017,assessment-system-shard-00-02.6fbxs.mongodb.net:27017/assignment-service-db?ssl=true&replicaSet=atlas-v21o7x-shard-0&authSource=admin&retryWrites=true&w=majority
+      auto-index-creation: true
+  application:
+    name: assignment-service
+#      uri: mongodb://localhost:27017/assignment-service-db?authSource=admin

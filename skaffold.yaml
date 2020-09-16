@@ -1,0 +1,22 @@
+apiVersion: skaffold/v2beta7
+kind: Config
+metadata:
+  name: assessment-system-backend
+build:
+  artifacts:
+    - image: us.gcr.io/classroomict/assignment-service
+      jib:
+        project: assignment-service
+#  - image: us.gcr.io/classroomict/assignment-service
+#    context: assignment-service
+deploy:
+  kubectl:
+    manifests:
+    - assignment-service/k8s*
+profiles:
+  - name: gcp
+    activation:
+      - kubeContext: my-cluster
+    build:
+      googleCloudBuild:
+        projectId: classroomict
