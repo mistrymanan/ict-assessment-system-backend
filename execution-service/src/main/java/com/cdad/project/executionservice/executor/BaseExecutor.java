@@ -41,6 +41,10 @@ abstract public class BaseExecutor implements Executor {
             this.baseExecutionPath="/java/"+this.getUniquePath()+"/";
             this.sourceFileExtention=".java";
         }
+        else if(program.getLanguage().equals(Language.C)){
+            this.baseExecutionPath="/c/"+this.getUniquePath()+"/";
+            this.sourceFileExtention=".c";
+        }
         this.containerPath= this.getJailPath()+this.baseExecutionPath;
         this.setupEnvironment();
     }
