@@ -32,10 +32,10 @@
 	                <version>2.5.0</version>
 	                <configuration>
 	                <from>
-	                <image>asia.gcr.io/classroomict/jail</image>
+	                <image>us.gcr.io/classroomict/jail:1.1.0</image>
 	                </from>
 	                    <to>
-	                        <image>us.gcr.io/classroomict/execution-service:1.0</image>
+	                        <image>us.gcr.io/classroomict/execution-service:1.4.0</image>
 	                    </to>
 	                </configuration>
             </plugin>
