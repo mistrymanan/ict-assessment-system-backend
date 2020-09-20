@@ -11,4 +11,5 @@ import java.util.Optional;
 @Repository
 public interface AssignmentRepository extends MongoRepository<Assignment, String> {
   Optional<Assignment> findBySlug(String slug);
+  List<Assignment> findAllByStatusEquals(String status);
 }

@@ -42,8 +42,6 @@ public class AssignmentService {
   public List<AssignmentDTO> getAllAssignments() {
 //    List<AssignmentEntity> assignmentEntities = this.assignmentRepository.findAll();
 //    assignmentEntities.forEach(System.out::println);
-    Query query = new Query();
-    query.fields().exclude("questions");
     return this.assignmentRepository
             .findAll()
 //            .find(query, Assignment.class)
