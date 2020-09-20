@@ -6,6 +6,7 @@ import com.cdad.project.assignmentservice.exceptions.AssignmentNotFoundException
 import com.cdad.project.assignmentservice.exchanges.AddQuestionRequest;
 import com.cdad.project.assignmentservice.exchanges.CreateAssignmentRequest;
 import com.cdad.project.assignmentservice.exchanges.GetAllAssignmentsResponse;
+import com.cdad.project.assignmentservice.exchanges.UpdateAssignmentRequest;
 import com.cdad.project.assignmentservice.service.AssignmentService;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
@@ -48,15 +49,25 @@ public class AssignmentController {
   @GetMapping("/{id}")
   @ResponseStatus(HttpStatus.OK)
   public AssignmentDTO getAssignment(@PathVariable String id) throws AssignmentNotFoundException {
-    AssignmentDTO assignment = this.assignmentService.getAssignmentById(id);
-    return assignment;
+    return this.assignmentService.getAssignmentById(id);
+  }
+  @PutMapping("/{id}")
+  @ResponseStatus(HttpStatus.OK)
+  public AssignmentDTO updateAssignment(@PathVariable String id, @RequestBody @Valid UpdateAssignmentRequest updateRequest) throws AssignmentNotFoundException {
+    return this.assignmentService.updateAssignment(id, updateRequest);
   }
   @GetMapping("/slug/{slug}")
   @ResponseStatus(HttpStatus.OK)
   public AssignmentDTO getAssignmentBySlug(@PathVariable String slug) throws AssignmentNotFoundException {
-    AssignmentDTO assignment = this.assignmentService.getAssignmentBySlug(slug);
-    return assignment;
+    return this.assignmentService.getAssignmentBySlug(slug);
   }
+
+  @PatchMapping("/{id}")
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  public void toggleAssignmentStatus(@PathVariable String id) throws AssignmentNotFoundException {
+    this.assignmentService.toggleAssignmentStatus(id);
+  }
+
 
 
   @ExceptionHandler(AssignmentNotFoundException.class)
@@ -64,4 +75,8 @@ public class AssignmentController {
   public ErrorResponse handle(Exception e){
     return new ErrorResponse("Not Found", e.getMessage());
   }
+
+  @ExceptionHandler(IllegalArgumentException.class)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public ErrorResponse handle(IllegalArgumentException e) { return new ErrorResponse("Invalid ID", "Please Provide Valid Hexadecimal ID");}
 }

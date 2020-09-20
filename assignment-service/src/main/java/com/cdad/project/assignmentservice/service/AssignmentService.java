@@ -11,6 +11,7 @@ import com.cdad.project.assignmentservice.exceptions.QuestionNotFoundException;
 import com.cdad.project.assignmentservice.exchanges.AddQuestionRequest;
 import com.cdad.project.assignmentservice.exchanges.CreateAssignmentRequest;
 import com.cdad.project.assignmentservice.exchanges.GetQuestionRequest;
+import com.cdad.project.assignmentservice.exchanges.UpdateAssignmentRequest;
 import com.cdad.project.assignmentservice.repository.AssignmentRepository;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
@@ -32,12 +33,10 @@ public class AssignmentService {
   private final ModelMapper mapper;
 
   private final AssignmentRepository assignmentRepository;
-  private final MongoTemplate mongo;
 
   public AssignmentService(AssignmentRepository assignmentRepository, ModelMapper mapper, MongoTemplate mongo) {
     this.assignmentRepository = assignmentRepository;
     this.mapper = mapper;
-    this.mongo = mongo;
   }
 
   public List<AssignmentDTO> getAllAssignments() {
@@ -60,7 +59,18 @@ public class AssignmentService {
     newAssignment = this.assignmentRepository.save(newAssignment);
     return mapper.map(newAssignment, AssignmentDTO.class);
   }
-
+  public AssignmentDTO updateAssignment(String id, UpdateAssignmentRequest request) throws AssignmentNotFoundException {
+    Optional<Assignment> assignmentEntity = this.assignmentRepository.findById(id);
+    if (assignmentEntity.isPresent()) {
+      Assignment assignment = assignmentEntity.get();
+      this.mapper.map(request, assignment);
+      assignment.setSlug(slugify(assignment.getTitle()));
+      this.assignmentRepository.save(assignment);
+      return mapper.map(assignment,AssignmentDTO.class);
+    } else {
+      throw new AssignmentNotFoundException(String.format("Assignment with id '%s' not found.", id));
+    }
+  }
   private String slugify(String str) {
     return String.join("-", str.trim().toLowerCase().split("\\s+"));
   }
@@ -118,6 +128,19 @@ public class AssignmentService {
             () -> new QuestionNotFoundException("Question with id '" + request.getQuestionId() + "' not found")
     );
     return mapper.map(question, QuestionDTO.class);
+
+  }
+
+  public void toggleAssignmentStatus(String id) throws AssignmentNotFoundException {
+    Optional<Assignment> assignmentOptional = this.assignmentRepository.findById(id);
+    if (assignmentOptional.isPresent()) {
+      Assignment assignment = assignmentOptional.get();
+      String currentStatus = assignment.getStatus();
+      assignment.setStatus(currentStatus.equals("ACTIVE") ? "INACTIVE" : "ACTIVE");
+      this.assignmentRepository.save(assignment);
+    } else {
+      throw new AssignmentNotFoundException(String.format("Assignment with id '%s' not found.", id));
+    }
 
   }
 }

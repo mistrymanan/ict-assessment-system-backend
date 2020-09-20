@@ -1,0 +1,4 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://root:eQWRv7lGgR@localhost:27017/assignment-service-db?authSource=admin
