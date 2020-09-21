@@ -45,7 +45,7 @@ public class JavaExecutor extends BaseExecutor implements CompiledExecutor {
             return this.getStatus();
         }
         List<String> command = new ArrayList<>();
-        command.add("sudo chroot /jail/");
+        command.add("chroot /jail/");
         command.add("timeout " + this.getTimeout());
         command.add("java -cp ." + getBaseExecutionPath() + " Solution");
         String commandString = String.join(" ", command);

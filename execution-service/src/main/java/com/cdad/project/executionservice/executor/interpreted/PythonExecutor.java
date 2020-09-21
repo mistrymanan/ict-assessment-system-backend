@@ -21,7 +21,7 @@ public class PythonExecutor extends BaseExecutor implements InterpretedExecutor 
     @Override
     public Status run() throws InterruptedException, IOException {
         List<String> command = new ArrayList<>();
-        command.add("sudo chroot /jail/");
+        command.add("chroot /jail/");
         command.add("timeout " + this.getTimeout());
         command.add("python3 ." + getBaseExecutionPath() + "Solution.py");
         String commandString = String.join(" ", command);

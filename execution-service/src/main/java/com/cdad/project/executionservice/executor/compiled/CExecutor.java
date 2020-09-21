@@ -39,7 +39,7 @@ public class CExecutor extends BaseExecutor implements CompiledExecutor {
             return this.getStatus();
         }
         List<String> command = new ArrayList<>();
-        command.add("sudo chroot /jail/");
+        command.add("chroot /jail/");
         command.add("timeout " + this.getTimeout());
         command.add("." + getBaseExecutionPath() + "a.out");
         String commandString = String.join(" ", command);
