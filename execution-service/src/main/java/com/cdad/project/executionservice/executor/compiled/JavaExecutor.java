@@ -1,20 +1,15 @@
 package com.cdad.project.executionservice.executor.compiled;
 
-import com.cdad.project.executionservice.entity.Program;
+import com.cdad.project.executionservice.dto.Program;
 import com.cdad.project.executionservice.entity.Status;
 import com.cdad.project.executionservice.executor.BaseExecutor;
 import com.cdad.project.executionservice.executor.Executor;
-import com.cdad.project.executionservice.executor.compiled.CompiledExecutor;
 import lombok.Data;
-import org.apache.tomcat.util.http.fileupload.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Data
 public class JavaExecutor extends BaseExecutor implements CompiledExecutor {
@@ -31,14 +26,14 @@ public class JavaExecutor extends BaseExecutor implements CompiledExecutor {
     @Override
     public Integer compile() throws IOException, InterruptedException {
         List<String> command=new ArrayList<String>();
-        command.add("sudo chroot /jail/ echo");
-        command.add("cd java/"+getUniquePath()+"");
-        command.add("javac Solution.java");
-        ProcessBuilder processBuilder=new ProcessBuilder().command("/bin/bash","-c",String.join(";",command))
+//        command.add("sudo chroot /jail/");
+        //command.add("cd java/"+getUniquePath()+"");
+        command.add("javac ./"+getBaseExecutionPath()+"Solution.java");
+
+        ProcessBuilder processBuilder=new ProcessBuilder().command("/bin/bash","-c",String.join(" ",command))
      //   this.processBuilder.command("/bin/bash","-c","sudo chroot /jail/ echo;cd java/"+this.uniquePath+"/;javac Solution.java;")
                 .directory(new File(getJailPath()))
-                .inheritIO()
-                .redirectError(new File(this.getContainerPath()+"error.txt"));
+                .redirectError(new File(this.getContainerPath()+"Error.txt"));
         Process process=processBuilder.start();
         Integer statusCode=process.waitFor();
         return statusCode;
@@ -47,34 +42,65 @@ public class JavaExecutor extends BaseExecutor implements CompiledExecutor {
 
     @Override
     public Status run() throws InterruptedException, IOException {
+
         //if compilation error occurs then send the error code.
         if(this.getStatus()!=null&&this.getStatus().equals(Status.COMPILATIONERROR)) return this.getStatus();
-
-        long startTime=System.nanoTime();
         List<String> command=new ArrayList<String>();
-        command.add("sudo chroot /jail/ echo");
-        command.add("cd java/"+this.getUniquePath()+"/ ");
-        command.add("cat input.txt | timeout "+this.getTimeout()+" java Solution");
-        //this.processBuilder.command("/bin/bash","-c","sudo chroot /jail/ pwd ; cd java/"+this.uniquePath+"/ ; cat input.txt | timeout "+this.getTimeout()+" java Solution")
-        //this.processBuilder.command("sudo chroot /jail/ echo ; cd java/"+this.uniquePath+"/ ; cat input.txt | timeout "+this.getTimeout()+" java Solution")
 
-        ProcessBuilder processBuilder=new ProcessBuilder().command("/bin/bash","-c",String.join(" ; ",command))
-                .directory(new File(getJailPath()))
-                .redirectOutput(new File(getContainerPath()+"output.txt"))
-                .redirectError(new File(getContainerPath()+"error.txt"));
-        Process process=processBuilder.start();
-        Integer statusCode=process.waitFor();
-        long endTime=System.nanoTime();
-        setExecutionTime(endTime-startTime);
-        this.setStatusBasedOnStatusCode(statusCode);
-        return this.status;
-    }
+        command.add("sudo chroot /jail/");
+        command.add("timeout "+this.getTimeout());
+        command.add("java -cp ."+getBaseExecutionPath()+" Solution");
+        String commandString=String.join(" ",command);
 
-    public void setStatusBasedOnStatusCode(Integer statusCode) {
-        if (statusCode.equals(0)) { this.status=Status.SUCCEED;}
-        else if(statusCode.equals(143) || statusCode.equals(124)){
-            this.status=Status.TIMEOUT;
+        if(getProgram().getTestCasesList()==null) {
+            long startTime, endTime;
+            ProcessBuilder processBuilder=new ProcessBuilder().command("/bin/bash","-c",commandString)
+                    .directory(new File(getJailPath()))
+                    .redirectInput(new File(this.getContainerPath()+"Input.txt"))
+                    .redirectOutput(new File(this.getContainerPath() + "Output.txt"))
+                    .redirectError(new File(this.getContainerPath() + "Error.txt"));
+            startTime = System.nanoTime();
+            Process process = processBuilder.start();
+            Integer statusCode = process.waitFor();
+            endTime = System.nanoTime();
+            getProgram().setExecutionTime(endTime - startTime);
+            this.setStatusBasedOnStatusCode(statusCode);
+            getProgram().setOutput(getOutput());
+            return super.getStatus();
         }
-        else{this.status=Status.RUNTIMEERROR;}
+        else{
+            long buildStartTime,buildEndTime;
+            buildStartTime=System.nanoTime();
+            getProgram().getTestCasesList().forEach(testCase -> {
+                long startTime, endTime;
+                ProcessBuilder processBuilder = new ProcessBuilder()
+                        .command("/bin/bash", "-c",commandString)
+                        .directory(new File(Executor.getJailPath()))
+                        .redirectInput(new File(getContainerPath() + "Input-"+testCase.getTestCase()+".txt"))
+                        .redirectOutput(new File(getContainerPath() + "Output-"+testCase.getTestCase()+".txt"))
+                        .redirectError(new File(getContainerPath() + "Error-"+testCase.getTestCase()+".txt"));
+                startTime = System.nanoTime();
+                Process process = null;
+                Integer statusCode = null;
+                try {
+                    process = processBuilder.start();
+                    statusCode = process.waitFor();
+                } catch (InterruptedException | IOException e) {
+                    e.printStackTrace();
+                }
+                endTime = System.nanoTime();
+                testCase.setExecutionTime(endTime - startTime);
+                testCase.setStatus(this.getStatusBasedOnStatusCode(statusCode));
+            });
+            buildEndTime=System.nanoTime();
+            getProgram().setExecutionTime(buildEndTime-buildStartTime);
+            writeOutput();
+            boolean b = getProgram().getTestCasesList().stream().allMatch(testCase ->
+            {
+                return testCase.getStatus().equals(Status.SUCCEED);
+            });
+            return b ? Status.SUCCEED : Status.TESTFAILED ;
+        }
     }
+
 }

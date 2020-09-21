@@ -1,8 +1,5 @@
 package com.cdad.project.executionservice;
 
-import com.cdad.project.executionservice.entity.Language;
-import com.cdad.project.executionservice.entity.Program;
-import com.cdad.project.executionservice.executor.compiled.JavaExecutor;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
