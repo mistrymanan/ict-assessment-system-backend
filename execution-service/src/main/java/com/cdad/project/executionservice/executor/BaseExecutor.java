@@ -1,7 +1,7 @@
 package com.cdad.project.executionservice.executor;
 
-import com.cdad.project.executionservice.entity.Language;
 import com.cdad.project.executionservice.dto.Program;
+import com.cdad.project.executionservice.entity.Language;
 import com.cdad.project.executionservice.entity.Status;
 import lombok.Data;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
@@ -24,6 +24,7 @@ abstract public class BaseExecutor implements Executor {
     final private Integer timeout = 5;
     private long executionTime;
     public Status status;
+
 
     private BaseExecutor() {
         this.buildId = UUID.randomUUID().toString();
@@ -60,7 +61,7 @@ abstract public class BaseExecutor implements Executor {
     }
 
     @Override
-    public boolean creteWorkingDirectory() throws IOException {
+    public boolean creteWorkingDirectory() {
         File file = new File(this.getContainerPath());
         return file.mkdir();
     }
@@ -80,7 +81,7 @@ abstract public class BaseExecutor implements Executor {
 
     @Override
     public void createInputFile() throws IOException {
-        if (getProgram().getTestCasesList()!=null && !getProgram().getTestCasesList().isEmpty()) {
+        if (getProgram().getTestCasesList() != null && !getProgram().getTestCasesList().isEmpty()) {
             getProgram().getTestCasesList().forEach(testCase -> {
                 try {
                     if (testCase.getInput() != null) {
@@ -99,17 +100,16 @@ abstract public class BaseExecutor implements Executor {
             });
         }
 
-        if(getProgram().getInput()!=null){
+        if (getProgram().getInput() != null) {
             Files.writeString(Paths.get(getContainerPath() + "Input.txt"), this.getProgram().getInput());
-        }
-        else{
+        } else {
             new File(this.getContainerPath() + "Input.txt").createNewFile();
         }
     }
 
     @Override
     public void createOutputFile() throws IOException {
-        if (getProgram().getTestCasesList()!=null && !getProgram().getTestCasesList().isEmpty()) {
+        if (getProgram().getTestCasesList() != null && !getProgram().getTestCasesList().isEmpty()) {
             getProgram().getTestCasesList().forEach(testCase -> {
                 try {
                     new File(getContainerPath() + "Output-"
@@ -125,7 +125,7 @@ abstract public class BaseExecutor implements Executor {
 
     @Override
     public void createErrorFile() throws IOException {
-        if (getProgram().getTestCasesList()!=null && !getProgram().getTestCasesList().isEmpty()) {
+        if (getProgram().getTestCasesList() != null && !getProgram().getTestCasesList().isEmpty()) {
             getProgram().getTestCasesList().forEach(testCase -> {
                 try {
                     new File(getContainerPath() + "Error-" + testCase.getTestCase() + "" + ".txt").createNewFile();
@@ -143,9 +143,57 @@ abstract public class BaseExecutor implements Executor {
         FileUtils.deleteDirectory(file);
     }
 
+    public Status run(String commandString) throws InterruptedException, IOException {
+        if (getProgram().getTestCasesList() == null) {
+            long startTime, endTime;
+            ProcessBuilder processBuilder = new ProcessBuilder().command("/bin/bash", "-c", commandString)
+                    .directory(new File(getJailPath()))
+                    .redirectInput(new File(this.getContainerPath() + "Input.txt"))
+                    .redirectOutput(new File(this.getContainerPath() + "Output.txt"))
+                    .redirectError(new File(this.getContainerPath() + "Error.txt"));
+            startTime = System.currentTimeMillis();
+            Process process = processBuilder.start();
+            Integer statusCode = process.waitFor();
+            endTime = System.currentTimeMillis();
+            getProgram().setExecutionTime(endTime - startTime);
+            this.setStatusBasedOnStatusCode(statusCode);
+            getProgram().setOutput(getOutput());
+            return getStatus();
+        } else {
+            long buildStartTime, buildEndTime;
+            buildStartTime = System.currentTimeMillis();
+            getProgram().getTestCasesList().forEach(testCase -> {
+                long startTime, endTime;
+                ProcessBuilder processBuilder = new ProcessBuilder()
+                        .command("/bin/bash", "-c", commandString)
+                        .directory(new File(Executor.getJailPath()))
+                        .redirectInput(new File(getContainerPath() + "Input-" + testCase.getTestCase() + ".txt"))
+                        .redirectOutput(new File(getContainerPath() + "Output-" + testCase.getTestCase() + ".txt"))
+                        .redirectError(new File(getContainerPath() + "Error-" + testCase.getTestCase() + ".txt"));
+                startTime = System.currentTimeMillis();
+                Process process = null;
+                Integer statusCode = null;
+                try {
+                    process = processBuilder.start();
+                    statusCode = process.waitFor();
+                } catch (InterruptedException | IOException e) {
+                    e.printStackTrace();
+                }
+                endTime = System.currentTimeMillis();
+                testCase.setExecutionTime(endTime - startTime);
+                testCase.setStatus(this.getStatusBasedOnStatusCode(statusCode));
+            });
+            buildEndTime = System.currentTimeMillis();
+            getProgram().setExecutionTime(buildEndTime - buildStartTime);
+            writeOutput();
+            boolean b = getProgram().getTestCasesList().stream().allMatch(testCase -> testCase.getStatus().equals(Status.SUCCEED));
+            return b ? Status.SUCCEED : Status.TESTFAILED;
+        }
+    }
+
+
     @Override
     public String getOutput() throws IOException, InterruptedException {
-        System.out.println("from abstract clas " + status);
         if (this.status.equals(Status.RUNTIMEERROR) || this.status.equals(Status.COMPILATIONERROR)) {
             return this.getErrorMessage();
         } else if (this.status.equals(Status.TIMEOUT)) {
@@ -153,20 +201,21 @@ abstract public class BaseExecutor implements Executor {
         }
         return Files.readString(Paths.get(this.getContainerPath() + "Output.txt"));
     }
+
     @Override
-    public String getErrorMessage() throws IOException, InterruptedException {
+    public String getErrorMessage() throws IOException {
         return Files.readString(Paths.get(this.getContainerPath() + "Error.txt"));
     }
 
     @Override
-    public void writeOutput() throws IOException {
-        if(getProgram().getTestCasesList()!=null){
+    public void writeOutput() {
+        if (getProgram().getTestCasesList() != null) {
             getProgram().getTestCasesList().forEach(testCase -> {
                 try {
-                    String output=Files.readString((Paths.get(this.getContainerPath()
-                            +"Output-"
-                            +testCase.getTestCase()
-                            +".txt"
+                    String output = Files.readString((Paths.get(this.getContainerPath()
+                            + "Output-"
+                            + testCase.getTestCase()
+                            + ".txt"
                     )));
                     testCase.setOutput(output);
                 } catch (IOException e) {
@@ -175,22 +224,25 @@ abstract public class BaseExecutor implements Executor {
             });
         }
     }
-    public Status getStatusBasedOnStatusCode(Integer statusCode){
-        if (statusCode.equals(0)) { return Status.SUCCEED;}
-        else if(statusCode.equals(143) || statusCode.equals(124)){
+
+    public Status getStatusBasedOnStatusCode(Integer statusCode) {
+        if (statusCode.equals(0)) {
+            return Status.SUCCEED;
+        } else if (statusCode.equals(143) || statusCode.equals(124)) {
             return Status.TIMEOUT;
-        }
-        else{
+        } else {
             return Status.RUNTIMEERROR;
         }
     }
 
     public void setStatusBasedOnStatusCode(Integer statusCode) {
-        if (statusCode.equals(0)) { status=Status.SUCCEED;}
-        else if(statusCode.equals(143) || statusCode.equals(124)){
-            status=Status.TIMEOUT;
+        if (statusCode.equals(0)) {
+            status = Status.SUCCEED;
+        } else if (statusCode.equals(143) || statusCode.equals(124)) {
+            status = Status.TIMEOUT;
+        } else {
+            status = Status.RUNTIMEERROR;
         }
-        else{status=Status.RUNTIMEERROR;}
     }
 
 }
