@@ -25,7 +25,7 @@ public class JavaExecutor extends BaseExecutor implements CompiledExecutor {
     @Override
     public Integer compile() throws IOException, InterruptedException {
         List<String> command = new ArrayList<>();
-//        command.add("sudo chroot /jail/");
+        command.add("chroot /jail/");
         //command.add("cd java/"+getUniquePath()+"");
         command.add("javac ./"+getBaseExecutionPath()+"Solution.java");
 
