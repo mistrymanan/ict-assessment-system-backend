@@ -1,20 +1,14 @@
 package com.cdad.project.executionservice.executor.compiled;
 
-import com.cdad.project.executionservice.entity.Program;
+import com.cdad.project.executionservice.dto.Program;
 import com.cdad.project.executionservice.entity.Status;
 import com.cdad.project.executionservice.executor.BaseExecutor;
-import com.cdad.project.executionservice.executor.Executor;
-import com.cdad.project.executionservice.executor.compiled.CompiledExecutor;
 import lombok.Data;
-import org.apache.tomcat.util.http.fileupload.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Data
 public class JavaExecutor extends BaseExecutor implements CompiledExecutor {
@@ -30,51 +24,31 @@ public class JavaExecutor extends BaseExecutor implements CompiledExecutor {
 
     @Override
     public Integer compile() throws IOException, InterruptedException {
-        List<String> command=new ArrayList<String>();
-        command.add("sudo chroot /jail/ echo");
-        command.add("cd java/"+getUniquePath()+"");
-        command.add("javac Solution.java");
-        ProcessBuilder processBuilder=new ProcessBuilder().command("/bin/bash","-c",String.join(";",command))
-     //   this.processBuilder.command("/bin/bash","-c","sudo chroot /jail/ echo;cd java/"+this.uniquePath+"/;javac Solution.java;")
+        List<String> command = new ArrayList<>();
+        command.add("chroot /jail/");
+        //command.add("cd java/"+getUniquePath()+"");
+        command.add("javac ./"+getBaseExecutionPath()+"Solution.java");
+
+        ProcessBuilder processBuilder=new ProcessBuilder().command("/bin/bash","-c",String.join(" ",command))
                 .directory(new File(getJailPath()))
-                .inheritIO()
-                .redirectError(new File(this.getContainerPath()+"error.txt"));
+                .redirectError(new File(this.getContainerPath()+"Error.txt"));
         Process process=processBuilder.start();
-        Integer statusCode=process.waitFor();
-        return statusCode;
+        return process.waitFor();
     }
 
 
     @Override
     public Status run() throws InterruptedException, IOException {
         //if compilation error occurs then send the error code.
-        if(this.getStatus()!=null&&this.getStatus().equals(Status.COMPILATIONERROR)) return this.getStatus();
-
-        long startTime=System.nanoTime();
-        List<String> command=new ArrayList<String>();
-        command.add("sudo chroot /jail/ echo");
-        command.add("cd java/"+this.getUniquePath()+"/ ");
-        command.add("cat input.txt | timeout "+this.getTimeout()+" java Solution");
-        //this.processBuilder.command("/bin/bash","-c","sudo chroot /jail/ pwd ; cd java/"+this.uniquePath+"/ ; cat input.txt | timeout "+this.getTimeout()+" java Solution")
-        //this.processBuilder.command("sudo chroot /jail/ echo ; cd java/"+this.uniquePath+"/ ; cat input.txt | timeout "+this.getTimeout()+" java Solution")
-
-        ProcessBuilder processBuilder=new ProcessBuilder().command("/bin/bash","-c",String.join(" ; ",command))
-                .directory(new File(getJailPath()))
-                .redirectOutput(new File(getContainerPath()+"output.txt"))
-                .redirectError(new File(getContainerPath()+"error.txt"));
-        Process process=processBuilder.start();
-        Integer statusCode=process.waitFor();
-        long endTime=System.nanoTime();
-        setExecutionTime(endTime-startTime);
-        this.setStatusBasedOnStatusCode(statusCode);
-        return this.status;
-    }
-
-    public void setStatusBasedOnStatusCode(Integer statusCode) {
-        if (statusCode.equals(0)) { this.status=Status.SUCCEED;}
-        else if(statusCode.equals(143) || statusCode.equals(124)){
-            this.status=Status.TIMEOUT;
+        if (this.getStatus() != null && this.getStatus().equals(Status.COMPILATIONERROR)) {
+            getProgram().setOutput(getOutput());
+            return this.getStatus();
         }
-        else{this.status=Status.RUNTIMEERROR;}
+        List<String> command = new ArrayList<>();
+        command.add("chroot /jail/");
+        command.add("timeout " + this.getTimeout());
+        command.add("java -cp ." + getBaseExecutionPath() + " Solution");
+        String commandString = String.join(" ", command);
+        return super.run(commandString);
     }
 }

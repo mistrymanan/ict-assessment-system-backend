@@ -1,8 +1,6 @@
 package com.cdad.project.executionservice.executor;
 
 import com.cdad.project.executionservice.entity.Status;
-import lombok.Data;
-import lombok.Getter;
 
 import java.io.IOException;
 
@@ -17,7 +15,7 @@ public interface Executor {
     void createInputFile() throws IOException;
     void createOutputFile() throws IOException;
     void createErrorFile() throws IOException;
-
+    void writeOutput() throws IOException;
     Status run() throws InterruptedException, IOException;
     void clean() throws IOException;
 
