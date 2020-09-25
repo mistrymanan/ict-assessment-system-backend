@@ -2,10 +2,10 @@ package com.cdad.project.executionservice.entity;
 
 public enum Status {
     SUCCEED,
-    TESTFAILED,
-    COMPILATIONERROR,
-    RUNTIMEERROR,
+    TEST_FAILED,
+    COMPILE_ERROR,
+    RUNTIME_ERROR,
     TIMEOUT,
-    MEMORYERROR
+    MEMORY_ERROR
 
 }

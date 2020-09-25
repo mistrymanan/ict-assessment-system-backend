@@ -1,7 +1,10 @@
 package com.cdad.project.executionservice.executor.compiled;
 
-import com.cdad.project.executionservice.dto.Program;
+import com.cdad.project.executionservice.dto.ProgramInput;
+import com.cdad.project.executionservice.dto.TestInput;
+import com.cdad.project.executionservice.dto.TestOutput;
 import com.cdad.project.executionservice.entity.Status;
+import com.cdad.project.executionservice.exceptions.CompilationErrorException;
 import com.cdad.project.executionservice.executor.BaseExecutor;
 
 import java.io.File;
@@ -10,11 +13,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CPPExecutor extends BaseExecutor implements CompiledExecutor {
-    public CPPExecutor(Program program) throws IOException, InterruptedException {
+    public CPPExecutor(ProgramInput program) throws IOException, InterruptedException {
         super(program);
         if (!this.compile().equals(0)) {
-            this.status = Status.COMPILATIONERROR;
+            this.status = Status.COMPILE_ERROR;
         }
+
+
+        List<String> command = new ArrayList<>();
+        command.add("chroot /jail/");
+        command.add("timeout " + this.getTimeout());
+        command.add("." + getBaseExecutionPath() + "a.out");
+        setRunCommandString(String.join(" ", command));
     }
 
     @Override
@@ -31,17 +41,14 @@ public class CPPExecutor extends BaseExecutor implements CompiledExecutor {
     }
 
     @Override
-    public Status run() throws InterruptedException, IOException {
-        if (this.getStatus() != null && this.getStatus().equals(Status.COMPILATIONERROR)) {
-            getProgram().setOutput(getOutput());
-            return this.getStatus();
-        }
-        List<String> command = new ArrayList<>();
-        command.add("chroot /jail/");
-        command.add("timeout " + this.getTimeout());
-        command.add("." + getBaseExecutionPath() + "a.out");
-        String commandString = String.join(" ", command);
-        return run(commandString);
+    public TestOutput run(TestInput testInput) throws InterruptedException, IOException, CompilationErrorException {
+        return super.run(getRunCommandString(), testInput);
     }
+
+    @Override
+    public List<TestOutput> run(List<TestInput> testInputs) throws InterruptedException, IOException, CompilationErrorException {
+        return super.run(getRunCommandString(), testInputs);
+    }
+
 
 }

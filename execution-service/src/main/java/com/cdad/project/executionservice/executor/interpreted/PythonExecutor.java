@@ -1,7 +1,11 @@
 package com.cdad.project.executionservice.executor.interpreted;
 
-import com.cdad.project.executionservice.dto.Program;
+import com.cdad.project.executionservice.dto.ProgramInput;
+import com.cdad.project.executionservice.dto.BuildOutput;
+import com.cdad.project.executionservice.dto.TestInput;
+import com.cdad.project.executionservice.dto.TestOutput;
 import com.cdad.project.executionservice.entity.Status;
+import com.cdad.project.executionservice.exceptions.CompilationErrorException;
 import com.cdad.project.executionservice.executor.BaseExecutor;
 import lombok.Data;
 
@@ -12,19 +16,23 @@ import java.util.List;
 @Data
 public class PythonExecutor extends BaseExecutor implements InterpretedExecutor {
     //private long memoryConsumption;
-
-    public PythonExecutor(Program program) throws IOException {
+        String runCommandString;
+    public PythonExecutor(ProgramInput program) throws IOException {
         super(program);
-    }
-
-
-    @Override
-    public Status run() throws InterruptedException, IOException {
         List<String> command = new ArrayList<>();
         command.add("chroot /jail/");
         command.add("timeout " + this.getTimeout());
         command.add("python3 ." + getBaseExecutionPath() + "Solution.py");
-        String commandString = String.join(" ", command);
-        return run(commandString);
+        this.setRunCommandString( String.join(" ", command));
+    }
+
+    @Override
+    public TestOutput run(TestInput testInput) throws InterruptedException, IOException, CompilationErrorException {
+        return super.run(getRunCommandString(), testInput);
+    }
+
+    @Override
+    public List<TestOutput> run(List<TestInput> testInputs) throws InterruptedException, IOException, CompilationErrorException {
+        return super.run(getRunCommandString(), testInputs);
     }
 }
