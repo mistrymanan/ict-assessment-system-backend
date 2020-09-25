@@ -69,6 +69,29 @@ public class BuildController {
         executor.clean();
         return testOutput;
     }
+
+    @PostMapping("/run-multiple")
+    public BuildOutput postRunMultiple(@RequestBody PostBuildRequest postBuildRequest) throws IOException, InterruptedException, CompilationErrorException {
+        ProgramInput programInput=new ProgramInput();
+        programInput.setSourceCode(postBuildRequest.getSourceCode());
+        programInput.setLanguage(postBuildRequest.getLanguage());
+//        List<TestInput> testInputs=new LinkedList<>();
+//        postBuildRequest.getInputs().forEach(testInput -> {
+//            testInputs.add(new TestInput(testInput.getInput()));
+//        });
+        List<TestInput> testInputs=postBuildRequest.getInputs();
+        Executor executor=this.executorFactory.createExecutor(programInput);
+        List<TestOutput> testOutputs =executor.run(testInputs);
+        executor.clean();
+
+        BuildOutput buildOutput=new BuildOutput();
+        buildOutput.setBuildId(executor.getBuildId());
+        buildOutput.setTestOutputs(testOutputs);
+
+        return buildOutput;
+    }
+
+
     @ExceptionHandler(CompilationErrorException.class)
     public ErrorResponse handle(Exception e){
         return new ErrorResponse(Status.COMPILE_ERROR,e.getMessage());

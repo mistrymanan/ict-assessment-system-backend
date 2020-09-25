@@ -10,6 +10,6 @@ import lombok.Data;
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 public class PostRunRequest {
     private String sourceCode;
-    private TestInput input;
+    private String input;
     private Language language;
 }
