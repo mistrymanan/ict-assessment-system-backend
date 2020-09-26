@@ -98,9 +98,9 @@ abstract public class BaseExecutor implements Executor {
     }
 
     @Override
-    public void createInputFile(TestInput testInput) throws IOException{
-        if (testInput != null && testInput.getInput()!=null) {
-            Files.writeString(Paths.get(getContainerPath() + "Input.txt"),testInput.getInput());
+    public void createInputFile(String input) throws IOException{
+        if (input != null) {
+            Files.writeString(Paths.get(getContainerPath() + "Input.txt"),input);
         } else {
             new File(this.getContainerPath() + "Input.txt").createNewFile();
         }
@@ -173,11 +173,12 @@ abstract public class BaseExecutor implements Executor {
     }
 
 
-    public TestOutput run(String commandString, TestInput testInput) throws InterruptedException, IOException, CompilationErrorException {
+
+    public TestOutput run(String commandString,String input) throws InterruptedException, IOException, CompilationErrorException {
         if (this.getStatus() != null && this.getStatus().equals(Status.COMPILE_ERROR)) {
             throw new CompilationErrorException(getErrorMessage());
         }
-        this.createInputFile(testInput);
+        this.createInputFile(input);
             TestOutput testOutput=new TestOutput();
             long startTime, endTime;
             ProcessBuilder processBuilder = new ProcessBuilder().command("/bin/bash", "-c", commandString)
@@ -190,13 +191,38 @@ abstract public class BaseExecutor implements Executor {
             Integer statusCode = process.waitFor();
             endTime = System.currentTimeMillis();
             Status status1=getStatusBasedOnStatusCode(statusCode);
-            testOutput.setId(testInput.getId());
             testOutput.setExecutionTime(endTime - startTime);
             testOutput.setStatus(status1);
             testOutput.setOutput(getOutput(status1));
             return testOutput;
 
     }
+
+
+//    public TestOutput run(String commandString, TestInput testInput) throws InterruptedException, IOException, CompilationErrorException {
+//        if (this.getStatus() != null && this.getStatus().equals(Status.COMPILE_ERROR)) {
+//            throw new CompilationErrorException(getErrorMessage());
+//        }
+//        this.createInputFile(testInput);
+//            TestOutput testOutput=new TestOutput();
+//            long startTime, endTime;
+//            ProcessBuilder processBuilder = new ProcessBuilder().command("/bin/bash", "-c", commandString)
+//                    .directory(new File(getJailPath()))
+//                    .redirectInput(new File(this.getContainerPath() + "Input.txt"))
+//                    .redirectOutput(new File(this.getContainerPath() + "Output.txt"))
+//                    .redirectError(new File(this.getContainerPath() + "Error.txt"));
+//            startTime = System.currentTimeMillis();
+//            Process process = processBuilder.start();
+//            Integer statusCode = process.waitFor();
+//            endTime = System.currentTimeMillis();
+//            Status status1=getStatusBasedOnStatusCode(statusCode);
+//            testOutput.setId(testInput.getId());
+//            testOutput.setExecutionTime(endTime - startTime);
+//            testOutput.setStatus(status1);
+//            testOutput.setOutput(getOutput(status1));
+//            return testOutput;
+//
+//    }
 
 
     @Override

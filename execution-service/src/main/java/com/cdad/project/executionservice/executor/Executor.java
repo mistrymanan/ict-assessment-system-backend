@@ -24,7 +24,7 @@ public interface Executor {
 
     void createSourceFile() throws IOException;
 
-    void createInputFile(TestInput testInput) throws IOException;
+    void createInputFile(String testInput) throws IOException;
     void createInputFile(List<TestInput> testInputs) throws IOException;
 
     void createOutputFile() throws IOException;
@@ -36,10 +36,10 @@ public interface Executor {
     //void createErrorFile() throws IOException;
     //void writeOutput() throws IOException;
 
-    TestOutput run(TestInput testInput) throws InterruptedException, IOException, CompilationErrorException;
+    TestOutput run(String input) throws InterruptedException, IOException, CompilationErrorException;
     List<TestOutput> run(List<TestInput> testInputs) throws InterruptedException, IOException, CompilationErrorException;
 
-    TestOutput run(String commandString,TestInput testInput) throws InterruptedException, IOException, CompilationErrorException;
+//    TestOutput run(String commandString,TestInput testInput) throws InterruptedException, IOException, CompilationErrorException;
     List<TestOutput> run(String commandString, List<TestInput> testInputs) throws InterruptedException, IOException, CompilationErrorException;
 
     void clean() throws IOException;

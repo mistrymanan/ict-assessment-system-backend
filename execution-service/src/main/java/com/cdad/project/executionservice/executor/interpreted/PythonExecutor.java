@@ -27,7 +27,7 @@ public class PythonExecutor extends BaseExecutor implements InterpretedExecutor 
     }
 
     @Override
-    public TestOutput run(TestInput testInput) throws InterruptedException, IOException, CompilationErrorException {
+    public TestOutput run(String testInput) throws InterruptedException, IOException, CompilationErrorException {
         return super.run(getRunCommandString(), testInput);
     }
 

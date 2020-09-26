@@ -43,7 +43,7 @@ public class JavaExecutor extends BaseExecutor implements CompiledExecutor {
         return process.waitFor();
     }
     @Override
-    public TestOutput run(TestInput testInput) throws InterruptedException, IOException, CompilationErrorException {
+    public TestOutput run(String testInput) throws InterruptedException, IOException, CompilationErrorException {
         return super.run(getRunCommandString(), testInput);
     }
 
