@@ -18,7 +18,7 @@ public class CExecutor extends BaseExecutor implements CompiledExecutor {
     public CExecutor(ProgramInput program) throws IOException, InterruptedException {
         super(program);
         if (!this.compile().equals(0)) {
-            this.status = Status.COMPILE_ERROR;
+            setStatus(Status.COMPILE_ERROR);
         }
         List<String> command = new ArrayList<>();
         command.add("chroot /jail/");

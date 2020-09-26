@@ -6,6 +6,7 @@ import com.cdad.project.executionservice.entity.Status;
 import com.cdad.project.executionservice.exceptions.CompilationErrorException;
 import com.cdad.project.executionservice.exchange.PostBuildRequest;
 import com.cdad.project.executionservice.exchange.PostRunRequest;
+import com.cdad.project.executionservice.executor.BaseExecutor;
 import com.cdad.project.executionservice.executor.Executor;
 import com.cdad.project.executionservice.executor.ExecutorFactory;
 import com.cdad.project.executionservice.service.BuildService;
@@ -38,14 +39,13 @@ public class BuildController {
 //            testInputs.add(new TestInput(testInput.getInput()));
 //        });
         List<TestInput> testInputs=postBuildRequest.getInputs();
-        Executor executor=this.executorFactory.createExecutor(programInput);
+        BaseExecutor executor= (BaseExecutor) this.executorFactory.createExecutor(programInput);
         List<TestOutput> testOutputs =executor.run(testInputs);
-        executor.clean();
-
         BuildOutput buildOutput=new BuildOutput();
         buildOutput.setBuildId(executor.getBuildId());
         buildOutput.setTestOutputs(testOutputs);
-
+        buildOutput.setStatus(executor.getStatus());
+        executor.clean(); // we don't need it in synchronous manner. clean up task can be asynchronous.
         return buildOutput;
     }
 
@@ -66,7 +66,7 @@ public class BuildController {
         programInput.setLanguage(postRunRequest.getLanguage());
         Executor executor = this.executorFactory.createExecutor(programInput);
         TestOutput testOutput=executor.run(postRunRequest.getInput());
-        executor.clean();
+        executor.clean(); // we don't need it in synchronous manner. clean up task can be asynchronous.
         return testOutput;
     }
 
@@ -80,13 +80,13 @@ public class BuildController {
 //            testInputs.add(new TestInput(testInput.getInput()));
 //        });
         List<TestInput> testInputs=postBuildRequest.getInputs();
-        Executor executor=this.executorFactory.createExecutor(programInput);
+        BaseExecutor executor= (BaseExecutor) this.executorFactory.createExecutor(programInput);
         List<TestOutput> testOutputs =executor.run(testInputs);
-        executor.clean();
-
         BuildOutput buildOutput=new BuildOutput();
         buildOutput.setBuildId(executor.getBuildId());
         buildOutput.setTestOutputs(testOutputs);
+        buildOutput.setStatus(executor.getStatus());
+        executor.clean();
 
         return buildOutput;
     }

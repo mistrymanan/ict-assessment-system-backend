@@ -7,5 +7,4 @@ public enum Status {
     RUNTIME_ERROR,
     TIMEOUT,
     MEMORY_ERROR
-
 }
