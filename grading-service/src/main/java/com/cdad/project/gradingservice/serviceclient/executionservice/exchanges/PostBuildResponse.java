@@ -13,7 +13,7 @@ import java.util.List;
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
-public class BuildOutput {
+public class PostBuildResponse {
     private String id;
     private Status status;
     private List<TestCase> testOutputs;
