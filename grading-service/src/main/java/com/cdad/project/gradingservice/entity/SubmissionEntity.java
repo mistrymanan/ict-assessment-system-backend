@@ -18,6 +18,6 @@ public class SubmissionEntity {
     private String questionId;
     private LocalDateTime timeStamp;
     private Status status;
-    private Double scrore;
+    private Double score;
     private List<TestCase> testCases;
 }

@@ -1,5 +1,10 @@
+
 spring:
   data:
     mongodb:
       uri: mongodb://root:eQWRv7lGgR@localhost:27017/grading-service-db?authSource=admin
-      database: grading-service
+      database: grading-service-db
+server:
+  port: 8081
+
+

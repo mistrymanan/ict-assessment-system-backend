@@ -4,10 +4,7 @@ import com.cdad.project.assignmentservice.dto.ErrorResponse;
 import com.cdad.project.assignmentservice.dto.QuestionDTO;
 import com.cdad.project.assignmentservice.exceptions.AssignmentNotFoundException;
 import com.cdad.project.assignmentservice.exceptions.QuestionNotFoundException;
-import com.cdad.project.assignmentservice.exchanges.AddQuestionRequest;
-import com.cdad.project.assignmentservice.exchanges.DeleteQuestionRequest;
-import com.cdad.project.assignmentservice.exchanges.GetQuestionRequest;
-import com.cdad.project.assignmentservice.exchanges.UpdateAssignmentQuestionRequest;
+import com.cdad.project.assignmentservice.exchanges.*;
 import com.cdad.project.assignmentservice.service.AssignmentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -28,10 +25,17 @@ public class QuestionsController {
     this.assignmentService.addQuestionToAssignment(request);
   }
   @GetMapping
-  public QuestionDTO getQuestionForAssignment(GetQuestionRequest request) throws AssignmentNotFoundException, QuestionNotFoundException {
+  public QuestionDTO getQuestionForAssignment(GetQuestionUsingSlugRequest request) throws AssignmentNotFoundException, QuestionNotFoundException {
     return this.assignmentService.getQuestion(
             request.getAssignmentSlug(),
             request.getQuestionSlug()
+    );
+  }
+  @GetMapping("/id")
+  public QuestionDTO getQuestionForAssignmentById(GetQuestionUsingIdRequest request) throws AssignmentNotFoundException, QuestionNotFoundException {
+    return this.assignmentService.getQuestionUsingId(
+      request.getAssignmentId(),
+      request.getQuestionId()
     );
   }
   @DeleteMapping
