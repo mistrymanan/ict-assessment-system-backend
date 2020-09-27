@@ -1,5 +1,6 @@
 package com.cdad.project.gradingservice;
 
+import org.modelmapper.ModelMapper;
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.AssignmentServiceClient;
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.dto.Assignment;
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.dto.Question;
@@ -10,13 +11,18 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+
+import org.springframework.context.annotation.Bean;
 import reactor.core.publisher.Mono;
 
 @SpringBootApplication
 @Log4j2
 public class GradingServiceApplication implements CommandLineRunner {
 
-
+  @Bean
+  public ModelMapper modelMapper(){
+    return new ModelMapper();
+  }
   private final AssignmentServiceClient assignmentServiceClient;
 
   public GradingServiceApplication(AssignmentServiceClient assignmentServiceClient) {
