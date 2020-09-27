@@ -12,7 +12,7 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 public class BuildOutput {
-    private String buildId;
+    private String id;
     private Status status;
     private List<TestOutput> testOutputs;
     private long executionTime;

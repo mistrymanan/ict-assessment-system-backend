@@ -18,7 +18,7 @@ private Status status;
 private String output;
 public Build(BuildEntity entity){
     this.setId(entity.getId());
-    this.setOutput(entity.getOutput());
+    //this.setOutput(entity.getOutput());
     this.setStatus(entity.getStatus());
 }
 }

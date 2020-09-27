@@ -38,6 +38,7 @@ public interface Executor {
 
     TestOutput run(String input) throws InterruptedException, IOException, CompilationErrorException;
     List<TestOutput> run(List<TestInput> testInputs) throws InterruptedException, IOException, CompilationErrorException;
+    //List<TestOutput> run(List<TestInput> testInputs,boolean isBuild) throws InterruptedException, IOException, CompilationErrorException;
 
 //    TestOutput run(String commandString,TestInput testInput) throws InterruptedException, IOException, CompilationErrorException;
     List<TestOutput> run(String commandString, List<TestInput> testInputs) throws InterruptedException, IOException, CompilationErrorException;
@@ -46,7 +47,6 @@ public interface Executor {
 
     String getOutput(Status status) throws IOException, InterruptedException;
     String getOutput(String testId, Status status) throws IOException, InterruptedException;
-
     String getBuildId();
     String getErrorMessage() throws IOException,InterruptedException;
     String getErrorMessage(String testId) throws IOException;

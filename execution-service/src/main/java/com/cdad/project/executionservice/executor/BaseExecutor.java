@@ -227,7 +227,7 @@ abstract public class BaseExecutor implements Executor {
 
     @Override
     public List<TestOutput> run(String commandString, List<TestInput> testInputs) throws InterruptedException, IOException, CompilationErrorException {
-        if (this.getStatus() != null && this.getStatus().equals(Status.COMPILE_ERROR)) {
+        if (this.getStatus() != null && getStatus().equals(Status.COMPILE_ERROR)) {
             throw new CompilationErrorException(getErrorMessage());
         }
         this.setupEnvironment(testInputs);
@@ -258,6 +258,7 @@ abstract public class BaseExecutor implements Executor {
 
             testOutput.setExecutionTime(endTime - startTime);
             testOutput.setStatus(status);
+            testOutput.setInput(testCase.getInput());
 
             try {
                 testOutput.setOutput(this.getOutput(testCase.getId(),status));
@@ -268,7 +269,8 @@ abstract public class BaseExecutor implements Executor {
         });
 
         boolean testSucceed = testOutputs.stream().allMatch(testCase -> testCase.getStatus().equals(Status.SUCCEED));
-        this.status= testSucceed ? Status.SUCCEED : Status.TEST_FAILED;
+       setStatus(testSucceed ? Status.SUCCEED : Status.TEST_FAILED);
+
         return testOutputs;
     }
 
