@@ -1,14 +1,20 @@
 package com.cdad.project.executionservice;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 
 import java.io.IOException;
 
 @SpringBootApplication()
 public class ExecutionServiceApplication {
-
+	@Bean
+	public ModelMapper modelMapper(){
+		return new ModelMapper();
+	}
 	public static void main(String[] args) throws IOException, InterruptedException {
+
 		SpringApplication.run(ExecutionServiceApplication.class, args);
 //		Program program=new Program();
 //		program.setSourceCode("import java.util.Scanner;\n" +
