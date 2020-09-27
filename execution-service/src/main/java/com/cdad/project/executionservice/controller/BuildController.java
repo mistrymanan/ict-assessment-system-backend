@@ -55,6 +55,9 @@ public class BuildController {
           
             throw buildCompilationErrorException;
         }
+        finally{
+            executor.clean();
+        }
     
         BuildOutput buildOutput=new BuildOutput();
         buildOutput.setId(executor.getBuildId());
@@ -66,9 +69,7 @@ public class BuildController {
         buildEntity.setTimeStamp(LocalDateTime.now());
         this.buildService.save(buildEntity);
   
-    finally{
-        executor.clean();
-      }
+
         
         return buildOutput;
     }
