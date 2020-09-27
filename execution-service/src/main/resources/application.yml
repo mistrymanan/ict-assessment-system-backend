@@ -1,0 +1,11 @@
+server:
+  port: 8080
+spring:
+  data:
+    mongodb:
+#      authentication-database: admin
+      uri: mongodb://root:eQWRv7lGgR@mongodb.default.svc.cluster.local:27017/execution-service-db?authSource=admin
+      auto-index-creation: true
+  application:
+    name: assignment-service
+#      uri: mongodb://localhost:27017/assignment-service-db?authSource=admin

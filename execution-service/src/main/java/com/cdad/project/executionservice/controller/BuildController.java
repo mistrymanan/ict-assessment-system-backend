@@ -3,49 +3,67 @@ package com.cdad.project.executionservice.controller;
 import com.cdad.project.executionservice.dto.*;
 import com.cdad.project.executionservice.entity.BuildEntity;
 import com.cdad.project.executionservice.entity.Status;
+import com.cdad.project.executionservice.exceptions.BuildCompilationErrorException;
 import com.cdad.project.executionservice.exceptions.CompilationErrorException;
 import com.cdad.project.executionservice.exchange.PostBuildRequest;
 import com.cdad.project.executionservice.exchange.PostRunRequest;
+import com.cdad.project.executionservice.executor.BaseExecutor;
 import com.cdad.project.executionservice.executor.Executor;
 import com.cdad.project.executionservice.executor.ExecutorFactory;
 import com.cdad.project.executionservice.service.BuildService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import javax.management.RuntimeErrorException;
 import java.io.IOException;
-import java.util.LinkedList;
+
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
+
 
 @RestController
 @RequestMapping("")
 public class BuildController {
     private final BuildService buildService;
+
+    private final ModelMapper modelMapper;
     @Autowired
     private ExecutorFactory executorFactory;
-    public BuildController(BuildService buildService) {
+
+    public BuildController(ModelMapper mapper,
+                           BuildService buildService) {
+        this.modelMapper = mapper;
         this.buildService = buildService;
+
     }
 
     @PostMapping("/builds")
-    public BuildOutput postBuild(@RequestBody PostBuildRequest postBuildRequest) throws IOException, InterruptedException, CompilationErrorException {
+    public BuildOutput postBuild(@RequestBody PostBuildRequest postBuildRequest) throws IOException, InterruptedException, BuildCompilationErrorException {
         ProgramInput programInput=new ProgramInput();
         programInput.setSourceCode(postBuildRequest.getSourceCode());
         programInput.setLanguage(postBuildRequest.getLanguage());
-//        List<TestInput> testInputs=new LinkedList<>();
-//        postBuildRequest.getInputs().forEach(testInput -> {
-//            testInputs.add(new TestInput(testInput.getInput()));
-//        });
         List<TestInput> testInputs=postBuildRequest.getInputs();
-        Executor executor=this.executorFactory.createExecutor(programInput);
-        List<TestOutput> testOutputs =executor.run(testInputs);
+        BaseExecutor executor= (BaseExecutor) this.executorFactory.createExecutor(programInput);
+        List<TestOutput> testOutputs = null;
+        try {
+            testOutputs = executor.run(testInputs);
+        } catch (CompilationErrorException e) {
+            BuildCompilationErrorException buildCompilationErrorException=new BuildCompilationErrorException(e.getMessage());
+            modelMapper.map(programInput,buildCompilationErrorException);
+            modelMapper.map(executor,buildCompilationErrorException);
+            throw buildCompilationErrorException;
+        }
         executor.clean();
-
         BuildOutput buildOutput=new BuildOutput();
-        buildOutput.setBuildId(executor.getBuildId());
+        buildOutput.setId(executor.getBuildId());
         buildOutput.setTestOutputs(testOutputs);
-
+        buildOutput.setStatus(executor.getStatus());
+        BuildEntity buildEntity=modelMapper.map(buildOutput,BuildEntity.class);
+        buildEntity.setLanguage(programInput.getLanguage());
+        buildEntity.setSourceCode(programInput.getSourceCode());
+        buildEntity.setTimeStamp(LocalDateTime.now());
+        this.buildService.save(buildEntity);
         return buildOutput;
     }
 
@@ -75,25 +93,31 @@ public class BuildController {
         ProgramInput programInput=new ProgramInput();
         programInput.setSourceCode(postBuildRequest.getSourceCode());
         programInput.setLanguage(postBuildRequest.getLanguage());
-//        List<TestInput> testInputs=new LinkedList<>();
-//        postBuildRequest.getInputs().forEach(testInput -> {
-//            testInputs.add(new TestInput(testInput.getInput()));
-//        });
         List<TestInput> testInputs=postBuildRequest.getInputs();
+
         Executor executor=this.executorFactory.createExecutor(programInput);
         List<TestOutput> testOutputs =executor.run(testInputs);
         executor.clean();
 
         BuildOutput buildOutput=new BuildOutput();
-        buildOutput.setBuildId(executor.getBuildId());
+        buildOutput.setId(executor.getBuildId());
         buildOutput.setTestOutputs(testOutputs);
 
         return buildOutput;
     }
 
-
     @ExceptionHandler(CompilationErrorException.class)
     public ErrorResponse handle(Exception e){
         return new ErrorResponse(Status.COMPILE_ERROR,e.getMessage());
+    }
+
+    @ExceptionHandler(BuildCompilationErrorException.class)
+    public BuildErrorResponse handle(BuildCompilationErrorException e){
+            BuildEntity buildEntity=modelMapper.map(e,BuildEntity.class);
+            this.buildService.save(buildEntity);
+
+            BuildErrorResponse buildErrorResponse=new BuildErrorResponse();
+            modelMapper.map(e,buildErrorResponse);
+            return buildErrorResponse;
     }
 }
