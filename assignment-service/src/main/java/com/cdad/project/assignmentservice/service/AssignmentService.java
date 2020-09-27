@@ -8,10 +8,7 @@ import com.cdad.project.assignmentservice.entity.Question;
 import com.cdad.project.assignmentservice.entity.TestCase;
 import com.cdad.project.assignmentservice.exceptions.AssignmentNotFoundException;
 import com.cdad.project.assignmentservice.exceptions.QuestionNotFoundException;
-import com.cdad.project.assignmentservice.exchanges.AddQuestionRequest;
-import com.cdad.project.assignmentservice.exchanges.CreateAssignmentRequest;
-import com.cdad.project.assignmentservice.exchanges.GetQuestionRequest;
-import com.cdad.project.assignmentservice.exchanges.UpdateAssignmentRequest;
+import com.cdad.project.assignmentservice.exchanges.*;
 import com.cdad.project.assignmentservice.repository.AssignmentRepository;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
@@ -42,8 +39,6 @@ public class AssignmentService {
   public List<AssignmentDTO> getAllAssignments() {
 //    List<AssignmentEntity> assignmentEntities = this.assignmentRepository.findAll();
 //    assignmentEntities.forEach(System.out::println);
-    Query query = new Query();
-    query.fields().exclude("questions");
     return this.assignmentRepository
             .findAll()
 //            .find(query, Assignment.class)
@@ -59,18 +54,15 @@ public class AssignmentService {
     newAssignment = this.assignmentRepository.save(newAssignment);
     return mapper.map(newAssignment, AssignmentDTO.class);
   }
+
   public AssignmentDTO updateAssignment(String id, UpdateAssignmentRequest request) throws AssignmentNotFoundException {
-    Optional<Assignment> assignmentEntity = this.assignmentRepository.findById(id);
-    if (assignmentEntity.isPresent()) {
-      Assignment assignment = assignmentEntity.get();
-      this.mapper.map(request, assignment);
-      assignment.setSlug(slugify(assignment.getTitle()));
-      this.assignmentRepository.save(assignment);
-      return mapper.map(assignment,AssignmentDTO.class);
-    } else {
-      throw new AssignmentNotFoundException(String.format("Assignment with id '%s' not found.", id));
-    }
+    Assignment assignment = getAssignment(id);
+    this.mapper.map(request, assignment);
+    assignment.setSlug(slugify(assignment.getTitle()));
+    this.assignmentRepository.save(assignment);
+    return mapper.map(assignment, AssignmentDTO.class);
   }
+
   private String slugify(String str) {
     return String.join("-", str.trim().toLowerCase().split("\\s+"));
   }
@@ -80,12 +72,8 @@ public class AssignmentService {
   }
 
   public AssignmentDTO getAssignmentById(String id) throws AssignmentNotFoundException {
-    Optional<Assignment> assignmentEntity = this.assignmentRepository.findById(id);
-    if (assignmentEntity.isPresent()) {
-      return mapper.map(assignmentEntity.get(), AssignmentDTO.class);
-    } else {
-      throw new AssignmentNotFoundException(String.format("Assignment with id '%s' not found.", id));
-    }
+    Assignment assignment = getAssignment(id);
+    return mapper.map(assignment, AssignmentDTO.class);
   }
 
   public AssignmentDTO getAssignmentBySlug(String slug) throws AssignmentNotFoundException {
@@ -98,49 +86,79 @@ public class AssignmentService {
   }
 
   public void addQuestionToAssignment(AddQuestionRequest request) throws AssignmentNotFoundException {
-    Optional<Assignment> assignmentOptional = this.assignmentRepository.findById(request.getAssignmentId());
-    if (assignmentOptional.isPresent()) {
+      Assignment assignment =  getAssignment(request.getAssignmentId());
       Question newQuestion = mapper.map(request, Question.class);
       newQuestion.setId(UUID.randomUUID());
       newQuestion.setSlug(slugify(request.getTitle()));
-      Assignment assignment = assignmentOptional.get();
       if (assignment.getQuestions() == null) {
         assignment.setQuestions(new ArrayList<>());
       }
       assignment.getQuestions().add(newQuestion);
       this.assignmentRepository.save(assignment);
-    } else {
-      throw new AssignmentNotFoundException(String.format("Assignment with id '%s' not found.", request.getAssignmentId()));
-    }
   }
 
-  public QuestionDTO getQuestion(GetQuestionRequest request) throws AssignmentNotFoundException, QuestionNotFoundException {
-    Optional<Assignment> assignmentOptional = this.assignmentRepository.findById(request.getAssignmentId());
-
-    Assignment assignment = assignmentOptional.orElseThrow(
-            () -> new AssignmentNotFoundException("Assignment with id '" + request.getAssignmentId() + "' not found")
-    );
-    Optional<Question> questionOptional = assignment.getQuestions()
-            .stream()
-            .filter(question -> question.getId().equals(UUID.fromString(request.getQuestionId())))
-            .findFirst();
-    Question question = questionOptional.orElseThrow(
-            () -> new QuestionNotFoundException("Question with id '" + request.getQuestionId() + "' not found")
-    );
-    return mapper.map(question, QuestionDTO.class);
-
+  public QuestionDTO getQuestion(String assignmentSlug, String questionSlug) throws AssignmentNotFoundException, QuestionNotFoundException {
+    Optional<Assignment> assignmentEntity = this.assignmentRepository.findBySlug(assignmentSlug);
+    if (assignmentEntity.isPresent()) {
+      Assignment assignment = assignmentEntity.get();
+      Optional<Question> questionOptional = assignment.getQuestions()
+              .stream()
+              .filter(question -> question.getSlug().equals(questionSlug))
+              .findFirst();
+      Question question = questionOptional.orElseThrow(
+              () -> new QuestionNotFoundException("Question with slug '" + questionSlug + "' not found")
+      );
+      return mapper.map(question, QuestionDTO.class);
+    } else {
+      throw new AssignmentNotFoundException(String.format("Assignment with slug '%s' not found.", assignmentSlug));
+    }
   }
 
   public void toggleAssignmentStatus(String id) throws AssignmentNotFoundException {
-    Optional<Assignment> assignmentOptional = this.assignmentRepository.findById(id);
-    if (assignmentOptional.isPresent()) {
-      Assignment assignment = assignmentOptional.get();
-      String currentStatus = assignment.getStatus();
-      assignment.setStatus(currentStatus.equals("ACTIVE") ? "INACTIVE" : "ACTIVE");
-      this.assignmentRepository.save(assignment);
-    } else {
-      throw new AssignmentNotFoundException(String.format("Assignment with id '%s' not found.", id));
-    }
+    Assignment assignment = getAssignment(id);
+    String currentStatus = assignment.getStatus();
+    assignment.setStatus(currentStatus.equals("ACTIVE") ? "INACTIVE" : "ACTIVE");
+    this.assignmentRepository.save(assignment);
+  }
 
+  public void deleteQuestionForAssignment(String assignmentId, String questionId) throws AssignmentNotFoundException, QuestionNotFoundException {
+    Assignment assignment = getAssignment(assignmentId);
+    Optional<Question> questionOptional = assignment.getQuestions()
+            .stream()
+            .filter(question -> question.getId().equals(UUID.fromString(questionId)))
+            .findFirst();
+    Question question = questionOptional.orElseThrow(
+            () -> new QuestionNotFoundException("Question with id '" + questionId + "' not found")
+    );
+    assignment.getQuestions().remove(question);
+    this.assignmentRepository.save(assignment);
+  }
+  public void updateQuestionForAssignment(String assignmentId, QuestionDTO questionDTO) throws AssignmentNotFoundException, QuestionNotFoundException {
+    Assignment assignment = getAssignment(assignmentId);
+    Optional<Question> questionOptional = assignment.getQuestions()
+            .stream()
+            .filter(q -> q.getId().equals(questionDTO.getId()))
+            .findFirst();
+    Question question = questionOptional.orElseThrow(
+            () -> new QuestionNotFoundException("Question with id '" + questionDTO.getId() + "' not found")
+    );
+    log.info(questionDTO.getAllowedLanguages());
+    log.info("Before :: " + question.getAllowedLanguages());
+    mapper.map(questionDTO, question);
+    question.setAllowedLanguages(questionDTO.getAllowedLanguages());
+    question.setTestCases(questionDTO.getTestCases());
+    log.info("After :: " + question.getAllowedLanguages());
+    question.setSlug(slugify(question.getTitle()));
+    this.assignmentRepository.save(assignment);
+
+
+
+  }
+
+  private Assignment getAssignment(String assignmentId) throws AssignmentNotFoundException {
+    Optional<Assignment> assignmentOptional = this.assignmentRepository.findById(assignmentId);
+    return assignmentOptional.orElseThrow(
+            () -> new AssignmentNotFoundException("Assignment with id '" + assignmentId + "' not found")
+    );
   }
 }

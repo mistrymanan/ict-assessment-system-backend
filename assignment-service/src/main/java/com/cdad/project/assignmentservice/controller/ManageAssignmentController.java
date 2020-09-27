@@ -17,13 +17,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("")
-public class AssignmentController {
+public class ManageAssignmentController {
   private final AssignmentService assignmentService;
-  private final ModelMapper mapper;
 
-  public AssignmentController(AssignmentService assignmentService, ModelMapper mapper) {
+  public ManageAssignmentController(AssignmentService assignmentService){
     this.assignmentService = assignmentService;
-    this.mapper = mapper;
   }
 
   @GetMapping("/all")
@@ -40,18 +38,18 @@ public class AssignmentController {
     return this.assignmentService.createAssignment(request);
   }
 
-  @DeleteMapping("/{id}")
+  @DeleteMapping("id/{id}")
   @ResponseStatus(HttpStatus.OK)
   public void deleteAssignment(@PathVariable String id) {
     this.assignmentService.deleteAssignment(id);
   }
 
-  @GetMapping("/{id}")
+  @GetMapping("id/{id}")
   @ResponseStatus(HttpStatus.OK)
   public AssignmentDTO getAssignment(@PathVariable String id) throws AssignmentNotFoundException {
     return this.assignmentService.getAssignmentById(id);
   }
-  @PutMapping("/{id}")
+  @PutMapping("id/{id}")
   @ResponseStatus(HttpStatus.OK)
   public AssignmentDTO updateAssignment(@PathVariable String id, @RequestBody @Valid UpdateAssignmentRequest updateRequest) throws AssignmentNotFoundException {
     return this.assignmentService.updateAssignment(id, updateRequest);
@@ -62,7 +60,7 @@ public class AssignmentController {
     return this.assignmentService.getAssignmentBySlug(slug);
   }
 
-  @PatchMapping("/{id}")
+  @PatchMapping("id/{id}")
   @ResponseStatus(HttpStatus.ACCEPTED)
   public void toggleAssignmentStatus(@PathVariable String id) throws AssignmentNotFoundException {
     this.assignmentService.toggleAssignmentStatus(id);

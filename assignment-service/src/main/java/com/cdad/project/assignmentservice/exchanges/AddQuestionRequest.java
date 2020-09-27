@@ -18,5 +18,5 @@ public class AddQuestionRequest {
   private String description;
   private String solutionLanguage;
   private String solutionCode;
-  private List<TestCase> inputs;
+  private List<TestCase> testCases;
 }
