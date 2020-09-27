@@ -10,7 +10,7 @@ import javax.validation.constraints.NotNull;
 @AllArgsConstructor
 public class GetQuestionRequest {
   @NotNull
-  private String assignmentId;
+  private String assignmentSlug;
   @NotNull
-  private String questionId;
+  private String questionSlug;
 }
