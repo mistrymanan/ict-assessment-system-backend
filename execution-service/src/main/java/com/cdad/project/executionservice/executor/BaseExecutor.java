@@ -28,7 +28,7 @@ abstract public class BaseExecutor implements Executor {
     private String sourceFileExtention;
     final private Integer timeout = 5;
     private long executionTime;
-    public Status status;
+    private Status status;
     private String runCommandString;
 
     private BaseExecutor() {
@@ -268,10 +268,9 @@ abstract public class BaseExecutor implements Executor {
         testOutputs.add(testOutput);
         });
 
-//                writeOutput();
-        boolean b = testOutputs.stream().allMatch(testCase -> testCase.getStatus().equals(Status.SUCCEED));
-        setStatus(b? Status.SUCCEED:Status.TEST_FAILED);
-//        return b ? Status.SUCCEED : Status.TESTFAILED;
+        boolean testSucceed = testOutputs.stream().allMatch(testCase -> testCase.getStatus().equals(Status.SUCCEED));
+       setStatus(testSucceed ? Status.SUCCEED : Status.TEST_FAILED);
+
         return testOutputs;
     }
 

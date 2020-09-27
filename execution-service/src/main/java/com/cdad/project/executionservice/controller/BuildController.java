@@ -52,9 +52,10 @@ public class BuildController {
             BuildCompilationErrorException buildCompilationErrorException=new BuildCompilationErrorException(e.getMessage());
             modelMapper.map(programInput,buildCompilationErrorException);
             modelMapper.map(executor,buildCompilationErrorException);
+          
             throw buildCompilationErrorException;
         }
-        executor.clean();
+    
         BuildOutput buildOutput=new BuildOutput();
         buildOutput.setId(executor.getBuildId());
         buildOutput.setTestOutputs(testOutputs);
@@ -64,6 +65,11 @@ public class BuildController {
         buildEntity.setSourceCode(programInput.getSourceCode());
         buildEntity.setTimeStamp(LocalDateTime.now());
         this.buildService.save(buildEntity);
+  
+    finally{
+        executor.clean();
+      }
+        
         return buildOutput;
     }
 
@@ -84,7 +90,7 @@ public class BuildController {
         programInput.setLanguage(postRunRequest.getLanguage());
         Executor executor = this.executorFactory.createExecutor(programInput);
         TestOutput testOutput=executor.run(postRunRequest.getInput());
-        executor.clean();
+        executor.clean(); // we don't need it in synchronous manner. clean up task can be asynchronous.
         return testOutput;
     }
 
@@ -94,14 +100,13 @@ public class BuildController {
         programInput.setSourceCode(postBuildRequest.getSourceCode());
         programInput.setLanguage(postBuildRequest.getLanguage());
         List<TestInput> testInputs=postBuildRequest.getInputs();
-
-        Executor executor=this.executorFactory.createExecutor(programInput);
+        BaseExecutor executor= (BaseExecutor) this.executorFactory.createExecutor(programInput);
         List<TestOutput> testOutputs =executor.run(testInputs);
-        executor.clean();
-
         BuildOutput buildOutput=new BuildOutput();
         buildOutput.setId(executor.getBuildId());
         buildOutput.setTestOutputs(testOutputs);
+        buildOutput.setStatus(executor.getStatus());
+        executor.clean();
 
         return buildOutput;
     }

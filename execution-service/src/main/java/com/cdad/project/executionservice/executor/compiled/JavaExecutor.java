@@ -19,7 +19,7 @@ public class JavaExecutor extends BaseExecutor implements CompiledExecutor {
     public JavaExecutor(ProgramInput program) throws IOException, InterruptedException {
         super(program);
         if(!this.compile().equals(0)){
-            super.status=Status.COMPILE_ERROR;
+            setStatus(Status.COMPILE_ERROR);
         }
         List<String> command = new ArrayList<>();
         command.add("chroot /jail/");
