@@ -1,4 +1,4 @@
-package com.cdad.project.gradingservice.serviceclient.exchanges;
+package com.cdad.project.gradingservice.serviceclient.executionservice.exchanges;
 
 import com.cdad.project.gradingservice.dto.TestInput;
 import com.cdad.project.gradingservice.entity.Language;

@@ -1,4 +1,4 @@
-package com.cdad.project.gradingservice.serviceclient.exchanges;
+package com.cdad.project.gradingservice.serviceclient.executionservice.exchanges;
 
 import com.cdad.project.gradingservice.entity.Language;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;

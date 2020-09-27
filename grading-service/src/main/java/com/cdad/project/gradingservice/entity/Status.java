@@ -1,6 +1,7 @@
 package com.cdad.project.gradingservice.entity;
 
 public enum Status {
+    ACCEPTED,
     PASSED,
     FAILED,
     SUCCEED,
