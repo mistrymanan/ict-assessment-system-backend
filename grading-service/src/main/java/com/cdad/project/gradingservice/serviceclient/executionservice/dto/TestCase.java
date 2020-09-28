@@ -1,4 +1,4 @@
-package com.cdad.project.gradingservice.dto;
+package com.cdad.project.gradingservice.serviceclient.executionservice.dto;
 
 import com.cdad.project.gradingservice.entity.Status;
 import com.fasterxml.jackson.annotation.JsonInclude;

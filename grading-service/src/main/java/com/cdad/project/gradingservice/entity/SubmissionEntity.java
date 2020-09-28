@@ -1,6 +1,6 @@
 package com.cdad.project.gradingservice.entity;
 
-import com.cdad.project.gradingservice.dto.TestCase;
+import com.cdad.project.gradingservice.exchange.TestResult;
 import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.FieldType;
@@ -19,5 +19,5 @@ public class SubmissionEntity {
     private LocalDateTime timeStamp;
     private Status status;
     private Double score;
-    private List<TestCase> testCases;
+    private List<TestResult> testResults;
 }

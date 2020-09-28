@@ -1,12 +1,10 @@
-server:
-  port: 8080
+
 spring:
   data:
     mongodb:
-#      authentication-database: admin
       uri: mongodb://root:eQWRv7lGgR@mongodb.default.svc.cluster.local:27017/grading-service-db?authSource=admin
-      auto-index-creation: true
       database: grading-service-db
-  application:
-    name: grading-service
-#      uri: mongodb://localhost:27017/assignment-service-db?authSource=admin
+server:
+  port: 8080
+
+

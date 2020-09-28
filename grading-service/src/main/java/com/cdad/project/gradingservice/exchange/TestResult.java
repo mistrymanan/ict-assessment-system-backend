@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class ResponseTestCase {
+public class TestResult {
     private String id;
     private Status status;
 }

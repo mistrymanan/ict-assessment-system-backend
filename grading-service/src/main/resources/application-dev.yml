@@ -5,6 +5,6 @@ spring:
       uri: mongodb://root:eQWRv7lGgR@localhost:27017/grading-service-db?authSource=admin
       database: grading-service-db
 server:
-  port: 8083
+  port: 8080
 
 

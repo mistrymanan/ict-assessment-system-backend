@@ -1,7 +1,7 @@
 package com.cdad.project.gradingservice.serviceclient.executionservice.exchanges;
 
 
-import com.cdad.project.gradingservice.dto.TestCase;
+import com.cdad.project.gradingservice.serviceclient.executionservice.dto.TestCase;
 import com.cdad.project.gradingservice.entity.Status;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
@@ -17,5 +17,6 @@ public class PostBuildResponse {
     private String id;
     private Status status;
     private List<TestCase> testOutputs;
+    private String message;
     private long executionTime;
 }

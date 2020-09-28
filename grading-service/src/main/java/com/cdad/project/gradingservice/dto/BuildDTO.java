@@ -2,6 +2,7 @@ package com.cdad.project.gradingservice.dto;
 
 import com.cdad.project.gradingservice.entity.Language;
 import com.cdad.project.gradingservice.entity.Status;
+import com.cdad.project.gradingservice.serviceclient.executionservice.dto.TestCase;
 import lombok.Data;
 import lombok.ToString;
 import org.springframework.data.mongodb.core.mapping.MongoId;
