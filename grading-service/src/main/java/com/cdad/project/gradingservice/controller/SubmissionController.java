@@ -1,7 +1,9 @@
 package com.cdad.project.gradingservice.controller;
 
 import com.cdad.project.gradingservice.dto.SubmissionResult;
+import com.cdad.project.gradingservice.entity.Status;
 import com.cdad.project.gradingservice.entity.SubmissionEntity;
+import com.cdad.project.gradingservice.exception.SubmissionCompilationError;
 import com.cdad.project.gradingservice.exchange.*;
 import com.cdad.project.gradingservice.service.SubmissionService;
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.AssignmentServiceClient;
@@ -15,10 +17,8 @@ import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.
 import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.PostRunRequest;
 import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.PostRunResponse;
 import org.modelmapper.ModelMapper;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -60,7 +60,7 @@ public class SubmissionController {
     }
 
     @PostMapping("/submit")
-    PostSubmitResponse submitAssignment(@RequestBody PostSubmitRequest request) throws BuildCompilationErrorException {
+    PostSubmitResponse submitAssignment(@RequestBody PostSubmitRequest request) throws SubmissionCompilationError {
 
         PostSubmitResponse postSubmitResponse = new PostSubmitResponse();
 
@@ -74,17 +74,40 @@ public class SubmissionController {
         PostBuildRequest postBuildRequest = modelMapper.map(request, PostBuildRequest.class);
         postBuildRequest.setInputs(question.getTestCases());
 
-        PostBuildResponse userBuildResponse = this.executionServiceClient.postBuild(postBuildRequest);
 
-        List<TestResult> testResultResponseTestCases =null;
+        PostBuildResponse userBuildResponse = null;
+        SubmissionResult submissionResult= null;
+        try {
+            userBuildResponse = this.executionServiceClient.postBuild(postBuildRequest);
+            List<TestResult> testResultResponseTestCases =null;
+            submissionResult = this.submissionService.evaluate(userBuildResponse,question,assignment);
+        } catch (BuildCompilationErrorException e) {
 
-        SubmissionResult submissionResult=this.submissionService.evaluate(userBuildResponse,question,assignment);
-
+            SubmissionCompilationError error=new SubmissionCompilationError(e.getMessage());
+            modelMapper.map(e,error);
+            modelMapper.map(request,error);
+//            error.setAssignmentId(request.getAssignmentId());
+//            error.setQuestionId(request.getQuestionId());
+//            error.setBuildId(e.getBuildId());
+            throw error;
+        }
         modelMapper.map(request,postSubmitResponse);
         modelMapper.map(submissionResult,postSubmitResponse);
         modelMapper.map(postSubmitResponse,submissionEntity);
+
         SubmissionEntity entity=this.submissionService.save(submissionEntity);
         postSubmitResponse.setSubmissionId(entity.getId());
         return postSubmitResponse;
     }
+
+    @ExceptionHandler(SubmissionCompilationError.class)
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    public ErrorResponse handle(SubmissionCompilationError error){
+        SubmissionEntity submissionEntity=modelMapper.map(error,SubmissionEntity.class);
+        submissionEntity=this.submissionService.save(submissionEntity);
+        ErrorResponse errorResponse=modelMapper.map(submissionEntity,ErrorResponse.class);
+        modelMapper.map(error,errorResponse);
+        return errorResponse;
+    }
+
 }

@@ -55,7 +55,7 @@ public class ExecutionServiceClient {
                 .bodyToMono(PostBuildResponse.class).block();
 
             if(postBuildResponse.getStatus().equals(Status.COMPILE_ERROR)){
-                throw modelMapper.map(postBuildResponse, BuildCompilationErrorException.class);
+                throw new BuildCompilationErrorException(postBuildResponse.getMessage(), postBuildResponse.getId());
             }
 
         return postBuildResponse;
