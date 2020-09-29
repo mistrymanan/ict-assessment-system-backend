@@ -1,6 +1,8 @@
 package com.cdad.project.gradingservice.controller;
 
+import com.cdad.project.gradingservice.dto.SubmissionDetails;
 import com.cdad.project.gradingservice.dto.SubmissionResult;
+import com.cdad.project.gradingservice.entity.Status;
 import com.cdad.project.gradingservice.entity.SubmissionEntity;
 import com.cdad.project.gradingservice.exception.RunCodeCompilationError;
 import com.cdad.project.gradingservice.exception.SubmissionCompilationError;
@@ -20,6 +22,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import javax.websocket.server.PathParam;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -93,7 +97,7 @@ public class SubmissionController {
         modelMapper.map(request,postSubmitResponse);
         modelMapper.map(submissionResult,postSubmitResponse);
         modelMapper.map(postSubmitResponse,submissionEntity);
-
+        submissionEntity.setTime(submissionResult.getTime());
         SubmissionEntity entity=this.submissionService.save(submissionEntity);
 
         postSubmitResponse.setSubmissionId(entity.getId().toString());
@@ -103,17 +107,24 @@ public class SubmissionController {
     @ExceptionHandler(SubmissionCompilationError.class)
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     public ErrorResponse handle(SubmissionCompilationError error){
+
         SubmissionEntity submissionEntity=modelMapper.map(error,SubmissionEntity.class);
+        submissionEntity.setTime(LocalDateTime.now());
         submissionEntity=this.submissionService.save(submissionEntity);
         ErrorResponse errorResponse=modelMapper.map(submissionEntity,ErrorResponse.class);
         modelMapper.map(error,errorResponse);
         return errorResponse;
     }
 
+    @GetMapping("/submissions/{assignmentId}/{questionId}")
+    public List<SubmissionDetails> getSubmissions(@PathVariable String assignmentId, @PathVariable String questionId){
+        System.out.println(assignmentId);
+        return this.submissionService.getSubmissionDetails(assignmentId, questionId);
+    }
+
     @ExceptionHandler(RunCodeCompilationError.class)
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     public ErrorResponse handle(RunCodeCompilationError error){
-
         return modelMapper.map(error,ErrorResponse.class);
     }
 }

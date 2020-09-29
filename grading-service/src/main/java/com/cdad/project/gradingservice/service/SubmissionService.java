@@ -1,5 +1,6 @@
 package com.cdad.project.gradingservice.service;
 
+import com.cdad.project.gradingservice.dto.SubmissionDetails;
 import com.cdad.project.gradingservice.dto.SubmissionResult;
 import com.cdad.project.gradingservice.entity.*;
 import com.cdad.project.gradingservice.exception.RunCodeCompilationError;
@@ -24,6 +25,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,6 +44,7 @@ public class SubmissionService {
     }
 
     public SubmissionEntity save(SubmissionEntity submissionEntity){
+        submissionEntity.setId(UUID.randomUUID());
         return this.submissionRepository.save(submissionEntity);
     }
 
@@ -72,17 +75,7 @@ public class SubmissionService {
             }
 
         }
-//        else if(userResponse.getStatus().equals(Status.RUNTIME_ERROR) || userResponse.getStatus().equals(Status.TIMEOUT)){
-//            request.setSourceCode(question.getSolutionCode());
-//            request.setLanguage(Language.valueOf(question.getSolutionLanguage().toUpperCase()));
-//            PostRunResponse expectedResponse=this.executionServiceClient.postRunCode(request)
-//                    .block();
-//            modelMapper.map(userResponse,response);
-//            if(expectedResponse.getStatus().equals(Status.SUCCEED)){
-//                response.setExpectedOutput(expectedResponse.getOutput());
-//            }
-//            else{ response.setStatus(Status.UNEXPECTED_ERROR);}
-//        }
+
         response.setOutput(userResponse.getOutput());
         return response;
     }
@@ -90,7 +83,9 @@ public class SubmissionService {
     public SubmissionResult evaluate(PostBuildResponse userResponse, Question question, Assignment assignment) throws BuildCompilationErrorException {
 
         SubmissionResult submissionResult=new SubmissionResult();
-        submissionResult.setTimeStamp(LocalDateTime.ofInstant(Instant.now(), ZoneId.of("Asia/Kolkata")));
+        LocalDateTime submissionTime=LocalDateTime.ofInstant(Instant.now(), ZoneId.of("Asia/Kolkata"));
+        //submissionResult.setTime(LocalDateTime.ofInstant(Instant.now(),ZoneOffset.UTC));
+        submissionResult.setTime(submissionTime);
         List<TestResult> testResultResponseTestCases =null;
         Double scoreAchieved=0.0;
         if(userResponse.getStatus().equals(Status.COMPILE_ERROR)){
@@ -119,7 +114,7 @@ public class SubmissionService {
                     status=ResultStatus.FAILED;
                     reason=Reason.RUNTIME_ERROR;
                 }
-                else if(testCase.getStatus().equals(Status.RUNTIME_ERROR)){
+                else if(testCase.getStatus().equals(Status.TIMEOUT)){
                     status=ResultStatus.FAILED;
                     reason=Reason.TIMEOUT;
                 }
@@ -143,7 +138,7 @@ public class SubmissionService {
             }
 
             if(assignment.isHasDeadline()){
-                if(submissionResult.getTimeStamp().isAfter(assignment.getDeadline())){
+                if(submissionTime.isAfter(assignment.getDeadline())){
                     submissionResult.setSubmissionStatus(SubmissionStatus.LATE);
                 }
                 else {
@@ -161,6 +156,21 @@ public class SubmissionService {
         }
 
         return submissionResult;
+        }
+
+        public List<SubmissionDetails> getSubmissionDetails(String assignmentId, String questionId)
+        {
+
+            this.submissionRepository
+                    .findAllByAssignmentIdAndQuestionId(assignmentId, questionId)
+                    .stream().forEach(System.out::println);
+
+             List<SubmissionDetails> submissionDetails=this.submissionRepository
+                     .findAllByAssignmentIdAndQuestionId(assignmentId, questionId)
+                     .stream()
+                     .map(submissionEntity -> modelMapper.map(submissionEntity,SubmissionDetails.class))
+                     .collect(Collectors.toList());
+            return submissionDetails;
         }
 
     }

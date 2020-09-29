@@ -15,6 +15,6 @@ public class SubmissionResult {
     private SubmissionStatus submissionStatus;
     private ResultStatus status;
     private Double score;
-    private LocalDateTime timeStamp;
+    private LocalDateTime time;
     private List<TestResult> testResults;
 }
