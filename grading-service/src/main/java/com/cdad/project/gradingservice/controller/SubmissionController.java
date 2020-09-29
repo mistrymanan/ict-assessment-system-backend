@@ -116,7 +116,7 @@ public class SubmissionController {
         return errorResponse;
     }
 
-    @GetMapping("/submissions/{assignmentId}/{questionId}")
+    @GetMapping("/{assignmentId}/{questionId}")
     public List<SubmissionDetails> getSubmissions(@PathVariable String assignmentId, @PathVariable String questionId){
         System.out.println(assignmentId);
         return this.submissionService.getSubmissionDetails(assignmentId, questionId);
