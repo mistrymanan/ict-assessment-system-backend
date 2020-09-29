@@ -17,6 +17,6 @@ public class PostSubmitResponse {
     private SubmissionStatus submissionStatus;
     private Status status;
     private Double score;
-    private List<TestResult> testCases;
+    private List<TestResult> testResults;
 
 }

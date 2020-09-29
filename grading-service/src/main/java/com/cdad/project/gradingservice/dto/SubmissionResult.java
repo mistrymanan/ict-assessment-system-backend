@@ -1,5 +1,6 @@
 package com.cdad.project.gradingservice.dto;
 
+import com.cdad.project.gradingservice.entity.ResultStatus;
 import com.cdad.project.gradingservice.entity.Status;
 import com.cdad.project.gradingservice.entity.SubmissionStatus;
 import com.cdad.project.gradingservice.exchange.TestResult;
@@ -12,8 +13,8 @@ import java.util.List;
 public class SubmissionResult {
     private String buildId;
     private SubmissionStatus submissionStatus;
-    private Status status;
+    private ResultStatus status;
     private Double score;
     private LocalDateTime timeStamp;
-    private List<TestResult> testCases;
+    private List<TestResult> testResults;
 }

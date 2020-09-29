@@ -1,8 +1,8 @@
 package com.cdad.project.gradingservice.controller;
 
 import com.cdad.project.gradingservice.dto.SubmissionResult;
-import com.cdad.project.gradingservice.entity.Status;
 import com.cdad.project.gradingservice.entity.SubmissionEntity;
+import com.cdad.project.gradingservice.exception.RunCodeCompilationError;
 import com.cdad.project.gradingservice.exception.SubmissionCompilationError;
 import com.cdad.project.gradingservice.exchange.*;
 import com.cdad.project.gradingservice.service.SubmissionService;
@@ -21,7 +21,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("")
@@ -40,9 +39,9 @@ public class SubmissionController {
         this.submissionService = submissionService;
     }
     @PostMapping("run-code")
-    PostRunCodeResponse postRunCode(@RequestBody PostRunCodeRequest request ){
-//        PostRunCodeResponse postRunCode=new PostRunCodeResponse();
-//        postRunCode.setInput(request.getInput());
+    PostRunCodeResponse postRunCode(@RequestBody PostRunCodeRequest request ) throws RunCodeCompilationError {
+        PostRunCodeResponse postRunResponse=new PostRunCodeResponse();
+        postRunResponse.setInput(request.getInput());
 
         GetQuestionRequest getQuestionRequest=new GetQuestionRequest();
         modelMapper.map(request,getQuestionRequest);
@@ -51,11 +50,15 @@ public class SubmissionController {
 
         PostRunRequest postRunRequest=modelMapper.map(request,PostRunRequest.class);
 
-        PostRunResponse userResponse=this.executionServiceClient.postRunCode(postRunRequest)
-                .block();
-        PostRunCodeResponse postRunResponse=this.submissionService.getExpectedResult(userResponse,question,postRunRequest);
-        modelMapper.map(request,postRunResponse);
+        PostRunResponse userResponse=this.executionServiceClient.postRunCode(postRunRequest);
 
+        if(question.isShowExpectedOutput()){
+            postRunResponse=this.submissionService.getExpectedResult(userResponse,question,postRunRequest);
+        modelMapper.map(request,postRunResponse);
+        }
+        else{
+            modelMapper.map(userResponse,postRunResponse);
+        }
         return postRunResponse;
     }
 
@@ -82,13 +85,9 @@ public class SubmissionController {
             List<TestResult> testResultResponseTestCases =null;
             submissionResult = this.submissionService.evaluate(userBuildResponse,question,assignment);
         } catch (BuildCompilationErrorException e) {
-
             SubmissionCompilationError error=new SubmissionCompilationError(e.getMessage());
             modelMapper.map(e,error);
             modelMapper.map(request,error);
-//            error.setAssignmentId(request.getAssignmentId());
-//            error.setQuestionId(request.getQuestionId());
-//            error.setBuildId(e.getBuildId());
             throw error;
         }
         modelMapper.map(request,postSubmitResponse);
@@ -96,7 +95,8 @@ public class SubmissionController {
         modelMapper.map(postSubmitResponse,submissionEntity);
 
         SubmissionEntity entity=this.submissionService.save(submissionEntity);
-        postSubmitResponse.setSubmissionId(entity.getId());
+
+        postSubmitResponse.setSubmissionId(entity.getId().toString());
         return postSubmitResponse;
     }
 
@@ -110,4 +110,10 @@ public class SubmissionController {
         return errorResponse;
     }
 
+    @ExceptionHandler(RunCodeCompilationError.class)
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    public ErrorResponse handle(RunCodeCompilationError error){
+
+        return modelMapper.map(error,ErrorResponse.class);
+    }
 }

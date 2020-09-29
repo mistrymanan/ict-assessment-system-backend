@@ -1,6 +1,7 @@
 package com.cdad.project.gradingservice.serviceclient.executionservice;
 
 import com.cdad.project.gradingservice.entity.Status;
+import com.cdad.project.gradingservice.exception.RunCodeCompilationError;
 import com.cdad.project.gradingservice.serviceclient.executionservice.exceptions.BuildCompilationErrorException;
 import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.PostBuildRequest;
 import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.PostBuildResponse;
@@ -33,16 +34,20 @@ public class ExecutionServiceClient {
 //        System.out.println(obj.toString());
 //    }
 
-    public Mono<PostRunResponse> postRunCode(PostRunRequest request){
-            return webClient.post()
-                    .uri(uriBuilder ->
-                            uriBuilder
-                                    .path(POST_RUN)
-                            .build()
-                            )
-                    .body(Mono.just(request),PostRunRequest.class)
-                    .retrieve()
-                    .bodyToMono(PostRunResponse.class);
+    public PostRunResponse postRunCode(PostRunRequest request) throws RunCodeCompilationError {
+        PostRunResponse response=webClient.post()
+                .uri(uriBuilder ->
+                        uriBuilder
+                                .path(POST_RUN)
+                                .build()
+                )
+                .body(Mono.just(request),PostRunRequest.class)
+                .retrieve()
+                .bodyToMono(PostRunResponse.class).block();
+        if(response.getStatus().equals(Status.COMPILE_ERROR)){
+            throw new RunCodeCompilationError(response.getMessage(),response.getStatus());
+        }
+            return response;
     }
     public PostBuildResponse postBuild(PostBuildRequest request) throws BuildCompilationErrorException {
          PostBuildResponse postBuildResponse=webClient.post()
