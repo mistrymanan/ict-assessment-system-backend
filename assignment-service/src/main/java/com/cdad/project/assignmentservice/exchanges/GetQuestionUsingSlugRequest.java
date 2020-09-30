@@ -8,7 +8,7 @@ import javax.validation.constraints.NotNull;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class GetQuestionRequest {
+public class GetQuestionUsingSlugRequest {
   @NotNull
   private String assignmentSlug;
   @NotNull

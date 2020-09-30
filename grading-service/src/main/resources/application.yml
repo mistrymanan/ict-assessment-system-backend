@@ -1,0 +1,10 @@
+
+spring:
+  data:
+    mongodb:
+      uri: mongodb://root:eQWRv7lGgR@mongodb.default.svc.cluster.local:27017/grading-service-db?authSource=admin
+      database: grading-service-db
+server:
+  port: 8080
+
+

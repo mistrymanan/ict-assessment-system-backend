@@ -161,4 +161,16 @@ public class AssignmentService {
             () -> new AssignmentNotFoundException("Assignment with id '" + assignmentId + "' not found")
     );
   }
+
+  public QuestionDTO getQuestionUsingId(String assignmentId, String questionId) throws AssignmentNotFoundException, QuestionNotFoundException {
+      Assignment assignment = getAssignment(assignmentId);
+      Optional<Question> questionOptional = assignment.getQuestions()
+              .stream()
+              .filter(question -> question.getId().equals(UUID.fromString(questionId)))
+              .findFirst();
+      Question question = questionOptional.orElseThrow(
+              () -> new QuestionNotFoundException("Question with id '" + questionId + "' not found")
+      );
+      return mapper.map(question, QuestionDTO.class);
+  }
 }
