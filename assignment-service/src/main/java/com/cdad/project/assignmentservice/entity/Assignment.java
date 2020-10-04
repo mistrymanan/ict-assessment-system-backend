@@ -20,6 +20,8 @@ public class Assignment {
   private ObjectId id;
   private String title;
   private String status;
+  @Indexed
+  private String email;
   @Indexed(unique = true)
   private String slug;
   private boolean timed;
