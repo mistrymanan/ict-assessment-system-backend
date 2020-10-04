@@ -3,14 +3,11 @@ package com.cdad.project.gradingservice.dto;
 import com.cdad.project.gradingservice.entity.QuestionStatus;
 import com.cdad.project.gradingservice.entity.ResultStatus;
 import com.cdad.project.gradingservice.exchange.TestResult;
-import com.cdad.project.gradingservice.serviceclient.assignmentservice.dto.Question;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 
 @Data

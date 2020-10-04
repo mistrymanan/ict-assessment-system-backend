@@ -1,6 +1,6 @@
 package com.cdad.project.gradingservice.controller;
 
-import com.cdad.project.gradingservice.dto.SubmissionDetails;
+import com.cdad.project.gradingservice.dto.SubmissionDetailsDTO;
 import com.cdad.project.gradingservice.dto.QuestionDTO;
 import com.cdad.project.gradingservice.entity.*;
 import com.cdad.project.gradingservice.exception.AssignmentNotActiveException;
@@ -12,6 +12,7 @@ import com.cdad.project.gradingservice.service.SubmissionService;
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.AssignmentServiceClient;
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.dto.Assignment;
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.dto.Question;
+import com.cdad.project.gradingservice.serviceclient.assignmentservice.dto.QuestionDetails;
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.exchanges.GetQuestionRequest;
 import com.cdad.project.gradingservice.serviceclient.executionservice.ExecutionServiceClient;
 import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.PostRunRequest;
@@ -113,6 +114,14 @@ public class SubmissionController {
     void startQuestion(@RequestBody StartQuestionRequest request){
         if(!submissionService.isExist(request.getAssignmentId(), request.getEmail())){
             SubmissionEntity submissionEntity=modelMapper.map(request,SubmissionEntity.class);
+            Assignment assignment=this.assignmentServiceClient.getAssignment(request.getAssignmentId())
+                    .block();
+            if(assignment.getQuestions()!=null) {
+                submissionEntity.setAssignmentScore(assignment.getQuestions().stream().mapToDouble(QuestionDetails::getTotalPoints).sum());
+            }
+            else{
+                submissionEntity.setAssignmentScore(0.0);
+            }
             submissionEntity.setSubmissionStatus(SubmissionStatus.IN_PROGRESS);
             submissionEntity.setStartOn(LocalDateTime.now());
             this.submissionService.save(submissionEntity);
@@ -143,7 +152,9 @@ public class SubmissionController {
 //    }
 
     @GetMapping("/{assignmentId}/{questionId}")
-    public List<SubmissionDetails> getSubmissions(@PathVariable String assignmentId, @PathVariable String questionId){
+    public List<SubmissionDetailsDTO> getSubmissions(@PathVariable String assignmentId, @PathVariable String questionId){
+        //if(this.assignmentServiceClient.getAssignment())
+        //need to add a filed to check who have created assignment.
         return this.submissionService.getSubmissionDetails(assignmentId);
     }
 

@@ -1,6 +1,6 @@
 package com.cdad.project.gradingservice.service;
 
-import com.cdad.project.gradingservice.dto.SubmissionDetails;
+import com.cdad.project.gradingservice.dto.SubmissionDetailsDTO;
 import com.cdad.project.gradingservice.dto.QuestionDTO;
 import com.cdad.project.gradingservice.entity.*;
 import com.cdad.project.gradingservice.exception.RunCodeCompilationErrorException;
@@ -22,6 +22,7 @@ import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.
 import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.PostRunResponse;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -237,15 +238,15 @@ public class SubmissionService {
         return testResults.stream()
                 .anyMatch(testResult -> testResult.getStatus().equals(ResultStatus.FAILED)); }
 
-        public List<SubmissionDetails> getSubmissionDetails(String assignmentId)
+        public List<SubmissionDetailsDTO> getSubmissionDetails(String assignmentId)
         {
 
-             List<SubmissionDetails> submissionDetails=this.submissionRepository
+             List<SubmissionDetailsDTO> submissionDetailDTOS =this.submissionRepository
                      .findAllByAssignmentId(assignmentId)
                      .stream()
-                     .map(submissionEntity -> modelMapper.map(submissionEntity,SubmissionDetails.class))
+                     .map(submissionEntity -> modelMapper.map(submissionEntity, SubmissionDetailsDTO.class))
                      .collect(Collectors.toList());
-            return submissionDetails;
+            return submissionDetailDTOS;
         }
 
         public List<TestResult> checkTestCases(PostBuildResponse userResponse,List<TestCase> expectedTestCase){
