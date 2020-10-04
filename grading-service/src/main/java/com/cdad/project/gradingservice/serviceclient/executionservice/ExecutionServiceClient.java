@@ -1,7 +1,7 @@
 package com.cdad.project.gradingservice.serviceclient.executionservice;
 
 import com.cdad.project.gradingservice.entity.Status;
-import com.cdad.project.gradingservice.exception.RunCodeCompilationError;
+import com.cdad.project.gradingservice.exception.RunCodeCompilationErrorException;
 import com.cdad.project.gradingservice.serviceclient.executionservice.exceptions.BuildCompilationErrorException;
 import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.PostBuildRequest;
 import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.PostBuildResponse;
@@ -34,7 +34,7 @@ public class ExecutionServiceClient {
 //        System.out.println(obj.toString());
 //    }
 
-    public PostRunResponse postRunCode(PostRunRequest request) throws RunCodeCompilationError {
+    public PostRunResponse postRunCode(PostRunRequest request) throws RunCodeCompilationErrorException {
         PostRunResponse response=webClient.post()
                 .uri(uriBuilder ->
                         uriBuilder
@@ -45,7 +45,7 @@ public class ExecutionServiceClient {
                 .retrieve()
                 .bodyToMono(PostRunResponse.class).block();
         if(response.getStatus().equals(Status.COMPILE_ERROR)){
-            throw new RunCodeCompilationError(response.getMessage(),response.getStatus());
+            throw new RunCodeCompilationErrorException(response.getMessage(),response.getStatus());
         }
             return response;
     }

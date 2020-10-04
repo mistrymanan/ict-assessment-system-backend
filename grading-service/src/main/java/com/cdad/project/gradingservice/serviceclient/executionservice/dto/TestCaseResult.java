@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class TestCase {
+public class TestCaseResult {
     String id;
     String input;
     String output;

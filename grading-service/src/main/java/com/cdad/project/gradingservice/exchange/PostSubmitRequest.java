@@ -3,14 +3,19 @@ package com.cdad.project.gradingservice.exchange;
 import com.cdad.project.gradingservice.entity.Language;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import javax.validation.constraints.NotNull;
 
 
 @Data
 public class PostSubmitRequest {
+    @NotNull
     private String assignmentId;
+    @NotNull
     private String questionId;
+    @NotNull
+    private String email;
+    @NotNull
     private String sourceCode;
-    private LocalDateTime timestamp;
+    @NotNull
     private Language language;
 }

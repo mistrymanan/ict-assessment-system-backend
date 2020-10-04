@@ -9,5 +9,9 @@ import java.util.List;
 
 @Repository
 public interface SubmissionRepository extends MongoRepository<SubmissionEntity,String> {
-    List<SubmissionEntity> findAllByAssignmentIdAndQuestionId(String assignmentId, String questionId);
+    List<SubmissionEntity> findAllByAssignmentId(String assignmentId);
+    SubmissionEntity findByAssignmentIdAndEmail(String assignmentId,String email);
+
+    boolean existsByAssignmentIdAndEmail(String assignmentId,String email);
+
 }

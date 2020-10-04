@@ -1,5 +1,7 @@
 package com.cdad.project.gradingservice.exchange;
 
+import com.cdad.project.gradingservice.entity.QuestionStatus;
+import com.cdad.project.gradingservice.entity.ResultStatus;
 import com.cdad.project.gradingservice.entity.Status;
 import com.cdad.project.gradingservice.entity.SubmissionStatus;
 import lombok.Data;
@@ -15,7 +17,8 @@ public class PostSubmitResponse {
     private String questionId;
     private String buildId;
     private SubmissionStatus submissionStatus;
-    private Status status;
+    private QuestionStatus questionStatus;
+    private ResultStatus status;
     private Double score;
     private List<TestResult> testResults;
 
