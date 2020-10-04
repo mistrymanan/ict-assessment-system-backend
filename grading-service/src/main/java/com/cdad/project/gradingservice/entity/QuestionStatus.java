@@ -1,7 +1,6 @@
 package com.cdad.project.gradingservice.entity;
 
-public enum SubmissionStatus {
-    COMPLETED,
+public enum QuestionStatus {
     IN_PROGRESS,
-    LATE_SUBMITTED
+    COMPLETED,
 }

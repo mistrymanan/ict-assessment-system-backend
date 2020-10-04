@@ -6,12 +6,21 @@ import com.cdad.project.gradingservice.serviceclient.executionservice.exceptions
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 public class BuildCompilationErrorException extends CompilationErrorException {
     private String buildId;
+    private UUID questionId;
     public BuildCompilationErrorException(String message,String buildId) {
         super(message);
         this.buildId=buildId;
     }
+    public BuildCompilationErrorException(String message, String buildId, UUID questionId) {
+        super(message);
+        this.buildId=buildId;
+        this.questionId=questionId;
+    }
+
 }

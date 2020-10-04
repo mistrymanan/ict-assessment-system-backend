@@ -4,10 +4,10 @@ import com.cdad.project.gradingservice.entity.Status;
 import lombok.Data;
 
 @Data
-public class RunCodeCompilationError extends Exception {
+public class RunCodeCompilationErrorException extends Exception {
     private Status status;
 
-    public RunCodeCompilationError(String message,Status status) {
+    public RunCodeCompilationErrorException(String message, Status status) {
         super(message);
         this.status=status;
     }

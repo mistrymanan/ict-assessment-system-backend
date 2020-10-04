@@ -1,28 +1,26 @@
 package com.cdad.project.gradingservice.controller;
 
-import com.cdad.project.gradingservice.dto.SubmissionDetails;
-import com.cdad.project.gradingservice.dto.SubmissionResult;
-import com.cdad.project.gradingservice.entity.Status;
-import com.cdad.project.gradingservice.entity.SubmissionEntity;
-import com.cdad.project.gradingservice.exception.RunCodeCompilationError;
-import com.cdad.project.gradingservice.exception.SubmissionCompilationError;
+import com.cdad.project.gradingservice.dto.SubmissionDetailsDTO;
+import com.cdad.project.gradingservice.dto.QuestionDTO;
+import com.cdad.project.gradingservice.entity.*;
+import com.cdad.project.gradingservice.exception.AssignmentNotActiveException;
+import com.cdad.project.gradingservice.exception.LanguageNotAllowedException;
+import com.cdad.project.gradingservice.exception.RunCodeCompilationErrorException;
+import com.cdad.project.gradingservice.exception.SubmissionCompilationErrorException;
 import com.cdad.project.gradingservice.exchange.*;
 import com.cdad.project.gradingservice.service.SubmissionService;
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.AssignmentServiceClient;
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.dto.Assignment;
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.dto.Question;
+import com.cdad.project.gradingservice.serviceclient.assignmentservice.dto.QuestionDetails;
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.exchanges.GetQuestionRequest;
 import com.cdad.project.gradingservice.serviceclient.executionservice.ExecutionServiceClient;
-import com.cdad.project.gradingservice.serviceclient.executionservice.exceptions.BuildCompilationErrorException;
-import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.PostBuildRequest;
-import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.PostBuildResponse;
 import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.PostRunRequest;
 import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.PostRunResponse;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import javax.websocket.server.PathParam;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -43,7 +41,7 @@ public class SubmissionController {
         this.submissionService = submissionService;
     }
     @PostMapping("run-code")
-    PostRunCodeResponse postRunCode(@RequestBody PostRunCodeRequest request ) throws RunCodeCompilationError {
+    PostRunCodeResponse postRunCode(@RequestBody PostRunCodeRequest request ) throws RunCodeCompilationErrorException {
         PostRunCodeResponse postRunResponse=new PostRunCodeResponse();
         postRunResponse.setInput(request.getInput());
 
@@ -67,64 +65,102 @@ public class SubmissionController {
     }
 
     @PostMapping("/submit")
-    PostSubmitResponse submitAssignment(@RequestBody PostSubmitRequest request) throws SubmissionCompilationError {
-
+    PostSubmitResponse submitNew(@RequestBody PostSubmitRequest request) throws SubmissionCompilationErrorException, LanguageNotAllowedException, AssignmentNotActiveException {
+        if(submissionService.isExist(request.getAssignmentId(), request.getEmail())){
         PostSubmitResponse postSubmitResponse = new PostSubmitResponse();
+        modelMapper.map(request,postSubmitResponse);
+        SubmissionEntity submissionEntity=this.submissionService.getSubmissionEntity(request.getAssignmentId()
+                , request.getEmail());
+        postSubmitResponse.setSubmissionId(submissionEntity.getId().toString());
 
-        SubmissionEntity submissionEntity=new SubmissionEntity();
         GetQuestionRequest getQuestionRequest = new GetQuestionRequest();
         modelMapper.map(request, getQuestionRequest);
 
         Assignment assignment=assignmentServiceClient.getAssignment(request.getAssignmentId()).block();
         Question question = assignmentServiceClient.getQuestion(getQuestionRequest).block();
+        if(assignment.getStatus().equals("ACTIVE")){
+        QuestionDTO questionDTO = null;
+            try {
+                questionDTO = this.submissionService.evaluate(request,question,assignment);
+                postSubmitResponse.setBuildId(questionDTO.getBuildId());
+                modelMapper.map(questionDTO,postSubmitResponse);
+                postSubmitResponse.setStatus(questionDTO.getResultStatus());
+            } catch (SubmissionCompilationErrorException error) {
+                error.setSubmissionId(submissionEntity.getId().toString());
 
-        PostBuildRequest postBuildRequest = modelMapper.map(request, PostBuildRequest.class);
-        postBuildRequest.setInputs(question.getTestCases());
-
-
-        PostBuildResponse userBuildResponse = null;
-        SubmissionResult submissionResult= null;
-        try {
-            userBuildResponse = this.executionServiceClient.postBuild(postBuildRequest);
-            List<TestResult> testResultResponseTestCases =null;
-            submissionResult = this.submissionService.evaluate(userBuildResponse,question,assignment);
-        } catch (BuildCompilationErrorException e) {
-            SubmissionCompilationError error=new SubmissionCompilationError(e.getMessage());
-            modelMapper.map(e,error);
-            modelMapper.map(request,error);
-            throw error;
-        }
-        modelMapper.map(request,postSubmitResponse);
-        modelMapper.map(submissionResult,postSubmitResponse);
-        modelMapper.map(postSubmitResponse,submissionEntity);
-        submissionEntity.setTime(submissionResult.getTime());
-        SubmissionEntity entity=this.submissionService.save(submissionEntity);
-
-        postSubmitResponse.setSubmissionId(entity.getId().toString());
+                questionDTO=modelMapper.map(error,QuestionDTO.class);
+                modelMapper.map(question,questionDTO);
+                questionDTO.setScore(0.0);
+                questionDTO.setTime(LocalDateTime.now());
+                throw error;
+            }
+            finally {
+                QuestionEntity questionEntity=this.modelMapper.map(questionDTO,QuestionEntity.class);
+                submissionEntity=this.submissionService.save(submissionEntity,questionEntity,assignment);
+            }
+        modelMapper.map(submissionEntity,postSubmitResponse);
         return postSubmitResponse;
+        }
+//        else{
+//            throw new LanguageNotAllowedException(request.getLanguage()+" Not Allowed for "+question.getTitle()+"'s Submission.");
+//        }
+        else{
+            throw new AssignmentNotActiveException("Assignment:"+assignment.getTitle()+" is Not Active!");
+        }
+        }
+        return null;
     }
+    @PatchMapping("/submit")
+    void startQuestion(@RequestBody StartQuestionRequest request){
+        if(!submissionService.isExist(request.getAssignmentId(), request.getEmail())){
+            SubmissionEntity submissionEntity=modelMapper.map(request,SubmissionEntity.class);
+            Assignment assignment=this.assignmentServiceClient.getAssignment(request.getAssignmentId())
+                    .block();
+            if(assignment.getQuestions()!=null) {
+                submissionEntity.setAssignmentScore(assignment.getQuestions().stream().mapToDouble(QuestionDetails::getTotalPoints).sum());
+            }
+            else{
+                submissionEntity.setAssignmentScore(0.0);
+            }
+            submissionEntity.setSubmissionStatus(SubmissionStatus.IN_PROGRESS);
+            submissionEntity.setStartOn(LocalDateTime.now());
+            this.submissionService.save(submissionEntity);
+        }
+    }
+//    @ExceptionHandler(Exception.class)
+//    @ResponseStatus(HttpStatus.OK)
+//    public ErrorResponse handle(Exception error){
+//        ErrorResponse errorResponse=modelMapper.map(error,ErrorResponse.class);
+//        return errorResponse;
+//    }
 
-    @ExceptionHandler(SubmissionCompilationError.class)
-    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-    public ErrorResponse handle(SubmissionCompilationError error){
 
-        SubmissionEntity submissionEntity=modelMapper.map(error,SubmissionEntity.class);
-        submissionEntity.setTime(LocalDateTime.now());
-        submissionEntity=this.submissionService.save(submissionEntity);
-        ErrorResponse errorResponse=modelMapper.map(submissionEntity,ErrorResponse.class);
-        modelMapper.map(error,errorResponse);
+
+    @ExceptionHandler(SubmissionCompilationErrorException.class)
+    @ResponseStatus(HttpStatus.OK)
+    public ErrorResponse handle(SubmissionCompilationErrorException error){
+        ErrorResponse errorResponse=modelMapper.map(error,ErrorResponse.class);
+        errorResponse.setStatus(Status.COMPILE_ERROR);
         return errorResponse;
     }
+//
+//    @ExceptionHandler(LanguageNotAllowedException.class)
+//    @ResponseStatus(HttpStatus.OK)
+//    public ErrorResponse handle(LanguageNotAllowedException error){
+//        ErrorResponse errorResponse=modelMapper.map(error,ErrorResponse.class);
+//        return errorResponse;
+//    }
 
     @GetMapping("/{assignmentId}/{questionId}")
-    public List<SubmissionDetails> getSubmissions(@PathVariable String assignmentId, @PathVariable String questionId){
-        System.out.println(assignmentId);
-        return this.submissionService.getSubmissionDetails(assignmentId, questionId);
+    public List<SubmissionDetailsDTO> getSubmissions(@PathVariable String assignmentId, @PathVariable String questionId){
+        //if(this.assignmentServiceClient.getAssignment())
+        //need to add a filed to check who have created assignment.
+        return this.submissionService.getSubmissionDetails(assignmentId);
     }
 
-    @ExceptionHandler(RunCodeCompilationError.class)
+    @ExceptionHandler(RunCodeCompilationErrorException.class)
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-    public ErrorResponse handle(RunCodeCompilationError error){
+    public ErrorResponse handle(RunCodeCompilationErrorException error){
         return modelMapper.map(error,ErrorResponse.class);
     }
 }
