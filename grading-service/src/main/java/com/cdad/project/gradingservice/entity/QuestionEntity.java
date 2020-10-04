@@ -13,6 +13,7 @@ import java.util.List;
 public class QuestionEntity {
     private String questionId;
     private String buildId;
+    private String title;
     private LocalDateTime time;
     private QuestionStatus questionStatus;
     private ResultStatus resultStatus;
