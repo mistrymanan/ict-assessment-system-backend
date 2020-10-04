@@ -11,7 +11,6 @@ import java.util.List;
 public interface SubmissionRepository extends MongoRepository<SubmissionEntity,String> {
     List<SubmissionEntity> findAllByAssignmentId(String assignmentId);
     SubmissionEntity findByAssignmentIdAndEmail(String assignmentId,String email);
-
     boolean existsByAssignmentIdAndEmail(String assignmentId,String email);
 
 }
