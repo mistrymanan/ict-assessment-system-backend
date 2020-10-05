@@ -4,6 +4,7 @@ import com.cdad.project.executionservice.dto.*;
 import com.cdad.project.executionservice.entity.BuildEntity;
 import com.cdad.project.executionservice.entity.Status;
 import com.cdad.project.executionservice.exceptions.BuildCompilationErrorException;
+import com.cdad.project.executionservice.exceptions.BuildNotFoundException;
 import com.cdad.project.executionservice.exceptions.CompilationErrorException;
 import com.cdad.project.executionservice.exchange.PostBuildRequest;
 import com.cdad.project.executionservice.exchange.PostRunRequest;
@@ -13,6 +14,7 @@ import com.cdad.project.executionservice.executor.ExecutorFactory;
 import com.cdad.project.executionservice.service.BuildService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -20,6 +22,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 
 @RestController
@@ -75,7 +78,11 @@ public class BuildController {
     }
 
     @GetMapping("/builds/{buildId}")
-    public BuildEntity postBuild(@PathVariable String buildId) {
+    public BuildEntity postBuild(@PathVariable String buildId) throws BuildNotFoundException {
+        BuildEntity buildEntity=this.buildService.getBuildById(buildId);
+        if(buildEntity==null){
+            throw new BuildNotFoundException("Build:"+buildId+" Not Found");
+        }
         return this.buildService.getBuildById(buildId);
     }
 
@@ -113,10 +120,16 @@ public class BuildController {
     }
 
     @ExceptionHandler(CompilationErrorException.class)
-    public ErrorResponse handle(Exception e){
+    public ErrorResponse handle(CompilationErrorException e){
         return new ErrorResponse(Status.COMPILE_ERROR,e.getMessage());
     }
 
+    @ExceptionHandler(NoSuchElementException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handle(Exception e){
+        ErrorResponse errorResponse=modelMapper.map(e,ErrorResponse.class);
+        return errorResponse;
+    }
     @ExceptionHandler(BuildCompilationErrorException.class)
     public BuildErrorResponse handle(BuildCompilationErrorException e){
             BuildEntity buildEntity=modelMapper.map(e,BuildEntity.class);
