@@ -6,5 +6,4 @@ public enum Status {
     COMPILE_ERROR,
     RUNTIME_ERROR,
     TIMEOUT,
-    MEMORY_ERROR
 }

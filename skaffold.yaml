@@ -7,16 +7,20 @@ build:
     - image: us.gcr.io/classroomict/assignment-service
       jib:
         project: assignment-service
-#    - image: us.gcr.io/classroomict/submission-service
-#      jib:
-#        project: grading-service
+    - image: us.gcr.io/classroomict/submission-service
+      jib:
+        project: grading-service
+    - image: us.gcr.io/classroomict/execution-service
+      jib:
+        project: execution-service
 #  - image: us.gcr.io/classroomict/assignment-service
 #    context: assignment-service
 deploy:
   kubectl:
     manifests:
     - assignment-service/k8s*
-#    - grading-service/k8s*
+    - grading-service/k8s*
+    - execution-service/k8*
 profiles:
   - name: gcp
     activation:

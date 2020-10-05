@@ -1,9 +1,12 @@
 package com.cdad.project.gradingservice.controller;
 
-import com.cdad.project.gradingservice.dto.SubmissionDetailsDTO;
 import com.cdad.project.gradingservice.dto.QuestionDTO;
+import com.cdad.project.gradingservice.dto.SubmissionDetailsDTO;
 import com.cdad.project.gradingservice.dto.SubmissionUserDetailsDTO;
-import com.cdad.project.gradingservice.entity.*;
+import com.cdad.project.gradingservice.entity.QuestionEntity;
+import com.cdad.project.gradingservice.entity.Status;
+import com.cdad.project.gradingservice.entity.SubmissionEntity;
+import com.cdad.project.gradingservice.entity.SubmissionStatus;
 import com.cdad.project.gradingservice.exception.*;
 import com.cdad.project.gradingservice.exchange.*;
 import com.cdad.project.gradingservice.service.SubmissionService;
@@ -21,7 +24,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("")
@@ -177,6 +179,7 @@ public class SubmissionController {
                 .orElse(null);
         return modelMapper.map(questionEntity,QuestionDTO.class);
     }
+
 
     @ExceptionHandler(RunCodeCompilationErrorException.class)
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)

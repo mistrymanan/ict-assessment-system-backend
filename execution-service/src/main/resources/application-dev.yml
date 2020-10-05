@@ -1,0 +1,10 @@
+
+spring:
+  data:
+    mongodb:
+      uri: mongodb://root:eQWRv7lGgR@localhost:27017/execution-service-db?authSource=admin
+      database: execution-service-db
+server:
+  port: 8080
+
+
