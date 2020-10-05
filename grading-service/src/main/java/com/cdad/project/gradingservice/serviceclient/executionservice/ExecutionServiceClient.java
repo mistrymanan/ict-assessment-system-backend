@@ -14,7 +14,8 @@ import reactor.core.publisher.Mono;
 
 @Configuration
 public class ExecutionServiceClient {
-    private final String BASE_URL = "http://35.184.28.10/api/executions";
+    //private final String BASE_URL = "http://35.184.28.10/api/executions";
+    private final String BASE_URL = "http://execution-service.default.svc.cluster.local:8080";
     private final WebClient webClient = WebClient.create(BASE_URL);
     private final String POST_RUN = "/run";
     private final String POST_BUILD = "/builds";

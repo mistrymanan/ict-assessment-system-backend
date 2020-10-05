@@ -4,7 +4,15 @@ spring:
     mongodb:
       uri: mongodb://root:eQWRv7lGgR@localhost:27017/execution-service-db?authSource=admin
       database: execution-service-db
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://securetoken.google.com/assessment-system-auth
+          jwk-set-uri: https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com
+
 server:
-  port: 8080
+  port: 8081
 
 
