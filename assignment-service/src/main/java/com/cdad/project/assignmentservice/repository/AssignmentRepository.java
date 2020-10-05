@@ -15,6 +15,7 @@ public interface AssignmentRepository extends MongoRepository<Assignment, String
 
   Optional<Assignment> findBySlug(String slug);
 
+  Optional<Assignment> findBySlugAndStatus(String slug, String status);
   List<Assignment> findAllByStatusEquals(String status);
 
   List<Assignment> findAllByEmail(String email);

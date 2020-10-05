@@ -12,6 +12,7 @@ public class ActiveAssignmentDTO {
   private String id;
   private String title;
   private String slug;
+  private String status;
   private String currentStatus;
   private boolean hasDeadline;
   @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")

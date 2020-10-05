@@ -46,6 +46,10 @@ public class AssignmentsController {
   public ActiveAssignmentDetailsDTO getActiveAssignment(@PathVariable String slug) throws AssignmentNotFoundException {
     return this.activeAssignmentService.getDetails(slug);
   }
+  @GetMapping("id/{id}")
+  public ActiveAssignmentDetailsDTO getActiveAssignmentById(@PathVariable String id) throws AssignmentNotFoundException {
+    return this.activeAssignmentService.getDetailsById(id);
+  }
 
   @GetMapping("get-question")
   public UserQuestionDTO getQuestion(@Valid GetActiveQuestionRequest request) throws AssignmentNotFoundException, QuestionNotFoundException {

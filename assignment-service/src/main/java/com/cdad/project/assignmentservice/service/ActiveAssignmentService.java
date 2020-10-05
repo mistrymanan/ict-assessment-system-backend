@@ -48,6 +48,15 @@ public class ActiveAssignmentService {
       throw new AssignmentNotFoundException("Assignment with slug '"+slug+"' not found");
     }
   }
+  public ActiveAssignmentDetailsDTO getDetailsById(String id) throws AssignmentNotFoundException {
+    Optional<Assignment> assignmentOptional = this.assignmentRepository.findById(id);
+    if(assignmentOptional.isPresent()) {
+      Assignment assignment = assignmentOptional.get();
+      return modelMapper.map(assignment, ActiveAssignmentDetailsDTO.class);
+    } else {
+      throw new AssignmentNotFoundException("Assignment with id '"+id+"' not found");
+    }
+  }
 
   public UserQuestionDTO getActiveQuestion(GetActiveQuestionRequest request) throws AssignmentNotFoundException, QuestionNotFoundException {
     Optional<Assignment> assignmentOptional = this.assignmentRepository.findBySlug(request.getAssignmentSlug());

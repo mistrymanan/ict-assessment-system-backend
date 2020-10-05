@@ -14,8 +14,6 @@ import com.cdad.project.assignmentservice.repository.AssignmentRepository;
 import lombok.extern.log4j.Log4j2;
 import org.bson.types.ObjectId;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Example;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -74,6 +72,11 @@ public class AssignmentService {
 
   public AssignmentDTO getAssignmentById(String id, CurrentUser user) throws AssignmentNotFoundException {
     Assignment assignment = getAssignment(id, user);
+    return mapper.map(assignment, AssignmentDTO.class);
+  }
+
+  public AssignmentDTO getAssignmentById(String id) throws AssignmentNotFoundException {
+    Assignment assignment = getAssignment(id);
     return mapper.map(assignment, AssignmentDTO.class);
   }
 
@@ -163,8 +166,27 @@ public class AssignmentService {
     );
   }
 
+  private Assignment getAssignment(String assignmentId) throws AssignmentNotFoundException {
+    Optional<Assignment> assignmentOptional = this.assignmentRepository.findById(assignmentId);
+    return assignmentOptional.orElseThrow(
+            () -> new AssignmentNotFoundException("Assignment with id '" + assignmentId + "' not found")
+    );
+  }
+
   public QuestionDTO getQuestionUsingId(String assignmentId, String questionId, CurrentUser user) throws AssignmentNotFoundException, QuestionNotFoundException {
     Assignment assignment = getAssignment(assignmentId, user);
+    Optional<Question> questionOptional = assignment.getQuestions()
+            .stream()
+            .filter(question -> question.getId().equals(UUID.fromString(questionId)))
+            .findFirst();
+    Question question = questionOptional.orElseThrow(
+            () -> new QuestionNotFoundException("Question with id '" + questionId + "' not found")
+    );
+    return mapper.map(question, QuestionDTO.class);
+  }
+
+  public QuestionDTO getQuestionUsingId(String assignmentId, String questionId) throws AssignmentNotFoundException, QuestionNotFoundException {
+    Assignment assignment = getAssignment(assignmentId);
     Optional<Question> questionOptional = assignment.getQuestions()
             .stream()
             .filter(question -> question.getId().equals(UUID.fromString(questionId)))
