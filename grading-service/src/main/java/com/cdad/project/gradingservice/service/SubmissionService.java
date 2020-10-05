@@ -132,6 +132,9 @@ public class SubmissionService {
                             status=SubmissionStatus.LATE_SUBMITTED;
                         }
                     }
+                    else{
+                        status=SubmissionStatus.COMPLETED;
+                    }
                 }
             }
             else{ status=SubmissionStatus.IN_PROGRESS; }
