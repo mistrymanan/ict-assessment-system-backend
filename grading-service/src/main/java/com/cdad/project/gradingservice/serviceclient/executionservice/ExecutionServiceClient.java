@@ -34,7 +34,7 @@ public class ExecutionServiceClient {
 //        System.out.println(obj.toString());
 //    }
 
-    public PostRunResponse postRunCode(PostRunRequest request) throws RunCodeCompilationErrorException {
+    public PostRunResponse postRunCode(PostRunRequest request,String token) throws RunCodeCompilationErrorException {
         PostRunResponse response=webClient.post()
                 .uri(uriBuilder ->
                         uriBuilder
@@ -42,6 +42,7 @@ public class ExecutionServiceClient {
                                 .build()
                 )
                 .body(Mono.just(request),PostRunRequest.class)
+                .headers(httpHeaders -> httpHeaders.setBearerAuth(token))
                 .retrieve()
                 .bodyToMono(PostRunResponse.class).block();
         if(response.getStatus().equals(Status.COMPILE_ERROR)){
@@ -49,13 +50,14 @@ public class ExecutionServiceClient {
         }
             return response;
     }
-    public PostBuildResponse postBuild(PostBuildRequest request) throws BuildCompilationErrorException {
+    public PostBuildResponse postBuild(PostBuildRequest request,String token) throws BuildCompilationErrorException {
          PostBuildResponse postBuildResponse=webClient.post()
                 .uri(uriBuilder -> uriBuilder
                 .path(POST_BUILD)
                         .build()
                 )
                 .body(Mono.just(request),PostBuildRequest.class)
+                 .headers(httpHeaders -> httpHeaders.setBearerAuth(token))
                 .retrieve()
                 .bodyToMono(PostBuildResponse.class).block();
 

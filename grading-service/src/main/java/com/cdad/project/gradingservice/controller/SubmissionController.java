@@ -3,10 +3,7 @@ package com.cdad.project.gradingservice.controller;
 import com.cdad.project.gradingservice.dto.QuestionDTO;
 import com.cdad.project.gradingservice.dto.SubmissionDetailsDTO;
 import com.cdad.project.gradingservice.dto.SubmissionUserDetailsDTO;
-import com.cdad.project.gradingservice.entity.QuestionEntity;
-import com.cdad.project.gradingservice.entity.Status;
-import com.cdad.project.gradingservice.entity.SubmissionEntity;
-import com.cdad.project.gradingservice.entity.SubmissionStatus;
+import com.cdad.project.gradingservice.entity.*;
 import com.cdad.project.gradingservice.exception.*;
 import com.cdad.project.gradingservice.exchange.*;
 import com.cdad.project.gradingservice.service.SubmissionService;
@@ -20,8 +17,12 @@ import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.
 import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.PostRunResponse;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -42,21 +43,22 @@ public class SubmissionController {
         this.submissionService = submissionService;
     }
     @PostMapping("run-code")
-    PostRunCodeResponse postRunCode(@RequestBody PostRunCodeRequest request ) throws RunCodeCompilationErrorException {
+    PostRunCodeResponse postRunCode(@RequestBody PostRunCodeRequest request , @AuthenticationPrincipal Jwt jwt) throws RunCodeCompilationErrorException {
+        CurrentUser currentUser=CurrentUser.fromJwt(jwt);
         PostRunCodeResponse postRunResponse=new PostRunCodeResponse();
         postRunResponse.setInput(request.getInput());
 
         GetQuestionRequest getQuestionRequest=new GetQuestionRequest();
         modelMapper.map(request,getQuestionRequest);
-        Question question=assignmentServiceClient.getQuestion(getQuestionRequest)
+        Question question=assignmentServiceClient.getQuestion(getQuestionRequest, jwt.getTokenValue())
                 .block();
 
         PostRunRequest postRunRequest=modelMapper.map(request,PostRunRequest.class);
 
-        PostRunResponse userResponse=this.executionServiceClient.postRunCode(postRunRequest);
+        PostRunResponse userResponse=this.executionServiceClient.postRunCode(postRunRequest, jwt.getTokenValue());
 
         if(question.isShowExpectedOutput()){
-            postRunResponse=this.submissionService.getExpectedResult(userResponse,question,postRunRequest);
+            postRunResponse=this.submissionService.getExpectedResult(userResponse,question,postRunRequest,jwt.getTokenValue());
         modelMapper.map(request,postRunResponse);
         }
         else{
@@ -66,7 +68,8 @@ public class SubmissionController {
     }
 
     @PostMapping("/submit")
-    PostSubmitResponse submitNew(@RequestBody PostSubmitRequest request) throws SubmissionCompilationErrorException, LanguageNotAllowedException, AssignmentNotActiveException, AssignmentNotStartedException {
+    PostSubmitResponse submitNew(@RequestBody PostSubmitRequest request, @AuthenticationPrincipal Jwt jwt) throws SubmissionCompilationErrorException, LanguageNotAllowedException, AssignmentNotActiveException, AssignmentNotStartedException {
+        CurrentUser currentUser=CurrentUser.fromJwt(jwt);
         if(submissionService.isExist(request.getAssignmentId(), request.getEmail())){
         PostSubmitResponse postSubmitResponse = new PostSubmitResponse();
         modelMapper.map(request,postSubmitResponse);
@@ -77,12 +80,12 @@ public class SubmissionController {
         GetQuestionRequest getQuestionRequest = new GetQuestionRequest();
         modelMapper.map(request, getQuestionRequest);
 
-        Assignment assignment=assignmentServiceClient.getAssignment(request.getAssignmentId()).block();
-        Question question = assignmentServiceClient.getQuestion(getQuestionRequest).block();
+        Assignment assignment=assignmentServiceClient.getAssignment(request.getAssignmentId(), jwt.getTokenValue()).block();
+        Question question = assignmentServiceClient.getQuestion(getQuestionRequest, jwt.getTokenValue()).block();
         if(assignment.getStatus().equals("ACTIVE")){
         QuestionDTO questionDTO = null;
             try {
-                questionDTO = this.submissionService.evaluate(request,question,assignment);
+                questionDTO = this.submissionService.evaluate(request,question,assignment, jwt.getTokenValue());
                 postSubmitResponse.setBuildId(questionDTO.getBuildId());
                 modelMapper.map(questionDTO,postSubmitResponse);
                 postSubmitResponse.setStatus(questionDTO.getResultStatus());
@@ -115,10 +118,12 @@ public class SubmissionController {
         }
     }
     @PatchMapping("/submit")
-    void startQuestion(@RequestBody StartQuestionRequest request){
+    void startQuestion(@Valid @RequestBody StartQuestionRequest request, @AuthenticationPrincipal Jwt jwt){
+        CurrentUser currentUser=CurrentUser.fromJwt(jwt);
         if(!submissionService.isExist(request.getAssignmentId(), request.getEmail())){
             SubmissionEntity submissionEntity=modelMapper.map(request,SubmissionEntity.class);
-            Assignment assignment=this.assignmentServiceClient.getAssignment(request.getAssignmentId())
+            submissionEntity.setEmail(currentUser.getEmail());
+            Assignment assignment=this.assignmentServiceClient.getAssignment(request.getAssignmentId(), jwt.getTokenValue())
                     .block();
             if(assignment.getQuestions()!=null) {
                 submissionEntity.setAssignmentScore(assignment.getQuestions().stream().mapToDouble(QuestionDetails::getTotalPoints).sum());
@@ -158,18 +163,17 @@ public class SubmissionController {
 
     @GetMapping("/{assignmentId}")
     public List<SubmissionDetailsDTO> getSubmissions(@PathVariable String assignmentId){
-        //if(this.assignmentServiceClient.getAssignment())
-        //need to add a filed to check who have created assignment.
         return this.submissionService.getSubmissionDetails(assignmentId);
+
     }
     @GetMapping("/{assignmentId}/user")
-    public SubmissionUserDetailsDTO getSubmissionUserDetails(@PathVariable String assignmentId, @RequestParam String email){
+    public SubmissionUserDetailsDTO getSubmissionUserDetails(@PathVariable String assignmentId,@NotNull @RequestParam String email){
         SubmissionEntity submissionEntity=this.submissionService.getSubmissionEntity(assignmentId, email);
         SubmissionUserDetailsDTO submissionUserDetailsDTO=modelMapper.map(submissionEntity,SubmissionUserDetailsDTO.class);
         return submissionUserDetailsDTO;
     }
     @GetMapping("/{assignmentId}/{questionId}")
-    public QuestionDTO getSubmissionUserDetails(@PathVariable String assignmentId,@PathVariable String questionId, @RequestParam String email){
+    public QuestionDTO getSubmissionUserDetails(@PathVariable String assignmentId,@PathVariable String questionId,@NotNull @RequestParam String email){
         SubmissionEntity submissionEntity=this.submissionService.getSubmissionEntity(assignmentId, email);
         QuestionEntity questionEntity=submissionEntity
                 .getQuestionEntities()
@@ -184,6 +188,12 @@ public class SubmissionController {
     @ExceptionHandler(RunCodeCompilationErrorException.class)
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     public ErrorResponse handle(RunCodeCompilationErrorException error){
+        return modelMapper.map(error,ErrorResponse.class);
+    }
+
+    @ExceptionHandler(AccessForbiddenException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handle(AccessForbiddenException error){
         return modelMapper.map(error,ErrorResponse.class);
     }
 }

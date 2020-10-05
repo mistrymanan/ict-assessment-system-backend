@@ -143,7 +143,7 @@ public class SubmissionService {
         return status;
     }
 
-    public PostRunCodeResponse getExpectedResult(PostRunResponse userResponse, Question question, PostRunRequest request) throws RunCodeCompilationErrorException {
+    public PostRunCodeResponse getExpectedResult(PostRunResponse userResponse, Question question, PostRunRequest request,String token) throws RunCodeCompilationErrorException {
         PostRunCodeResponse response=new PostRunCodeResponse();
         if(userResponse.getStatus().equals(Status.COMPILE_ERROR)){
             throw new RunCodeCompilationErrorException(userResponse.getMessage(),userResponse.getStatus());
@@ -152,7 +152,7 @@ public class SubmissionService {
                 modelMapper.map(userResponse,response);
             request.setSourceCode(question.getSolutionCode());
             request.setLanguage(Language.valueOf(question.getSolutionLanguage().toUpperCase()));
-            PostRunResponse expectedResponse=this.executionServiceClient.postRunCode(request);
+            PostRunResponse expectedResponse=this.executionServiceClient.postRunCode(request,token);
             modelMapper.map(userResponse,response);
             if(expectedResponse.getStatus().equals(Status.SUCCEED)){
                 response.setExpectedOutput(expectedResponse.getOutput());
@@ -171,7 +171,7 @@ public class SubmissionService {
         response.setOutput(userResponse.getOutput());
         return response;
     }
-    public QuestionDTO evaluate(PostSubmitRequest request, Question question, Assignment assignment) throws SubmissionCompilationErrorException {
+    public QuestionDTO evaluate(PostSubmitRequest request, Question question, Assignment assignment,String token) throws SubmissionCompilationErrorException {
         QuestionDTO questionDTO = null;
 
         PostBuildRequest postBuildRequest = modelMapper.map(request, PostBuildRequest.class);
@@ -179,7 +179,7 @@ public class SubmissionService {
 
         PostBuildResponse userBuildResponse = null;
         try {
-            userBuildResponse = this.executionServiceClient.postBuild(postBuildRequest);
+            userBuildResponse = this.executionServiceClient.postBuild(postBuildRequest,token);
             List<TestResult> testResultResponseTestCases =null;
             questionDTO = assess(userBuildResponse,question,assignment);
             modelMapper.map(request,questionDTO);

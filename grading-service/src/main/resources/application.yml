@@ -6,5 +6,15 @@ spring:
       database: grading-service-db
 server:
   port: 8080
+  
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://securetoken.google.com/assessment-system-auth
+          jwk-set-uri: https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com
 
+logging:
+  level:
+    org.springframework.security: debug
 
