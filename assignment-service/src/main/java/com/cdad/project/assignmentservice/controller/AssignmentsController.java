@@ -35,9 +35,7 @@ public class AssignmentsController {
   }
 
   @GetMapping("/all")
-  public GetAllActiveAssignmentsResponse getAllActiveAssignments(@AuthenticationPrincipal Jwt jwt) {
-    System.out.println(jwt.getClaimAsString("name"));
-    System.out.println(jwt.getClaimAsString("email"));
+  public GetAllActiveAssignmentsResponse getAllActiveAssignments() {
     GetAllActiveAssignmentsResponse response = new GetAllActiveAssignmentsResponse();
     List<ActiveAssignmentDTO> activeAssignments = this.activeAssignmentService.getAll();
     response.setActiveAssignments(activeAssignments);
