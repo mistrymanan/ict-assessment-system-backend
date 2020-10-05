@@ -19,6 +19,7 @@ public class AssignmentDTO {
   private String id;
   private String title;
   private String slug;
+  private String email;
   private String status;
   private boolean timed;
   private Integer duration;

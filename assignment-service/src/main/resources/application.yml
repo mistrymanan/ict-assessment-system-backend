@@ -9,4 +9,22 @@ spring:
       auto-index-creation: true
   application:
     name: assignment-service
-#      uri: mongodb://localhost:27017/assignment-service-db?authSource=admin
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://securetoken.google.com/assessment-system-auth
+          jwk-set-uri: https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: httptrace,loggers,health,info,metrics
+#  endpoint:
+#    loggers:
+#      enabled: true
+logging:
+  level:
+    org.springframework.security: debug
+#        uri: mongodb://localhost:27017/assignment-service-db?authSource=admin
