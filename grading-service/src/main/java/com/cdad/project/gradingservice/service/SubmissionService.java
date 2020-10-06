@@ -2,18 +2,16 @@ package com.cdad.project.gradingservice.service;
 
 import com.cdad.project.gradingservice.dto.SubmissionDetailsDTO;
 import com.cdad.project.gradingservice.dto.QuestionDTO;
-import com.cdad.project.gradingservice.dto.SubmissionUserDetailsDTO;
 import com.cdad.project.gradingservice.entity.*;
-import com.cdad.project.gradingservice.exception.RunCodeCompilationErrorException;
-import com.cdad.project.gradingservice.exception.SubmissionCompilationErrorException;
-import com.cdad.project.gradingservice.exchange.PostRunCodeResponse;
-import com.cdad.project.gradingservice.exchange.PostSubmitRequest;
-import com.cdad.project.gradingservice.exchange.TestResult;
+import com.cdad.project.gradingservice.exception.*;
+import com.cdad.project.gradingservice.exchange.*;
 import com.cdad.project.gradingservice.repository.SubmissionRepository;
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.AssignmentServiceClient;
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.dto.Assignment;
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.dto.Question;
+import com.cdad.project.gradingservice.serviceclient.assignmentservice.dto.QuestionDetails;
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.dto.TestCase;
+import com.cdad.project.gradingservice.serviceclient.assignmentservice.exchanges.GetQuestionRequest;
 import com.cdad.project.gradingservice.serviceclient.executionservice.ExecutionServiceClient;
 import com.cdad.project.gradingservice.serviceclient.executionservice.dto.TestCaseResult;
 import com.cdad.project.gradingservice.serviceclient.executionservice.exceptions.BuildCompilationErrorException;
@@ -21,9 +19,11 @@ import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.
 import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.PostBuildResponse;
 import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.PostRunRequest;
 import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.PostRunResponse;
+import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -58,8 +58,14 @@ public class SubmissionService {
         return this.submissionRepository.save(submissionEntity);
     }
 
-    public SubmissionEntity getSubmissionEntity(String assignmentId,String email){
-        return this.submissionRepository.findByAssignmentIdAndEmail(assignmentId, email);
+    public SubmissionEntity getSubmissionEntity(String assignmentId,String email) throws SubmissionEntityNotFoundException {
+        SubmissionEntity submissionEntity=this.submissionRepository.findByAssignmentIdAndEmail(assignmentId, email);
+        if(submissionEntity!=null){
+            return submissionEntity;
+        }
+else{
+            throw new SubmissionEntityNotFoundException("Check AssignmentId");
+        }
     }
     public boolean isExist(String assignmentId,String email){
         return this.submissionRepository.existsByAssignmentIdAndEmail(assignmentId,email);
@@ -90,6 +96,106 @@ public class SubmissionService {
        submissionEntity.setSubmissionStatus(getSubmissionStatus(submissionEntity,assignment));
        submissionEntity.setCurrentScore(calculateSubmissionScore(submissionEntity));
         return this.save(submissionEntity);
+    }
+    public PostRunCodeResponse runCode(PostRunCodeRequest request ,Jwt jwt) throws RunCodeCompilationErrorException {
+        PostRunCodeResponse postRunResponse=new PostRunCodeResponse();
+        postRunResponse.setInput(request.getInput());
+
+        GetQuestionRequest getQuestionRequest=new GetQuestionRequest();
+        modelMapper.map(request,getQuestionRequest);
+        Question question=assignmentServiceClient.getQuestion(getQuestionRequest, jwt.getTokenValue())
+                .block();
+
+        PostRunRequest postRunRequest=modelMapper.map(request,PostRunRequest.class);
+
+        PostRunResponse userResponse=this.executionServiceClient.postRunCode(postRunRequest, jwt.getTokenValue());
+
+        if(question.isShowExpectedOutput()){
+            postRunResponse=this.getExpectedResult(userResponse,question,postRunRequest,jwt.getTokenValue());
+            modelMapper.map(request,postRunResponse);
+        }
+        else{
+            modelMapper.map(userResponse,postRunResponse);
+        }
+        return postRunResponse;
+    }
+
+    public PostSubmitResponse submit(PostSubmitRequest request,Jwt jwt) throws AssignmentNotStartedException, SubmissionCompilationErrorException, AssignmentNotActiveException, SubmissionEntityNotFoundException {
+        CurrentUser currentUser=CurrentUser.fromJwt(jwt);
+        if(this.isExist(request.getAssignmentId(), currentUser.getEmail())){
+            PostSubmitResponse postSubmitResponse = new PostSubmitResponse();
+            modelMapper.map(request,postSubmitResponse);
+            SubmissionEntity submissionEntity=this.getSubmissionEntity(request.getAssignmentId()
+                    , currentUser.getEmail());
+            postSubmitResponse.setSubmissionId(submissionEntity.getId().toString());
+
+            GetQuestionRequest getQuestionRequest = new GetQuestionRequest();
+            modelMapper.map(request, getQuestionRequest);
+            Assignment assignment=assignmentServiceClient.getAssignment(request.getAssignmentId(), jwt.getTokenValue()).block();
+            System.out.println(assignment);
+            Question question = assignmentServiceClient.getQuestion(getQuestionRequest, jwt.getTokenValue()).block();
+            System.out.println(question);
+            if(assignment.getStatus().equals("ACTIVE")){
+                QuestionDTO questionDTO = null;
+                try {
+                    questionDTO = this.evaluate(request,question, jwt.getTokenValue());
+                    postSubmitResponse.setBuildId(questionDTO.getBuildId());
+                    modelMapper.map(questionDTO,postSubmitResponse);
+                    postSubmitResponse.setStatus(questionDTO.getResultStatus());
+                } catch (SubmissionCompilationErrorException error) {
+                    error.setSubmissionId(submissionEntity.getId().toString());
+                    questionDTO=modelMapper.map(error,QuestionDTO.class);
+                    modelMapper.map(question,questionDTO);
+                    questionDTO.setScore(0.0);
+                    questionDTO.setTime(LocalDateTime.now());
+                    throw error;
+                }
+                finally {
+                    QuestionEntity questionEntity=this.modelMapper.map(questionDTO,QuestionEntity.class);
+                    questionDTO.setTitle(question.getTitle());
+                    submissionEntity=this.save(submissionEntity,questionEntity,assignment);
+                }
+                modelMapper.map(submissionEntity,postSubmitResponse);
+                return postSubmitResponse;
+            }
+//        else{
+//            throw new LanguageNotAllowedException(request.getLanguage()+" Not Allowed for "+question.getTitle()+"'s Submission.");
+//        }
+            else{
+                throw new AssignmentNotActiveException("Assignment:"+assignment.getTitle()+" is Not Active!");
+            }
+        }
+        else{
+            throw new AssignmentNotStartedException("You Haven't Started Assignment. Please start the Assignment First");
+        }
+    }
+    public void startSubmission(StartSubmissionRequest request, Jwt jwt) throws AssignmentNotFound {
+        CurrentUser currentUser=CurrentUser.fromJwt(jwt);
+        if(!this.isExist(request.getAssignmentId(), request.getEmail())){
+            SubmissionEntity submissionEntity=modelMapper.map(request,SubmissionEntity.class);
+            submissionEntity.setEmail(currentUser.getEmail());
+            Assignment assignment=null;
+
+
+            assignment=this.assignmentServiceClient.getAssignment(request.getAssignmentId(), jwt.getTokenValue())
+
+//                    .doOnError(throwable -> {
+//                        System.out.println("mene capture karli he bhai mere");
+//                        System.out.println(throwable);
+//                    })
+//                    .onErrorMap(throwable -> new AssignmentNotFound("Not Found"))
+                    .block();
+            System.out.println(assignment);
+            if(assignment.getQuestions()!=null) {
+                submissionEntity.setAssignmentScore(assignment.getQuestions().stream().mapToDouble(QuestionDetails::getTotalPoints).sum());
+            }
+            else{
+                submissionEntity.setAssignmentScore(0.0);
+            }
+            submissionEntity.setSubmissionStatus(SubmissionStatus.IN_PROGRESS);
+            submissionEntity.setStartOn(LocalDateTime.now());
+            this.save(submissionEntity);
+        }
     }
 
     public SubmissionStatus getSubmissionStatus(SubmissionEntity submissionEntity,Assignment assignment){
@@ -143,7 +249,7 @@ public class SubmissionService {
         return status;
     }
 
-    public PostRunCodeResponse getExpectedResult(PostRunResponse userResponse, Question question, PostRunRequest request) throws RunCodeCompilationErrorException {
+    public PostRunCodeResponse getExpectedResult(PostRunResponse userResponse, Question question, PostRunRequest request,String token) throws RunCodeCompilationErrorException {
         PostRunCodeResponse response=new PostRunCodeResponse();
         if(userResponse.getStatus().equals(Status.COMPILE_ERROR)){
             throw new RunCodeCompilationErrorException(userResponse.getMessage(),userResponse.getStatus());
@@ -152,7 +258,7 @@ public class SubmissionService {
                 modelMapper.map(userResponse,response);
             request.setSourceCode(question.getSolutionCode());
             request.setLanguage(Language.valueOf(question.getSolutionLanguage().toUpperCase()));
-            PostRunResponse expectedResponse=this.executionServiceClient.postRunCode(request);
+            PostRunResponse expectedResponse=this.executionServiceClient.postRunCode(request,token);
             modelMapper.map(userResponse,response);
             if(expectedResponse.getStatus().equals(Status.SUCCEED)){
                 response.setExpectedOutput(expectedResponse.getOutput());
@@ -171,20 +277,17 @@ public class SubmissionService {
         response.setOutput(userResponse.getOutput());
         return response;
     }
-    public QuestionDTO evaluate(PostSubmitRequest request, Question question, Assignment assignment) throws SubmissionCompilationErrorException {
+    public QuestionDTO evaluate(PostSubmitRequest request, Question question,String token) throws SubmissionCompilationErrorException {
         QuestionDTO questionDTO = null;
-
         PostBuildRequest postBuildRequest = modelMapper.map(request, PostBuildRequest.class);
         postBuildRequest.setInputs(question.getTestCases());
 
         PostBuildResponse userBuildResponse = null;
         try {
-            userBuildResponse = this.executionServiceClient.postBuild(postBuildRequest);
-            List<TestResult> testResultResponseTestCases =null;
-            questionDTO = assess(userBuildResponse,question,assignment);
+            userBuildResponse = this.executionServiceClient.postBuild(postBuildRequest,token);
+            questionDTO = assess(userBuildResponse,question);
             modelMapper.map(request,questionDTO);
         } catch (BuildCompilationErrorException e) {
-
             SubmissionCompilationErrorException error=new SubmissionCompilationErrorException(e.getMessage());
             modelMapper.map(e,error);
             modelMapper.map(request,error);
@@ -193,13 +296,12 @@ public class SubmissionService {
 
         return questionDTO;
     }
-    public QuestionDTO assess(PostBuildResponse userResponse, Question question, Assignment assignment) throws BuildCompilationErrorException {
+    public QuestionDTO assess(PostBuildResponse userResponse, Question question) throws BuildCompilationErrorException {
         QuestionDTO questionDTO =modelMapper.map(question,QuestionDTO.class);
         LocalDateTime submissionTime=LocalDateTime.ofInstant(Instant.now(), ZoneId.of("Asia/Kolkata"));
         questionDTO.setTime(submissionTime);
         questionDTO.setBuildId(userResponse.getId());
         if(userResponse.getStatus().equals(Status.COMPILE_ERROR)){
-            System.out.println(question.getId());
             throw new BuildCompilationErrorException(userResponse.getMessage(),userResponse.getId(),question.getId());
         }
         else if (question.getTestCases() != null && (userResponse.getStatus().equals(Status.SUCCEED) || userResponse.getStatus().equals(Status.TEST_FAILED)))
@@ -291,5 +393,27 @@ public class SubmissionService {
                 resultStatus=ResultStatus.PASSED;
             }
             return resultStatus;
+        }
+        public QuestionEntity getQuestion(String email,String assignmentId,String questionId) throws SubmissionEntityNotFoundException, QuestionEntityNotFoundException {
+            SubmissionEntity submissionEntity=this.getSubmissionEntity(assignmentId,email);
+            if(submissionEntity.getQuestionEntities()!=null){
+
+
+                QuestionEntity questionEntity=
+                        submissionEntity.getQuestionEntities()
+                                .stream()
+                                .filter(questionEntity1 -> questionEntity1.getQuestionId().equals(questionId))
+                                .findFirst()
+                                .orElse(null);
+
+                if(questionEntity==null){
+                    throw new QuestionEntityNotFoundException("Not Found");
+                }
+
+                return questionEntity;
+            }
+            else {
+                throw new QuestionEntityNotFoundException("Not Found");
+            }
         }
     }

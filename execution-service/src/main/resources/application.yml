@@ -7,7 +7,7 @@ spring:
       uri: mongodb://root:eQWRv7lGgR@mongodb.default.svc.cluster.local:27017/execution-service-db?authSource=admin
       auto-index-creation: true
   application:
-    name: assignment-service
+    name: execution-service
 
   security:
     oauth2:

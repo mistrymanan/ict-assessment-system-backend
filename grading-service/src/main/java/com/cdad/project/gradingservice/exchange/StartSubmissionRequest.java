@@ -2,10 +2,12 @@ package com.cdad.project.gradingservice.exchange;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotNull;
+
 @Data
-public class StartQuestionRequest {
+public class StartSubmissionRequest {
+    @NotNull
     private String email;
-    private String roomId;
+    @NotNull
     private String assignmentId;
-    private String questionId;
 }

@@ -13,6 +13,7 @@ import java.util.List;
 public class Assignment {
   private String id;
   private String title;
+  private String email;
   private String slug;
   private String status;
   private boolean timed;
