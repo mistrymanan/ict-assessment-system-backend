@@ -97,6 +97,7 @@ public class AssignmentService {
     if (assignment.getQuestions() == null) {
       assignment.setQuestions(new ArrayList<>());
     }
+    assignment.setTotalPoints(assignment.getTotalPoints() + newQuestion.getTotalPoints());
     assignment.getQuestions().add(newQuestion);
     this.assignmentRepository.save(assignment);
   }
@@ -135,6 +136,7 @@ public class AssignmentService {
             () -> new QuestionNotFoundException("Question with id '" + questionId + "' not found")
     );
     assignment.getQuestions().remove(question);
+    assignment.setTotalPoints(assignment.getTotalPoints() - question.getTotalPoints());
     this.assignmentRepository.save(assignment);
   }
 
@@ -147,6 +149,7 @@ public class AssignmentService {
     Question question = questionOptional.orElseThrow(
             () -> new QuestionNotFoundException("Question with id '" + questionDTO.getId() + "' not found")
     );
+    int oldTotalPoints = question.getTotalPoints();
     log.info(questionDTO.getAllowedLanguages());
     log.info("Before :: " + question.getAllowedLanguages());
     mapper.map(questionDTO, question);
@@ -154,9 +157,8 @@ public class AssignmentService {
     question.setTestCases(questionDTO.getTestCases());
     log.info("After :: " + question.getAllowedLanguages());
     question.setSlug(slugify(question.getTitle()));
+    assignment.setTotalPoints(assignment.getTotalPoints() - oldTotalPoints + question.getTotalPoints());
     this.assignmentRepository.save(assignment);
-
-
   }
 
   private Assignment getAssignment(String assignmentId, CurrentUser user) throws AssignmentNotFoundException {

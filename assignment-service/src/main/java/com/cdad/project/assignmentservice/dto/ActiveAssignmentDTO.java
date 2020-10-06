@@ -1,5 +1,6 @@
 package com.cdad.project.assignmentservice.dto;
 
+import com.cdad.project.assignmentservice.serviceclient.gradingservice.enums.SubmissionStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,7 +14,8 @@ public class ActiveAssignmentDTO {
   private String title;
   private String slug;
   private String status;
-  private String currentStatus;
+  private Integer totalPoints;
+  private SubmissionStatus currentStatus;
   private boolean hasDeadline;
   @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")
   private LocalDateTime deadline;

@@ -21,6 +21,7 @@ public class AssignmentDTO {
   private String slug;
   private String email;
   private String status;
+  private Integer totalPoints;
   private boolean timed;
   private Integer duration;
   private boolean hasStartTime;

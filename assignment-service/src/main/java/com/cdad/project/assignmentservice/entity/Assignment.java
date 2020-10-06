@@ -20,6 +20,7 @@ public class Assignment {
   private ObjectId id;
   private String title;
   private String status;
+  private Integer totalPoints;
   @Indexed
   private String email;
   @Indexed(unique = true)

@@ -1,6 +1,7 @@
 package com.cdad.project.assignmentservice.controller;
 
 import com.cdad.project.assignmentservice.dto.AssignmentDTO;
+import com.cdad.project.assignmentservice.dto.ErrorResponse;
 import com.cdad.project.assignmentservice.dto.QuestionDTO;
 import com.cdad.project.assignmentservice.entity.Assignment;
 import com.cdad.project.assignmentservice.entity.CurrentUser;
@@ -46,6 +47,12 @@ public class PublicAssignmentsController {
   @ExceptionHandler(InvalidSecretKeyException.class)
   @ResponseStatus(HttpStatus.FORBIDDEN)
   public void forbidden() {
+  }
+
+  @ExceptionHandler({AssignmentNotFoundException.class, QuestionNotFoundException.class})
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  public ErrorResponse handle(Exception e) {
+    return new ErrorResponse("Not Found", e.getMessage());
   }
 
   public void checkSecret(HttpServletRequest req) throws InvalidSecretKeyException {

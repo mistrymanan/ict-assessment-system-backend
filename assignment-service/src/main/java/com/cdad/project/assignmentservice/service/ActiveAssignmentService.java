@@ -2,7 +2,6 @@ package com.cdad.project.assignmentservice.service;
 
 import com.cdad.project.assignmentservice.dto.ActiveAssignmentDTO;
 import com.cdad.project.assignmentservice.dto.ActiveAssignmentDetailsDTO;
-import com.cdad.project.assignmentservice.dto.QuestionDTO;
 import com.cdad.project.assignmentservice.dto.UserQuestionDTO;
 import com.cdad.project.assignmentservice.entity.Assignment;
 import com.cdad.project.assignmentservice.entity.Question;
@@ -10,15 +9,18 @@ import com.cdad.project.assignmentservice.exceptions.AssignmentNotFoundException
 import com.cdad.project.assignmentservice.exceptions.QuestionNotFoundException;
 import com.cdad.project.assignmentservice.exchanges.GetActiveQuestionRequest;
 import com.cdad.project.assignmentservice.repository.AssignmentRepository;
+import com.cdad.project.assignmentservice.serviceclient.gradingservice.GradingServiceClient;
+import com.cdad.project.assignmentservice.serviceclient.gradingservice.enums.QuestionStatus;
+import com.cdad.project.assignmentservice.serviceclient.gradingservice.enums.SubmissionStatus;
+import com.cdad.project.assignmentservice.serviceclient.gradingservice.exeptions.SubmissionDetailsNotFoundException;
+import com.cdad.project.assignmentservice.serviceclient.gradingservice.exeptions.SubmissionQuestionNotFoundException;
+import org.bson.types.ObjectId;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.domain.Example;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,40 +28,81 @@ public class ActiveAssignmentService {
 
   private final AssignmentRepository assignmentRepository;
   private final ModelMapper modelMapper;
+  private final GradingServiceClient gradingServiceClient;
 
-  public ActiveAssignmentService(AssignmentRepository assignmentRepository, ModelMapper modelMapper) {
+
+  public ActiveAssignmentService(AssignmentRepository assignmentRepository, ModelMapper modelMapper, GradingServiceClient gradingServiceClient) {
     this.assignmentRepository = assignmentRepository;
     this.modelMapper = modelMapper;
+    this.gradingServiceClient = gradingServiceClient;
   }
 
-  public List<ActiveAssignmentDTO> getAll() {
+  public List<ActiveAssignmentDTO> getAll(Jwt jwt) {
     List<Assignment> assignments = this.assignmentRepository.findAllByStatusEquals("ACTIVE");
-    return assignments.stream()
-            .map(assignment -> modelMapper.map(assignment, ActiveAssignmentDTO.class))
+    return assignments.parallelStream()
+            .map(assignment -> mapAssignmentToActiveAssignment(assignment, jwt))
             .collect(Collectors.toList());
   }
 
-  public ActiveAssignmentDetailsDTO getDetails(String slug) throws AssignmentNotFoundException {
-    Optional<Assignment> assignmentOptional = this.assignmentRepository.findBySlug(slug);
-    if(assignmentOptional.isPresent()) {
+  public ActiveAssignmentDetailsDTO getDetails(String slug, Jwt jwt) throws AssignmentNotFoundException {
+    Optional<Assignment> assignmentOptional = this.assignmentRepository.findBySlugAndStatus(slug, "ACTIVE");
+    if (assignmentOptional.isPresent()) {
       Assignment assignment = assignmentOptional.get();
-      return modelMapper.map(assignment, ActiveAssignmentDetailsDTO.class);
+      return mapAssignmentToActiveAssignmentDetails(assignment, jwt);
     } else {
-      throw new AssignmentNotFoundException("Assignment with slug '"+slug+"' not found");
-    }
-  }
-  public ActiveAssignmentDetailsDTO getDetailsById(String id) throws AssignmentNotFoundException {
-    Optional<Assignment> assignmentOptional = this.assignmentRepository.findById(id);
-    if(assignmentOptional.isPresent()) {
-      Assignment assignment = assignmentOptional.get();
-      return modelMapper.map(assignment, ActiveAssignmentDetailsDTO.class);
-    } else {
-      throw new AssignmentNotFoundException("Assignment with id '"+id+"' not found");
+      throw new AssignmentNotFoundException("Assignment with slug '" + slug + "' not found");
     }
   }
 
-  public UserQuestionDTO getActiveQuestion(GetActiveQuestionRequest request) throws AssignmentNotFoundException, QuestionNotFoundException {
-    Optional<Assignment> assignmentOptional = this.assignmentRepository.findBySlug(request.getAssignmentSlug());
+  public ActiveAssignmentDTO mapAssignmentToActiveAssignment(Assignment assignment, Jwt jwt) {
+    ActiveAssignmentDTO activeAssignment = modelMapper.map(assignment, ActiveAssignmentDTO.class);
+    try {
+      this.gradingServiceClient
+              .getSubmissionDetails(assignment.getId().toString(), jwt)
+              .doOnSuccess(submissionDetailsDTO -> {
+                activeAssignment.setCurrentStatus(submissionDetailsDTO.getSubmissionStatus());
+              })
+              .doOnError(SubmissionDetailsNotFoundException.class, e -> {
+                activeAssignment.setCurrentStatus(SubmissionStatus.NOT_STARTED);
+              })
+              .block();
+    } catch (SubmissionDetailsNotFoundException ignored) {
+    }
+    return activeAssignment;
+  }
+
+  public ActiveAssignmentDetailsDTO mapAssignmentToActiveAssignmentDetails(Assignment assignment, Jwt jwt) {
+    ActiveAssignmentDetailsDTO activeAssignment = modelMapper.map(assignment, ActiveAssignmentDetailsDTO.class);
+    try {
+      this.gradingServiceClient
+              .getSubmissionDetails(assignment.getId().toString(), jwt)
+              .doOnSuccess(submissionDetailsDTO -> {
+                activeAssignment.setCurrentScore(submissionDetailsDTO.getCurrentScore());
+                activeAssignment.setSubmissionStatus(submissionDetailsDTO.getSubmissionStatus());
+              })
+              .doOnError(SubmissionDetailsNotFoundException.class, e -> {
+                activeAssignment.setCurrentScore(0d);
+                activeAssignment.setSubmissionStatus(SubmissionStatus.NOT_STARTED);
+              })
+              .block();
+    } catch (SubmissionDetailsNotFoundException ignored) {
+    }
+    fillStatusAndScore(activeAssignment, jwt);
+    return activeAssignment;
+  }
+
+  public ActiveAssignmentDetailsDTO getDetailsById(String id, Jwt jwt) throws AssignmentNotFoundException {
+    Optional<Assignment> assignmentOptional = this.assignmentRepository.findByIdAndStatus(new ObjectId(id), "ACTIVE");
+    if (assignmentOptional.isPresent()) {
+      Assignment assignment = assignmentOptional.get();
+      return mapAssignmentToActiveAssignmentDetails(assignment, jwt);
+    } else {
+      throw new AssignmentNotFoundException("Assignment with id '" + id + "' not found");
+    }
+  }
+
+  public UserQuestionDTO getActiveQuestion(GetActiveQuestionRequest request, Jwt jwt) throws AssignmentNotFoundException, QuestionNotFoundException {
+    Optional<Assignment> assignmentOptional = this.assignmentRepository.findBySlugAndStatus(request.getAssignmentSlug(), "ACTIVE");
 
     Assignment assignment = assignmentOptional.orElseThrow(
             () -> new AssignmentNotFoundException("Assignment with slug '" + request.getAssignmentSlug() + "' not found")
@@ -72,5 +115,30 @@ public class ActiveAssignmentService {
             () -> new QuestionNotFoundException("Question with id '" + request.getQuestionSlug() + "' not found")
     );
     return modelMapper.map(question, UserQuestionDTO.class);
+  }
+
+  public void fillStatusAndScore(ActiveAssignmentDetailsDTO activeAssignmentDetails, Jwt jwt) {
+    activeAssignmentDetails.getQuestions()
+            .forEach(userQuestionDTO -> {
+              try {
+                gradingServiceClient
+                        .getQuestionOfSubmission(
+                                activeAssignmentDetails.getId(),
+                                userQuestionDTO.getId().toString(),
+                                jwt
+                        )
+                        .doOnSuccess(question -> {
+                          userQuestionDTO.setCurrentScore(question.getScore());
+                          userQuestionDTO.setCurrentStatus(question.getQuestionStatus());
+                        })
+                        .doOnError(SubmissionQuestionNotFoundException.class, e -> {
+                          userQuestionDTO.setCurrentScore(0d);
+                          userQuestionDTO.setCurrentStatus(QuestionStatus.NOT_STARTED);
+                        })
+                        .block();
+              } catch (SubmissionQuestionNotFoundException ignored) {
+
+              }
+            });
   }
 }
