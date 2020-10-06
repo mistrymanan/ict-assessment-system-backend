@@ -50,6 +50,7 @@ public class AssignmentService {
     newAssignment.setStatus("ACTIVE");
     newAssignment.setEmail(user.getEmail());
     newAssignment.setSlug(slugify(assignment.getTitle()));
+    newAssignment.setTotalPoints(0);
     newAssignment = this.assignmentRepository.save(newAssignment);
     return mapper.map(newAssignment, AssignmentDTO.class);
   }

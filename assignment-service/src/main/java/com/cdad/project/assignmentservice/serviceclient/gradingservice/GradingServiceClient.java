@@ -13,7 +13,7 @@ import reactor.core.publisher.Mono;
 @Configuration
 public class GradingServiceClient {
   //private final String BASE_URL = "http://localhost:8082";
-  private final String BASE_URL = "http://35.184.28.10/api/submissions/public";
+  private final String BASE_URL = "http://submission-service.default.svc.cluster.local:8080/public";
   private final WebClient webClient = WebClient.create(BASE_URL);
   private final String GET_SUBMISSION = "/submissions/{id}";
   private final String GET_QUESTION_OF_SUBMISSION = "/submissions/{assignmentId}/{questionId}";
