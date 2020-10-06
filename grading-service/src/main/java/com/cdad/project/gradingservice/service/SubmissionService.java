@@ -3,10 +3,7 @@ package com.cdad.project.gradingservice.service;
 import com.cdad.project.gradingservice.dto.SubmissionDetailsDTO;
 import com.cdad.project.gradingservice.dto.QuestionDTO;
 import com.cdad.project.gradingservice.entity.*;
-import com.cdad.project.gradingservice.exception.AssignmentNotActiveException;
-import com.cdad.project.gradingservice.exception.AssignmentNotStartedException;
-import com.cdad.project.gradingservice.exception.RunCodeCompilationErrorException;
-import com.cdad.project.gradingservice.exception.SubmissionCompilationErrorException;
+import com.cdad.project.gradingservice.exception.*;
 import com.cdad.project.gradingservice.exchange.*;
 import com.cdad.project.gradingservice.repository.SubmissionRepository;
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.AssignmentServiceClient;
@@ -22,6 +19,8 @@ import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.
 import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.PostBuildResponse;
 import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.PostRunRequest;
 import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.PostRunResponse;
+import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
@@ -59,8 +58,14 @@ public class SubmissionService {
         return this.submissionRepository.save(submissionEntity);
     }
 
-    public SubmissionEntity getSubmissionEntity(String assignmentId,String email){
-        return this.submissionRepository.findByAssignmentIdAndEmail(assignmentId, email);
+    public SubmissionEntity getSubmissionEntity(String assignmentId,String email) throws SubmissionEntityNotFoundException {
+        SubmissionEntity submissionEntity=this.submissionRepository.findByAssignmentIdAndEmail(assignmentId, email);
+        if(submissionEntity!=null){
+            return submissionEntity;
+        }
+else{
+            throw new SubmissionEntityNotFoundException("Check AssignmentId");
+        }
     }
     public boolean isExist(String assignmentId,String email){
         return this.submissionRepository.existsByAssignmentIdAndEmail(assignmentId,email);
@@ -93,7 +98,6 @@ public class SubmissionService {
         return this.save(submissionEntity);
     }
     public PostRunCodeResponse runCode(PostRunCodeRequest request ,Jwt jwt) throws RunCodeCompilationErrorException {
-        CurrentUser currentUser=CurrentUser.fromJwt(jwt);
         PostRunCodeResponse postRunResponse=new PostRunCodeResponse();
         postRunResponse.setInput(request.getInput());
 
@@ -116,20 +120,21 @@ public class SubmissionService {
         return postRunResponse;
     }
 
-    public PostSubmitResponse submit(PostSubmitRequest request,Jwt jwt) throws AssignmentNotStartedException, SubmissionCompilationErrorException, AssignmentNotActiveException {
+    public PostSubmitResponse submit(PostSubmitRequest request,Jwt jwt) throws AssignmentNotStartedException, SubmissionCompilationErrorException, AssignmentNotActiveException, SubmissionEntityNotFoundException {
         CurrentUser currentUser=CurrentUser.fromJwt(jwt);
-        if(this.isExist(request.getAssignmentId(), request.getEmail())){
+        if(this.isExist(request.getAssignmentId(), currentUser.getEmail())){
             PostSubmitResponse postSubmitResponse = new PostSubmitResponse();
             modelMapper.map(request,postSubmitResponse);
             SubmissionEntity submissionEntity=this.getSubmissionEntity(request.getAssignmentId()
-                    , request.getEmail());
+                    , currentUser.getEmail());
             postSubmitResponse.setSubmissionId(submissionEntity.getId().toString());
 
             GetQuestionRequest getQuestionRequest = new GetQuestionRequest();
             modelMapper.map(request, getQuestionRequest);
-
             Assignment assignment=assignmentServiceClient.getAssignment(request.getAssignmentId(), jwt.getTokenValue()).block();
+            System.out.println(assignment);
             Question question = assignmentServiceClient.getQuestion(getQuestionRequest, jwt.getTokenValue()).block();
+            System.out.println(question);
             if(assignment.getStatus().equals("ACTIVE")){
                 QuestionDTO questionDTO = null;
                 try {
@@ -139,7 +144,6 @@ public class SubmissionService {
                     postSubmitResponse.setStatus(questionDTO.getResultStatus());
                 } catch (SubmissionCompilationErrorException error) {
                     error.setSubmissionId(submissionEntity.getId().toString());
-
                     questionDTO=modelMapper.map(error,QuestionDTO.class);
                     modelMapper.map(question,questionDTO);
                     questionDTO.setScore(0.0);
@@ -164,15 +168,22 @@ public class SubmissionService {
         else{
             throw new AssignmentNotStartedException("You Haven't Started Assignment. Please start the Assignment First");
         }
-
     }
-
-    public void startSubmission(StartSubmissionRequest request, Jwt jwt){
+    public void startSubmission(StartSubmissionRequest request, Jwt jwt) throws AssignmentNotFound {
         CurrentUser currentUser=CurrentUser.fromJwt(jwt);
         if(!this.isExist(request.getAssignmentId(), request.getEmail())){
             SubmissionEntity submissionEntity=modelMapper.map(request,SubmissionEntity.class);
             submissionEntity.setEmail(currentUser.getEmail());
-            Assignment assignment=this.assignmentServiceClient.getAssignment(request.getAssignmentId(), jwt.getTokenValue())
+            Assignment assignment=null;
+
+
+            assignment=this.assignmentServiceClient.getAssignment(request.getAssignmentId(), jwt.getTokenValue())
+
+//                    .doOnError(throwable -> {
+//                        System.out.println("mene capture karli he bhai mere");
+//                        System.out.println(throwable);
+//                    })
+//                    .onErrorMap(throwable -> new AssignmentNotFound("Not Found"))
                     .block();
             System.out.println(assignment);
             if(assignment.getQuestions()!=null) {
@@ -268,14 +279,12 @@ public class SubmissionService {
     }
     public QuestionDTO evaluate(PostSubmitRequest request, Question question,String token) throws SubmissionCompilationErrorException {
         QuestionDTO questionDTO = null;
-
         PostBuildRequest postBuildRequest = modelMapper.map(request, PostBuildRequest.class);
         postBuildRequest.setInputs(question.getTestCases());
 
         PostBuildResponse userBuildResponse = null;
         try {
             userBuildResponse = this.executionServiceClient.postBuild(postBuildRequest,token);
-            List<TestResult> testResultResponseTestCases =null;
             questionDTO = assess(userBuildResponse,question);
             modelMapper.map(request,questionDTO);
         } catch (BuildCompilationErrorException e) {
@@ -293,7 +302,6 @@ public class SubmissionService {
         questionDTO.setTime(submissionTime);
         questionDTO.setBuildId(userResponse.getId());
         if(userResponse.getStatus().equals(Status.COMPILE_ERROR)){
-            System.out.println(question.getId());
             throw new BuildCompilationErrorException(userResponse.getMessage(),userResponse.getId(),question.getId());
         }
         else if (question.getTestCases() != null && (userResponse.getStatus().equals(Status.SUCCEED) || userResponse.getStatus().equals(Status.TEST_FAILED)))
@@ -385,5 +393,27 @@ public class SubmissionService {
                 resultStatus=ResultStatus.PASSED;
             }
             return resultStatus;
+        }
+        public QuestionEntity getQuestion(String email,String assignmentId,String questionId) throws SubmissionEntityNotFoundException, QuestionEntityNotFoundException {
+            SubmissionEntity submissionEntity=this.getSubmissionEntity(assignmentId,email);
+            if(submissionEntity.getQuestionEntities()!=null){
+
+
+                QuestionEntity questionEntity=
+                        submissionEntity.getQuestionEntities()
+                                .stream()
+                                .filter(questionEntity1 -> questionEntity1.getQuestionId().equals(questionId))
+                                .findFirst()
+                                .orElse(null);
+
+                if(questionEntity==null){
+                    throw new QuestionEntityNotFoundException("Not Found");
+                }
+
+                return questionEntity;
+            }
+            else {
+                throw new QuestionEntityNotFoundException("Not Found");
+            }
         }
     }

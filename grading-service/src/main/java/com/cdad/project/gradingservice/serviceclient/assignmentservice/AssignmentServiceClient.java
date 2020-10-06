@@ -5,6 +5,7 @@ import com.cdad.project.gradingservice.exception.AssignmentNotFound;
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.dto.Assignment;
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.dto.Question;
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.exchanges.GetQuestionRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -49,6 +50,7 @@ public class AssignmentServiceClient {
             .bodyToMono(Assignment.class);
   }
   public Mono<Assignment> getAssignment(String assignmentId,String token) {
+    Assignment assignment=new Assignment();
     return webClient.get()
             .uri(uriBuilder -> uriBuilder
                     .path(GET_ASSIGNMENT)

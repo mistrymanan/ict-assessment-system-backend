@@ -13,8 +13,6 @@ public class PostSubmitRequest {
     @NotNull
     private String questionId;
     @NotNull
-    private String email;
-    @NotNull
     private String sourceCode;
     @NotNull
     private Language language;

@@ -8,6 +8,7 @@ import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.
 import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.PostRunRequest;
 import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.PostRunResponse;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -15,6 +16,7 @@ import reactor.core.publisher.Mono;
 @Configuration
 public class ExecutionServiceClient {
     //private final String BASE_URL = "http://35.184.28.10/api/executions";
+    //private final String BASE_URL = "http://localhost:8081";
     private final String BASE_URL = "http://execution-service.default.svc.cluster.local:8080";
     private final WebClient webClient = WebClient.create(BASE_URL);
     private final String POST_RUN = "/run";
@@ -24,16 +26,6 @@ public class ExecutionServiceClient {
     public ExecutionServiceClient(ModelMapper modelMapper) {
         this.modelMapper = modelMapper;
     }
-
-//    public static void main(String[] args) {
-//        ExecutionServiceClient executionServiceClient=new ExecutionServiceClient();
-//        PostRunRequest postRunRequest=new PostRunRequest();
-//        postRunRequest.setSourceCode("#include <stdio.h> \n int main() {printf(\"Hello, World manan!\");return 0;}");
-//        postRunRequest.setLanguage(Language.CPP);
-//        Mono<PostRunResponse> postRunResponse=executionServiceClient.postRunCode(postRunRequest);
-//        PostRunResponse  obj=postRunResponse.block();
-//        System.out.println(obj.toString());
-//    }
 
     public PostRunResponse postRunCode(PostRunRequest request,String token) throws RunCodeCompilationErrorException {
         PostRunResponse response=webClient.post()

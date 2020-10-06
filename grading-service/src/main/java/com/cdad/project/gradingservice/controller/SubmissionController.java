@@ -41,31 +41,42 @@ public class SubmissionController {
        return this.submissionService.runCode(request, jwt);
     }
 
-    @PostMapping("/submit")
-    PostSubmitResponse submitNew(@RequestBody PostSubmitRequest request, @AuthenticationPrincipal Jwt jwt) throws SubmissionCompilationErrorException, LanguageNotAllowedException, AssignmentNotActiveException, AssignmentNotStartedException {
+    @PostMapping("submit")
+    PostSubmitResponse submitNew(@RequestBody PostSubmitRequest request, @AuthenticationPrincipal Jwt jwt) throws SubmissionCompilationErrorException, LanguageNotAllowedException, AssignmentNotActiveException, AssignmentNotStartedException, SubmissionEntityNotFoundException {
         return this.submissionService.submit(request, jwt);
     }
-    @PatchMapping("/submit")
-    void startQuestion(@Valid @RequestBody StartSubmissionRequest request, @AuthenticationPrincipal Jwt jwt){
+    @PatchMapping("submit")
+    void startQuestion(@Valid @RequestBody StartSubmissionRequest request, @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFound {
        this.submissionService.startSubmission(request,jwt);
     }
 
 
-    @GetMapping("/{assignmentId}")
+    @GetMapping("{assignmentId}")
     public List<SubmissionDetailsDTO> getSubmissions(@PathVariable String assignmentId, @AuthenticationPrincipal Jwt jwt) throws AccessForbiddenException {
         CurrentUser currentUser=CurrentUser.fromJwt(jwt);
-        Assignment assignment=this.assignmentServiceClient.getUserAssignment(assignmentId, jwt.getTokenValue())
+        Assignment assignment=this.assignmentServiceClient
+                .getUserAssignment(assignmentId, jwt.getTokenValue())
                 .block();
+//        checkAccess(currentUser,assignment);
         return this.submissionService.getSubmissionDetails(assignmentId);
     }
-    @GetMapping("/{assignmentId}/user")
-    public SubmissionUserDetailsDTO getSubmissionUserDetails(@PathVariable String assignmentId,@NotNull @RequestParam String email){
+    @GetMapping("{assignmentId}/user")
+    public SubmissionUserDetailsDTO getSubmissionUserDetails(@PathVariable String assignmentId,@NotNull @RequestParam String email,@AuthenticationPrincipal Jwt jwt) throws SubmissionEntityNotFoundException, AccessForbiddenException {
+        CurrentUser currentUser=CurrentUser.fromJwt(jwt);
+        Assignment assignment=this.assignmentServiceClient
+                .getUserAssignment(assignmentId, jwt.getTokenValue())
+                .block();
+      //  checkAccess(currentUser,assignment);
         SubmissionEntity submissionEntity=this.submissionService.getSubmissionEntity(assignmentId, email);
         SubmissionUserDetailsDTO submissionUserDetailsDTO=modelMapper.map(submissionEntity,SubmissionUserDetailsDTO.class);
         return submissionUserDetailsDTO;
     }
-    @GetMapping("/{assignmentId}/{questionId}")
-    public QuestionDTO getSubmissionUserDetails(@PathVariable String assignmentId,@PathVariable String questionId,@NotNull @RequestParam String email){
+    @GetMapping("{assignmentId}/{questionId}")
+    public QuestionDTO getSubmissionUserDetails(@PathVariable String assignmentId,@PathVariable String questionId,@NotNull @RequestParam String email,@AuthenticationPrincipal Jwt jwt) throws SubmissionEntityNotFoundException, QuestionEntityNotFoundException, AccessForbiddenException {
+        CurrentUser currentUser=CurrentUser.fromJwt(jwt);
+        Assignment assignment=this.assignmentServiceClient.getUserAssignment(assignmentId, jwt.getTokenValue())
+                .block();
+       // checkAccess(currentUser,assignment);
         SubmissionEntity submissionEntity=this.submissionService.getSubmissionEntity(assignmentId, email);
         QuestionEntity questionEntity=submissionEntity
                 .getQuestionEntities()
@@ -73,6 +84,7 @@ public class SubmissionController {
                 .filter(questionEntity1 -> questionEntity1.getQuestionId().equals(questionId))
                 .findFirst()
                 .orElse(null);
+        if(questionEntity==null){ throw new QuestionEntityNotFoundException("Not Started");}
         return modelMapper.map(questionEntity,QuestionDTO.class);
     }
 
@@ -83,6 +95,7 @@ public class SubmissionController {
         errorResponse.setStatus(Status.COMPILE_ERROR);
         return errorResponse;
     }
+
 
 //
 //    @ExceptionHandler(LanguageNotAllowedException.class)
@@ -104,5 +117,21 @@ public class SubmissionController {
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ErrorResponse handle(AccessForbiddenException error){
         return modelMapper.map(error,ErrorResponse.class);
+    }
+
+    @ExceptionHandler({
+            SubmissionEntityNotFoundException.class,
+            AssignmentNotFound.class,
+            QuestionEntityNotFoundException.class})
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public void handle(Exception e)
+    {
+    }
+    public void checkAccess(CurrentUser user,Assignment assignment) throws AccessForbiddenException {
+        System.out.println(assignment.getEmail());
+        System.out.println(user.getEmail());
+        if(!assignment.getEmail().equals(user.getEmail())){
+            throw new AccessForbiddenException("Access Forbidden");
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.cdad.project.gradingservice;
 
+import com.cdad.project.gradingservice.entity.Language;
 import org.modelmapper.ModelMapper;
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.AssignmentServiceClient;
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.dto.Assignment;
@@ -15,9 +16,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Bean;
 import reactor.core.publisher.Mono;
 
+import java.util.HashMap;
+
 @SpringBootApplication
 @Log4j2
-public class GradingServiceApplication implements CommandLineRunner {
+public class GradingServiceApplication {
 
   @Bean
   public ModelMapper modelMapper(){
@@ -28,22 +31,16 @@ public class GradingServiceApplication implements CommandLineRunner {
   public GradingServiceApplication(AssignmentServiceClient assignmentServiceClient) {
     this.assignmentServiceClient = assignmentServiceClient;
   }
+//  public HashMap<Language,String> languageMap(){
+//    HashMap<Language,String> hashMap=new HashMap<>();
+//    hashMap.put(Language.C,"C");
+//    hashMap.put(Language.CPP,"C++");
+//    hashMap.put(Language.JAVA,"Java");
+//    hashMap.put(Language.PYTHON,"Python3.8");
+//  }
 
   public static void main(String[] args) {
     SpringApplication.run(GradingServiceApplication.class, args);
   }
 
-
-  @Override
-  public void run(String... args) throws Exception {
-//    GetQuestionRequest request = new GetQuestionRequest();
-//    request.setAssignmentId("5f67a3d05b628f6da2b4f8cd");
-//    request.setQuestionId("b59d2ae0-856d-466e-b537-7dec6d531268");
-//    Mono<Question> questionMono = this.assignmentServiceClient.getQuestion(request);
-//    Question question = questionMono.block();
-//    log.info(question);
-//    Assignment assignment = this.assignmentServiceClient
-//            .getAssignment("5f67a3d05b628f6da2b4f8cd").block();
-//    log.info(assignment);
-  }
 }
