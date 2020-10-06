@@ -10,6 +10,8 @@ import com.cdad.project.assignmentservice.exceptions.QuestionNotFoundException;
 import com.cdad.project.assignmentservice.exchanges.GetActiveQuestionRequest;
 import com.cdad.project.assignmentservice.repository.AssignmentRepository;
 import com.cdad.project.assignmentservice.serviceclient.gradingservice.GradingServiceClient;
+import com.cdad.project.assignmentservice.serviceclient.gradingservice.dto.QuestionUserDetailsDTO;
+import com.cdad.project.assignmentservice.serviceclient.gradingservice.dto.SubmissionDetailsDTO;
 import com.cdad.project.assignmentservice.serviceclient.gradingservice.enums.QuestionStatus;
 import com.cdad.project.assignmentservice.serviceclient.gradingservice.enums.SubmissionStatus;
 import com.cdad.project.assignmentservice.serviceclient.gradingservice.exeptions.SubmissionDetailsNotFoundException;
@@ -20,6 +22,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -79,15 +83,20 @@ public class ActiveAssignmentService {
               .doOnSuccess(submissionDetailsDTO -> {
                 activeAssignment.setCurrentScore(submissionDetailsDTO.getCurrentScore());
                 activeAssignment.setSubmissionStatus(submissionDetailsDTO.getSubmissionStatus());
+                fillStatusAndScore(activeAssignment, submissionDetailsDTO);
               })
               .doOnError(SubmissionDetailsNotFoundException.class, e -> {
                 activeAssignment.setCurrentScore(0d);
                 activeAssignment.setSubmissionStatus(SubmissionStatus.NOT_STARTED);
+                activeAssignment.getQuestions().forEach(question -> {
+                  question.setCurrentScore(0d);
+                  question.setCurrentStatus(QuestionStatus.NOT_STARTED);
+                });
               })
               .block();
     } catch (SubmissionDetailsNotFoundException ignored) {
     }
-    fillStatusAndScore(activeAssignment, jwt);
+
     return activeAssignment;
   }
 
@@ -117,28 +126,43 @@ public class ActiveAssignmentService {
     return modelMapper.map(question, UserQuestionDTO.class);
   }
 
-  public void fillStatusAndScore(ActiveAssignmentDetailsDTO activeAssignmentDetails, Jwt jwt) {
+  public void fillStatusAndScore(ActiveAssignmentDetailsDTO activeAssignmentDetails, SubmissionDetailsDTO submissionDetails) {
+    Map<String, QuestionUserDetailsDTO> questionDetailMap = submissionDetails.getQuestionEntities()
+            .stream()
+            .collect(Collectors.toMap(QuestionUserDetailsDTO::getQuestionId, question -> question));
     activeAssignmentDetails.getQuestions()
             .forEach(userQuestionDTO -> {
-              try {
-                gradingServiceClient
-                        .getQuestionOfSubmission(
-                                activeAssignmentDetails.getId(),
-                                userQuestionDTO.getId().toString(),
-                                jwt
-                        )
-                        .doOnSuccess(question -> {
-                          userQuestionDTO.setCurrentScore(question.getScore());
-                          userQuestionDTO.setCurrentStatus(question.getQuestionStatus());
-                        })
-                        .doOnError(SubmissionQuestionNotFoundException.class, e -> {
-                          userQuestionDTO.setCurrentScore(0d);
-                          userQuestionDTO.setCurrentStatus(QuestionStatus.NOT_STARTED);
-                        })
-                        .block();
-              } catch (SubmissionQuestionNotFoundException ignored) {
-
+              String id = userQuestionDTO.getId().toString();
+              QuestionUserDetailsDTO questionUserDetailsDTO = questionDetailMap.getOrDefault(id, null);
+              if (Objects.isNull(questionUserDetailsDTO)) {
+                userQuestionDTO.setCurrentStatus(QuestionStatus.NOT_STARTED);
+                userQuestionDTO.setCurrentScore(0d);
+              } else {
+                userQuestionDTO.setCurrentStatus(questionUserDetailsDTO.getQuestionStatus());
+                userQuestionDTO.setCurrentScore(questionUserDetailsDTO.getScore());
               }
             });
+//    activeAssignmentDetails.getQuestions()
+//            .forEach(userQuestionDTO -> {
+//              try {
+//                gradingServiceClient
+//                        .getQuestionOfSubmission(
+//                                activeAssignmentDetails.getId(),
+//                                userQuestionDTO.getId().toString(),
+//                                jwt
+//                        )
+//                        .doOnSuccess(question -> {
+//                          userQuestionDTO.setCurrentScore(question.getScore());
+//                          userQuestionDTO.setCurrentStatus(question.getQuestionStatus());
+//                        })
+//                        .doOnError(SubmissionQuestionNotFoundException.class, e -> {
+//                          userQuestionDTO.setCurrentScore(0d);
+//                          userQuestionDTO.setCurrentStatus(QuestionStatus.NOT_STARTED);
+//                        })
+//                        .block();
+//              } catch (SubmissionQuestionNotFoundException ignored) {
+//
+//              }
+//            });
   }
 }
