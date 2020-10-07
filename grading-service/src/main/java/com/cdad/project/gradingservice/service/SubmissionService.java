@@ -178,12 +178,6 @@ else{
 
 
             assignment=this.assignmentServiceClient.getAssignment(request.getAssignmentId(), jwt.getTokenValue())
-
-//                    .doOnError(throwable -> {
-//                        System.out.println("mene capture karli he bhai mere");
-//                        System.out.println(throwable);
-//                    })
-//                    .onErrorMap(throwable -> new AssignmentNotFound("Not Found"))
                     .block();
             System.out.println(assignment);
             if(assignment.getQuestions()!=null) {
