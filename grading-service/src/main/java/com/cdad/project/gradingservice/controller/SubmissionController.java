@@ -47,7 +47,7 @@ public class SubmissionController {
     }
     @PatchMapping("/start-submission/{assignmentId}")
     void startQuestion(@PathVariable String assignmentId, @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFound {
-       this.submissionService.startSubmission(request,jwt);
+       this.submissionService.startSubmission(assignmentId,jwt);
     }
 
 

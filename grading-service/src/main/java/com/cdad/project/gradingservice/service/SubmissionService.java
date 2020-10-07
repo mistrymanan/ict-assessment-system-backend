@@ -169,15 +169,15 @@ else{
             throw new AssignmentNotStartedException("You Haven't Started Assignment. Please start the Assignment First");
         }
     }
-    public void startSubmission(StartSubmissionRequest request, Jwt jwt) throws AssignmentNotFound {
+    public void startSubmission(String assignmentId, Jwt jwt) throws AssignmentNotFound {
         CurrentUser currentUser=CurrentUser.fromJwt(jwt);
-        if(!this.isExist(request.getAssignmentId(), request.getEmail())){
-            SubmissionEntity submissionEntity=modelMapper.map(request,SubmissionEntity.class);
+        if(!this.isExist(assignmentId,currentUser.getEmail())){
+            // SubmissionEntity submissionEntity=modelMapper.map(request,SubmissionEntity.class);
+            SubmissionEntity submissionEntity=new SubmissionEntity();
+            submissionEntity.setAssignmentId(assignmentId);
             submissionEntity.setEmail(currentUser.getEmail());
             Assignment assignment=null;
-
-
-            assignment=this.assignmentServiceClient.getAssignment(request.getAssignmentId(), jwt.getTokenValue())
+            assignment=this.assignmentServiceClient.getAssignment(assignmentId, jwt.getTokenValue())
                     .block();
             System.out.println(assignment);
             if(assignment.getQuestions()!=null) {
