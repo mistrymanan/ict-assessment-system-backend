@@ -45,8 +45,8 @@ public class SubmissionController {
     PostSubmitResponse submitNew(@RequestBody PostSubmitRequest request, @AuthenticationPrincipal Jwt jwt) throws SubmissionCompilationErrorException, LanguageNotAllowedException, AssignmentNotActiveException, AssignmentNotStartedException, SubmissionEntityNotFoundException {
         return this.submissionService.submit(request, jwt);
     }
-    @PatchMapping("submit")
-    void startQuestion(@Valid @RequestBody StartSubmissionRequest request, @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFound {
+    @PatchMapping("/start-submission/{assignmentId}")
+    void startQuestion(@PathVariable String assignmentId, @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFound {
        this.submissionService.startSubmission(request,jwt);
     }
 
