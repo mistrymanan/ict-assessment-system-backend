@@ -21,10 +21,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -127,6 +124,9 @@ public class ActiveAssignmentService {
   }
 
   public void fillStatusAndScore(ActiveAssignmentDetailsDTO activeAssignmentDetails, SubmissionDetailsDTO submissionDetails) {
+    if (submissionDetails.getQuestionEntities() == null) {
+      submissionDetails.setQuestionEntities(new ArrayList<>());
+    }
     Map<String, QuestionUserDetailsDTO> questionDetailMap = submissionDetails.getQuestionEntities()
             .stream()
             .collect(Collectors.toMap(QuestionUserDetailsDTO::getQuestionId, question -> question));
