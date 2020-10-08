@@ -108,7 +108,7 @@ public class SubmissionController {
 
 
     @ExceptionHandler(RunCodeCompilationErrorException.class)
-    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    @ResponseStatus(HttpStatus.OK)
     public ErrorResponse handle(RunCodeCompilationErrorException error){
         return modelMapper.map(error,ErrorResponse.class);
     }
