@@ -141,6 +141,7 @@ else{
                     questionDTO = this.evaluate(request,question, jwt.getTokenValue());
                     postSubmitResponse.setBuildId(questionDTO.getBuildId());
                     modelMapper.map(questionDTO,postSubmitResponse);
+                    System.out.println(questionDTO);
                     postSubmitResponse.setStatus(questionDTO.getResultStatus());
                 } catch (SubmissionCompilationErrorException error) {
                     error.setSubmissionId(submissionEntity.getId().toString());
@@ -153,10 +154,11 @@ else{
                 finally {
                     QuestionEntity questionEntity=this.modelMapper.map(questionDTO,QuestionEntity.class);
                     questionDTO.setTitle(question.getTitle());
-                    postSubmitResponse.setStatus(questionEntity.getResultStatus());
                     submissionEntity=this.save(submissionEntity,questionEntity,assignment);
+                    modelMapper.map(submissionEntity,postSubmitResponse);
+                    postSubmitResponse.setStatus(questionEntity.getResultStatus());
                 }
-                modelMapper.map(submissionEntity,postSubmitResponse);
+
                 return postSubmitResponse;
             }
 //        else{
