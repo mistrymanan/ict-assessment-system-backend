@@ -63,5 +63,4 @@ public class AssignmentServiceClient {
                     Mono.error(new AssignmentNotFound("Not Found")))
             .bodyToMono(Assignment.class);
   }
-
 }
