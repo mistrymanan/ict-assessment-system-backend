@@ -153,6 +153,7 @@ else{
                 finally {
                     QuestionEntity questionEntity=this.modelMapper.map(questionDTO,QuestionEntity.class);
                     questionDTO.setTitle(question.getTitle());
+                    postSubmitResponse.setStatus(questionEntity.getResultStatus());
                     submissionEntity=this.save(submissionEntity,questionEntity,assignment);
                 }
                 modelMapper.map(submissionEntity,postSubmitResponse);
