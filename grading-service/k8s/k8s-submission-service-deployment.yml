@@ -15,7 +15,7 @@ spec:
         app: submission-service
     spec:
       containers:
-        - image: us.gcr.io/classroomict/submission-service
+        - image: us.gcr.io/my-project-1529917597814/submission-service
           imagePullPolicy: IfNotPresent
           name: submission-service
           ports:
