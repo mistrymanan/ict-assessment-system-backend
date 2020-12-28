@@ -16,7 +16,7 @@ spec:
         app: execution-service
     spec:
       containers:
-        - image: us.gcr.io/classroomict/execution-service:1.2.0
+        - image: us.gcr.io/my-project-1529917597814/execution-service
           imagePullPolicy: IfNotPresent
           name: execution-service
           ports:

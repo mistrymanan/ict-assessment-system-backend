@@ -38,14 +38,14 @@
 				<groupId>com.google.cloud.tools</groupId>
 				<artifactId>jib-maven-plugin</artifactId>
 				<version>2.5.0</version>
-				<configuration>
-					<from>
-						<image>us.gcr.io/classroomict/jail:1.1.0</image>
-					</from>
-					<to>
-						<image>us.gcr.io/classroomict/execution-service:1.2.0</image>
-					</to>
-				</configuration>
+<!--				<configuration>-->
+<!--					<from>-->
+<!--						<image>docker.io/mistrymanan/jail</image>-->
+<!--					</from>-->
+<!--					<to>-->
+<!--						<image>us.gcr.io/my-project-1529917597814/execution-service</image>-->
+<!--					</to>-->
+<!--				</configuration>-->
 			</plugin>
 		</plugins>
 	</build>

@@ -15,7 +15,7 @@ spec:
         app: assignment-service
     spec:
       containers:
-        - image: us.gcr.io/classroomict/assignment-service
+        - image: us.gcr.io/my-project-1529917597814/assignment-service
           imagePullPolicy: IfNotPresent
           name: assignment-service
           ports:
