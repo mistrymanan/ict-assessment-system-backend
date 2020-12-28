@@ -2,3 +2,9 @@ spring:
   data:
     mongodb:
       uri: mongodb://root:eQWRv7lGgR@localhost:27017/assignment-service-db?authSource=admin
+server:
+  servlet:
+    context-path: /api/assignments/
+service:
+  client:
+    submission-service: http://35.184.28.10/api/submissions

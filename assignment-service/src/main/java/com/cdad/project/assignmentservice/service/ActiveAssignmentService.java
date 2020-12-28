@@ -78,7 +78,8 @@ public class ActiveAssignmentService {
       this.gradingServiceClient
               .getSubmissionDetails(assignment.getId().toString(), jwt)
               .doOnSuccess(submissionDetailsDTO -> {
-                activeAssignment.setCurrentScore(submissionDetailsDTO.getCurrentScore());
+                System.out.println(submissionDetailsDTO.getCurrentScore());
+                activeAssignment.setCurrentScore(Optional.ofNullable(submissionDetailsDTO.getCurrentScore()).orElse(0d));
                 activeAssignment.setSubmissionStatus(submissionDetailsDTO.getSubmissionStatus());
                 fillStatusAndScore(activeAssignment, submissionDetailsDTO);
               })

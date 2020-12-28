@@ -4,12 +4,12 @@ metadata:
   name: assessment-system-backend
 build:
   artifacts:
-#    - image: us.gcr.io/classroomict/assignment-service
-#      jib:
-#        project: assignment-service
-    - image: us.gcr.io/classroomict/submission-service
+    - image: us.gcr.io/classroomict/assignment-service
       jib:
-        project: grading-service
+        project: assignment-service
+#    - image: us.gcr.io/classroomict/submission-service
+#      jib:
+#        project: grading-service
 #    - image: us.gcr.io/classroomict/execution-service
 #      jib:
 #        project: execution-service
@@ -18,8 +18,8 @@ build:
 deploy:
   kubectl:
     manifests:
-#    - assignment-service/k8s*
-    - grading-service/k8s*
+    - assignment-service/k8s*
+#    - grading-service/k8s*
 #    - execution-service/k8*
 profiles:
   - name: gcp

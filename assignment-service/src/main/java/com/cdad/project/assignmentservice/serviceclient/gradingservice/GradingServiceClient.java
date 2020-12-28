@@ -4,6 +4,7 @@ import com.cdad.project.assignmentservice.serviceclient.gradingservice.dto.Quest
 import com.cdad.project.assignmentservice.serviceclient.gradingservice.dto.SubmissionDetailsDTO;
 import com.cdad.project.assignmentservice.serviceclient.gradingservice.exeptions.SubmissionDetailsNotFoundException;
 import com.cdad.project.assignmentservice.serviceclient.gradingservice.exeptions.SubmissionQuestionNotFoundException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -14,6 +15,7 @@ import reactor.core.publisher.Mono;
 public class GradingServiceClient {
   //private final String BASE_URL = "http://localhost:8082";
   private final String BASE_URL = "http://submission-service.default.svc.cluster.local:8080/public";
+//  private final String BASE_URL = "http://35.184.28.10/public";
   private final WebClient webClient = WebClient.create(BASE_URL);
   private final String GET_SUBMISSION = "/submissions/{id}";
   private final String GET_QUESTION_OF_SUBMISSION = "/submissions/{assignmentId}/{questionId}";
