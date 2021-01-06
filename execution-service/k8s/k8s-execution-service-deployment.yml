@@ -16,7 +16,7 @@ spec:
         app: execution-service
     spec:
       containers:
-        - image: us.gcr.io/my-project-1529917597814/execution-service
+        - image: mananmistry/execution-service:818a8c4-dirty
           imagePullPolicy: IfNotPresent
           name: execution-service
           ports:

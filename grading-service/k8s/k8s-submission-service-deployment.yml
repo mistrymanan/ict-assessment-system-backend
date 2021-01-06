@@ -15,7 +15,7 @@ spec:
         app: submission-service
     spec:
       containers:
-        - image: us.gcr.io/my-project-1529917597814/submission-service
+        - image: mananmistry/submission-service:818a8c4-dirty
           imagePullPolicy: IfNotPresent
           name: submission-service
           ports:
