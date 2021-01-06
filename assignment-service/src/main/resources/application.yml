@@ -5,7 +5,8 @@ spring:
   data:
     mongodb:
 #      authentication-database: admin
-      uri: mongodb://root:eQWRv7lGgR@my-release-mongodb.default.svc.cluster.local:27017/assignment-service-db?authSource=admin
+#      uri: mongodb://root:eQWRv7lGgR@my-release-mongodb.default.svc.cluster.local:27017/assignment-service-db?authSource=admin
+      uri: mongodb://root:Root_123@172.25.254.21:27017/assignment-service-db?authSource=admin
       auto-index-creation: true
   application:
     name: assignment-service
