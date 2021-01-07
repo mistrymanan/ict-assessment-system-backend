@@ -15,7 +15,7 @@ spec:
         app: assignment-service
     spec:
       containers:
-        - image: mananmistry/assignment-service:818a8c4-dirty
+        - image: mananmistry/assignment-service:ee22843-dirty
           imagePullPolicy: IfNotPresent
           name: assignment-service
           ports:
