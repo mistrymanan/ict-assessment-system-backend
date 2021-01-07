@@ -4,7 +4,7 @@ spring:
   data:
     mongodb:
 #      authentication-database: admin
-      uri: mongodb://root:Root_123@172.25.254.21:27017/execution-service-db?authSource=admin
+      uri: mongodb://root:Root_123@172.16.10.101:27017/execution-service-db?authSource=admin
       auto-index-creation: true
   application:
     name: execution-service
