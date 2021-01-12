@@ -17,27 +17,27 @@ import java.io.InputStream;
 
 @RestController
 public class LoginController {
-  @PostConstruct
-  public void init() throws IOException {
-    Resource resource = new ClassPathResource("firebase-creds.json");
-    GoogleCredentials credentials = GoogleCredentials.fromStream(resource.getInputStream());
-    FirebaseOptions options = FirebaseOptions
-            .builder()
-            .setCredentials(credentials)
-            .build();
-    FirebaseApp.initializeApp(options);
-  }
-
-  @GetMapping("/login")
-  public String verifyLogin(@RequestParam String idToken) throws FirebaseAuthException {
-    System.out.println(idToken);
-    FirebaseToken token = FirebaseAuth.getInstance().verifyIdToken(idToken);
-    return "Verified! : " + token.getEmail();
-  }
-
-  @ExceptionHandler(FirebaseAuthException.class)
-  public String error(Exception e) {
-    System.out.println(e.getMessage());
-    return "Not Verified";
-  }
+//  @PostConstruct
+//  public void init() throws IOException {
+//    Resource resource = new ClassPathResource("firebase-creds.json");
+//    GoogleCredentials credentials = GoogleCredentials.fromStream(resource.getInputStream());
+//    FirebaseOptions options = FirebaseOptions
+//            .builder()
+//            .setCredentials(credentials)
+//            .build();
+//    FirebaseApp.initializeApp(options);
+//  }
+//
+//  @GetMapping("/login")
+//  public String verifyLogin(@RequestParam String idToken) throws FirebaseAuthException {
+//    System.out.println(idToken);
+//    FirebaseToken token = FirebaseAuth.getInstance().verifyIdToken(idToken);
+//    return "Verified! : " + token.getEmail();
+//  }
+//
+//  @ExceptionHandler(FirebaseAuthException.class)
+//  public String error(Exception e) {
+//    System.out.println(e.getMessage());
+//    return "Not Verified";
+//  }
 }
