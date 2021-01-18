@@ -21,7 +21,7 @@ public class UserController {
     }
 
     @PostMapping("")
-    @ResponseStatus(HttpStatus.ACCEPTED)
+    @ResponseStatus(HttpStatus.CREATED)
     User createUser(@Valid CreateUserRequest user, @AuthenticationPrincipal Jwt jwt){
         return userService.save(user);
     }
@@ -30,6 +30,7 @@ public class UserController {
         return userService.getByEmailId(emailId);
     }
     @PatchMapping("{emailId}")
+    @ResponseStatus(HttpStatus.OK)
     User updateUserInfo(@PathVariable String emailId, @AuthenticationPrincipal Jwt jwt) throws UserNotFoundException {
     return userService.updateUserMetadata(emailId, jwt);
     }
