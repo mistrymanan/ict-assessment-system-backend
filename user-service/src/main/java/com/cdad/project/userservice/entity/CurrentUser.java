@@ -1,4 +1,4 @@
-package com.cdad.project.assignmentservice.entity;
+package com.cdad.project.userservice.entity;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
