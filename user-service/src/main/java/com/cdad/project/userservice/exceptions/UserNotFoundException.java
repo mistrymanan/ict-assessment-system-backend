@@ -1,7 +1,7 @@
 package com.cdad.project.userservice.exceptions;
 
-public class UserNotFound extends Exception {
-    public UserNotFound(String message) {
+public class UserNotFoundException extends Exception {
+    public UserNotFoundException(String message) {
         super(message);
     }
 }
