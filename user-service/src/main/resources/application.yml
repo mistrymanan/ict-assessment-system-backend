@@ -1,0 +1,30 @@
+server:
+  port: 8080
+spring:
+  data:
+    mongodb:
+      #      authentication-database: admin
+      #      uri: mongodb://root:eQWRv7lGgR@my-release-mongodb.default.svc.cluster.local:27017/assignment-service-db?authSource=admin
+      uri: mongodb://root:Root_123@172.16.10.101:27017/user-service-db?authSource=admin
+      auto-index-creation: true
+  application:
+    name: user-service
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://securetoken.google.com/assessment-system-auth
+          jwk-set-uri: https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: httptrace,loggers,health,info,metrics
+#  endpoint:
+#    loggers:
+#      enabled: true
+logging:
+  level:
+    org.springframework.security: debug
+#        uri: mongodb://localhost:27017/assignment-service-db?authSource=admin
