@@ -6,12 +6,13 @@ import com.cdad.project.userservice.exceptions.UserNotFoundException;
 import com.cdad.project.userservice.exchanges.CreateUserRequest;
 import com.cdad.project.userservice.service.UserService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 
+@RestController
 @RequestMapping("")
 public class UserController {
     final private UserService userService;
@@ -20,24 +21,26 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping("")
-    @ResponseStatus(HttpStatus.CREATED)
-    User createUser(@Valid CreateUserRequest user, @AuthenticationPrincipal Jwt jwt){
-        return userService.save(user);
-    }
-    @GetMapping("{emailId}")
+    @GetMapping("{emailId:.+}")
     User getUser(@PathVariable String emailId, @AuthenticationPrincipal Jwt jwt) throws UserNotFoundException {
         return userService.getByEmailId(emailId);
     }
-    @PatchMapping("{emailId}")
+
+    @PostMapping("")
+    @ResponseStatus(HttpStatus.CREATED)
+    User createUser(@RequestBody CreateUserRequest user, @AuthenticationPrincipal Jwt jwt){
+        return userService.save(user);
+    }
+
+    @PatchMapping("{emailId:.+}")
     @ResponseStatus(HttpStatus.OK)
     User updateUserInfo(@PathVariable String emailId, @AuthenticationPrincipal Jwt jwt) throws UserNotFoundException {
     return userService.updateUserMetadata(emailId, jwt);
     }
 
-    @ExceptionHandler(UserNotFoundException.class)
+    @ExceptionHandler(value = UserNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handle(Exception e) {
+    public ErrorResponse userNotFoundHandler(UserNotFoundException e) {
         return new ErrorResponse("Not Found", e.getMessage());
     }
 }
