@@ -1,10 +1,18 @@
-server:
-  port: 8081
 spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/user-service-db?authSource=admin
+      database: user-service-db
   security:
     oauth2:
-      client:
-        registration:
-          google:
-            client-id: 29678436164-tqc5k9ndes579hlro7elqvk3fq6qnfep.apps.googleusercontent.com
-            client-secret: qeO0MQXIxTU9YmIs0qWVx4BC
+      resourceserver:
+        jwt:
+          issuer-uri: https://securetoken.google.com/assessment-system-auth
+          jwk-set-uri: https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com
+
+server:
+  port: 8080
+#service:
+#  client:
+#    assignment-service: http://35.184.28.10/api/assignments
+#    execution-service: http://35.184.28.10/api/executions
