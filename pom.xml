@@ -21,6 +21,7 @@
         <module>grading-service</module>
         <module>assignment-service</module>
         <module>execution-service</module>
+        <module>classroom-service</module>
     </modules>
     <dependencies>
         <dependency>
