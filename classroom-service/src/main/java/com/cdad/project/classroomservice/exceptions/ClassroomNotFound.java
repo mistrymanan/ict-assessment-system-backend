@@ -1,4 +1,4 @@
-package com.cdad.project.classroomservice.classroomservice.exceptions;
+package com.cdad.project.classroomservice.exceptions;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
