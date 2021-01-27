@@ -1,4 +1,4 @@
-package com.cdad.project.classroomservice.classroomservice.serviceclient.userservice.dtos;
+package com.cdad.project.classroomservice.serviceclient.userservice.dtos;
 
 import java.util.HashSet;
 
