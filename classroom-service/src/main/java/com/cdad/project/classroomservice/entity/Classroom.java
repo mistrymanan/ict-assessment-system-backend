@@ -1,4 +1,4 @@
-package com.cdad.project.classroomservice.classroomservice.entity;
+package com.cdad.project.classroomservice.entity;
 
 import lombok.Data;
 import org.bson.types.ObjectId;
@@ -19,6 +19,7 @@ public class Classroom {
     private String slug;
     @Indexed
     private String ownerEmail;
+    private String ownerName;
     private HashSet<String> instructors;
     private HashSet<String> enrolledUsers;
 }
