@@ -1,4 +1,4 @@
-package com.cdad.project.classroomservice.classroomservice.config;
+package com.cdad.project.classroomservice.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
