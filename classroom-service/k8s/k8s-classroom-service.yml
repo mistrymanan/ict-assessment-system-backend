@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: classroom-service
+    type: microservice
+    tier: backend
+  name: classroom-service
+spec:
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: classroom-service
+  type: NodePort
