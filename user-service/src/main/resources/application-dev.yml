@@ -11,7 +11,7 @@ spring:
           jwk-set-uri: https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com
 
 server:
-  port: 8080
+  port: 8081
 #service:
 #  client:
 #    assignment-service: http://35.184.28.10/api/assignments
