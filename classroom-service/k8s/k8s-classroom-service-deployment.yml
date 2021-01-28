@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: classroom-service
+  name: classroom-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: classroom-service
+  template:
+    metadata:
+      labels:
+        app: classroom-service
+    spec:
+      containers:
+        - image: mananmistry/classroom-service:v5
+          imagePullPolicy: IfNotPresent
+          name: user-service
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/info
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 0
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 10
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 0
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 10

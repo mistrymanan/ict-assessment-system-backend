@@ -2,6 +2,6 @@ spring:
   data:
     mongodb:
       uri: mongodb://localhost:27017/classroom-service-db?authSource=admin
-server:
-  servlet:
-    context-path: /api/classrooms/
+#server:
+#  servlet:
+#    context-path: /api/classrooms/
