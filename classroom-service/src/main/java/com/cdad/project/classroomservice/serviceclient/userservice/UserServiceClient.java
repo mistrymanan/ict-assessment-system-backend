@@ -35,6 +35,7 @@ public class UserServiceClient {
                     httpHeaders.setBearerAuth(jwt.getTokenValue());
                     httpHeaders.setContentType(MediaType.APPLICATION_JSON);
                 })
+                .header("X-Secret", "top-secret-communication")
                 //.header(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON_VALUE)
                 .body(Mono.just(addInstructorsRequest),AddInstructorsRequest.class)
                 .retrieve()
@@ -48,6 +49,7 @@ public class UserServiceClient {
                     httpHeaders.setBearerAuth(jwt.getTokenValue());
                     httpHeaders.setContentType(MediaType.APPLICATION_JSON);
                 })
+                .header("X-Secret", "top-secret-communication")
                 .body(Mono.just(removeInstructorsRequest), DeleteClassroomRequest.class)
                 .retrieve()
                 .bodyToMono(Void.class)
@@ -61,6 +63,7 @@ public class UserServiceClient {
                     httpHeaders.setBearerAuth(jwt.getTokenValue());
                     httpHeaders.setContentType(MediaType.APPLICATION_JSON);
                 })
+                .header("X-Secret", "top-secret-communication")
                 .body(Mono.just(unrollUsersRequest),UnrollUsersRequest.class)
                 .retrieve()
                 .bodyToMono(Void.class)
@@ -74,6 +77,7 @@ public class UserServiceClient {
                     httpHeaders.setBearerAuth(jwt.getTokenValue());
                     httpHeaders.setContentType(MediaType.APPLICATION_JSON);
                 })
+                .header("X-Secret", "top-secret-communication")
                 //.header(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON_VALUE)
                 .body(Mono.just(enrollUsersRequest),EnrollUsersRequest.class)
                 .retrieve()
