@@ -24,6 +24,11 @@ public class ClassroomController {
         this.classroomService = classroomService;
         this.modelMapper = modelMapper;
     }
+    @GetMapping("{classroomSlug}")
+    @ResponseStatus(HttpStatus.OK)
+    Classroom getClassroom(@PathVariable String classroomSlug,@AuthenticationPrincipal Jwt jwt) throws ClassroomNotFound {
+        return classroomService.getClassroom(classroomSlug, jwt);
+    }
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
