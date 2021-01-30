@@ -13,7 +13,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/questions")
+@RequestMapping("{classroomSlug}/questions")
 public class QuestionsController {
 
   private final AssignmentService assignmentService;
@@ -24,51 +24,57 @@ public class QuestionsController {
 
   @PostMapping("/add-question")
   @ResponseStatus(HttpStatus.CREATED)
-  public void addQuestionToAssignment(@RequestBody AddQuestionRequest request,
+  public void addQuestionToAssignment(@PathVariable String classroomSlug,
+                                      @RequestBody AddQuestionRequest request,
                                       @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException {
     CurrentUser user = CurrentUser.fromJwt(jwt);
-    this.assignmentService.addQuestionToAssignment(request, user);
+    this.assignmentService.addQuestionToAssignment(request, classroomSlug);
   }
 
   @GetMapping
-  public QuestionDTO getQuestionForAssignment(GetQuestionUsingSlugRequest request,
+  public QuestionDTO getQuestionForAssignment(@PathVariable String classroomSlug,
+                                              GetQuestionUsingSlugRequest request,
                                               @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, QuestionNotFoundException {
     return this.assignmentService.getQuestion(
             request.getAssignmentSlug(),
             request.getQuestionSlug(),
-            CurrentUser.fromJwt(jwt)
+            classroomSlug
     );
   }
 
   @GetMapping("/id")
-  public QuestionDTO getQuestionForAssignmentById(GetQuestionUsingIdRequest request,
+  public QuestionDTO getQuestionForAssignmentById(@PathVariable String classroomSlug,
+                                                  GetQuestionUsingIdRequest request,
                                                   @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, QuestionNotFoundException {
     return this.assignmentService.getQuestionUsingId(
             request.getAssignmentId(),
             request.getQuestionId(),
-            CurrentUser.fromJwt(jwt)
+            classroomSlug
     );
   }
 
   @DeleteMapping
   @ResponseStatus(HttpStatus.ACCEPTED)
-  public void deleteQuestionForAssignment(DeleteQuestionRequest request,
+  public void deleteQuestionForAssignment(@PathVariable String classroomSlug,
+                                          DeleteQuestionRequest request,
                                           @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, QuestionNotFoundException {
     this.assignmentService.deleteQuestionForAssignment(
             request.getAssignmentId(),
             request.getQuestionId(),
-            CurrentUser.fromJwt(jwt)
+            classroomSlug
     );
   }
 
   @PutMapping("/update-question")
   @ResponseStatus(HttpStatus.OK)
-  public void updateQuestionForAssignment(@RequestBody UpdateAssignmentQuestionRequest updateRequest,
+  public void updateQuestionForAssignment(@PathVariable String classroomSlug,
+                                          @RequestBody UpdateAssignmentQuestionRequest updateRequest,
                                           @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, QuestionNotFoundException {
     this.assignmentService.updateQuestionForAssignment(
             updateRequest.getAssignmentId(),
-            updateRequest.getQuestion(),
-            CurrentUser.fromJwt(jwt)
+            classroomSlug,
+            updateRequest.getQuestion()
+
     );
   }
 

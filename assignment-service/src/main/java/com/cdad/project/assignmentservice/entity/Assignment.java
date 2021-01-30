@@ -19,6 +19,7 @@ public class Assignment {
   @MongoId(FieldType.OBJECT_ID)
   private ObjectId id;
   private String title;
+  private String classroomSlug;
   private String status;
   private Integer totalPoints;
   @Indexed

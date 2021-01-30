@@ -24,7 +24,7 @@ import java.security.Principal;
 import java.util.List;
 
 @RestController
-@RequestMapping("active-assignments")
+@RequestMapping("{classroomSlug}/active-assignments")
 public class AssignmentsController {
 
   private final ActiveAssignmentService activeAssignmentService;
@@ -34,29 +34,33 @@ public class AssignmentsController {
   }
 
   @GetMapping("/all")
-  public GetAllActiveAssignmentsResponse getAllActiveAssignments(@AuthenticationPrincipal Jwt jwt) {
+  public GetAllActiveAssignmentsResponse getAllActiveAssignments(@PathVariable String classroomSlug
+            ,@AuthenticationPrincipal Jwt jwt) {
     GetAllActiveAssignmentsResponse response = new GetAllActiveAssignmentsResponse();
-    List<ActiveAssignmentDTO> activeAssignments = this.activeAssignmentService.getAll(jwt);
+    List<ActiveAssignmentDTO> activeAssignments = this.activeAssignmentService.getAll(classroomSlug,jwt);
     response.setActiveAssignments(activeAssignments);
     return response;
   }
 
   @GetMapping("slug/{slug}")
-  public ActiveAssignmentDetailsDTO getActiveAssignment(@PathVariable String slug,
+  public ActiveAssignmentDetailsDTO getActiveAssignment(@PathVariable String classroomSlug,
+                                                        @PathVariable String slug,
                                                         @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException {
-    return this.activeAssignmentService.getDetails(slug, jwt);
+    return this.activeAssignmentService.getDetails(classroomSlug,slug, jwt);
   }
 
   @GetMapping("id/{id}")
-  public ActiveAssignmentDetailsDTO getActiveAssignmentById(@PathVariable String id,
+  public ActiveAssignmentDetailsDTO getActiveAssignmentById(@PathVariable String classroomSlug,
+                                                            @PathVariable String id,
                                                             @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException {
-    return this.activeAssignmentService.getDetailsById(id, jwt);
+    return this.activeAssignmentService.getDetailsById(id,classroomSlug, jwt);
   }
 
   @GetMapping("get-question")
-  public UserQuestionDTO getQuestion(@Valid GetActiveQuestionRequest request,
+  public UserQuestionDTO getQuestion(@PathVariable String classroomSlug,
+                                     @Valid GetActiveQuestionRequest request,
                                      @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, QuestionNotFoundException {
-    return this.activeAssignmentService.getActiveQuestion(request, jwt);
+    return this.activeAssignmentService.getActiveQuestion(request,classroomSlug, jwt);
   }
 
   @ExceptionHandler(AssignmentNotFoundException.class)

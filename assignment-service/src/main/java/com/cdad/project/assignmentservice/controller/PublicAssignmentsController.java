@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Objects;
 
 @RestController
-@RequestMapping("/public/")
+@RequestMapping("{classroomSlug}/public/")
 public class PublicAssignmentsController {
 
   private final AssignmentService assignmentService;
@@ -30,17 +30,19 @@ public class PublicAssignmentsController {
   }
 
   @GetMapping("assignments/{id}")
-  public AssignmentDTO getAssignment(@PathVariable String id, HttpServletRequest req) throws AssignmentNotFoundException, InvalidSecretKeyException {
+  public AssignmentDTO getAssignment(@PathVariable String classroomSlug,
+                                     @PathVariable String id, HttpServletRequest req) throws AssignmentNotFoundException, InvalidSecretKeyException {
     checkSecret(req);
     return this.assignmentService.getAssignmentById(id);
   }
 
   @GetMapping("questions/id")
-  public QuestionDTO getQuestionForAssignmentById(GetQuestionUsingIdRequest request, HttpServletRequest req) throws AssignmentNotFoundException, QuestionNotFoundException, InvalidSecretKeyException {
+  public QuestionDTO getQuestionForAssignmentById(@PathVariable String classroomSlug,
+          GetQuestionUsingIdRequest request, HttpServletRequest req) throws AssignmentNotFoundException, QuestionNotFoundException, InvalidSecretKeyException {
     checkSecret(req);
     return this.assignmentService.getQuestionUsingId(
             request.getAssignmentId(),
-            request.getQuestionId()
+            request.getQuestionId(),classroomSlug
     );
   }
 
