@@ -1,5 +1,6 @@
 package com.cdad.project.classroomservice.service;
 
+import com.cdad.project.classroomservice.dto.ClassroomDetailsDTO;
 import com.cdad.project.classroomservice.entity.Classroom;
 import com.cdad.project.classroomservice.entity.CurrentUser;
 import com.cdad.project.classroomservice.exceptions.ClassroomAccessForbidden;
@@ -8,11 +9,13 @@ import com.cdad.project.classroomservice.exceptions.ClassroomNotFound;
 import com.cdad.project.classroomservice.exchanges.*;
 import com.cdad.project.classroomservice.repository.ClassroomRepository;
 import com.cdad.project.classroomservice.serviceclient.userservice.UserServiceClient;
+import com.cdad.project.classroomservice.serviceclient.userservice.dtos.UserDetailsDTO;
+import com.cdad.project.classroomservice.serviceclient.userservice.exceptions.UserNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.util.*;
 
 @Service
 public class ClassroomService {
@@ -33,8 +36,8 @@ public class ClassroomService {
         classroom.setSlug(slugify(request.getTitle()));
         classroom.setOwnerEmail(currentUser.getEmail());
         classroom.setOwnerName(currentUser.getName());
-        HashSet<String> instructors=new HashSet<>();
-        HashSet<String> enrolledUsers=new HashSet<>();
+        HashSet<String> instructors = new HashSet<>();
+        HashSet<String> enrolledUsers = new HashSet<>();
         classroom.setInstructors(instructors);
         classroom.setEnrolledUsers(enrolledUsers);
         //instructors.add(currentUser.getEmail());
@@ -46,13 +49,48 @@ public class ClassroomService {
         return classroom;
     }
 
+    public GetClassroomsResponse getUsersClassrooms(Jwt jwt) throws UserNotFoundException {
+        CurrentUser user = CurrentUser.fromJwt(jwt);
+        UserDetailsDTO userDetailsDTO = userServiceClient.getUserDetails(jwt);
+        List<ClassroomDetailsDTO> instructClassrooms = new LinkedList<>();
+        List<ClassroomDetailsDTO> enrolledClassrooms = new LinkedList<>();
+        userDetailsDTO.getInstructClassrooms().stream().forEach(classroomSlug -> {
+            Optional<Classroom> classroom = classroomRepository.getClassroomBySlug(classroomSlug);
+            classroom.ifPresent(value -> instructClassrooms.add(modelMapper.map(value, ClassroomDetailsDTO.class)));
+        });
+        userDetailsDTO.getEnrolledClassrooms().stream().forEach(classroomSlug -> {
+            Optional<Classroom> classroom = classroomRepository.getClassroomBySlug(classroomSlug);
+            classroom.ifPresent(value -> enrolledClassrooms.add(modelMapper.map(value, ClassroomDetailsDTO.class)));
+        });
+        GetClassroomsResponse response = new GetClassroomsResponse();
+        response.setEnrolledClassrooms(enrolledClassrooms);
+        response.setInstructClassrooms(instructClassrooms);
+        return response;
+    }
+
+    public Classroom getClassroom(String classroomSlug, Jwt jwt) throws ClassroomNotFound, ClassroomAccessForbidden {
+        CurrentUser user = CurrentUser.fromJwt(jwt);
+        Optional<Classroom> optionalClassroom = classroomRepository.getClassroomBySlug(classroomSlug);
+        if (optionalClassroom.isPresent()) {
+            Classroom classroom = optionalClassroom.orElseThrow(() -> new ClassroomNotFound("Classroom Not Found."));
+            if (classroom.getEnrolledUsers().contains(user.getEmail())
+                    || classroom.getInstructors().contains(user.getEmail()) || classroom.getOwnerEmail().equals(user.getEmail())) {
+                return classroom;
+            } else {
+                throw new ClassroomAccessForbidden("You are neither Instructor or Student for Title: "
+                        + classroom.getTitle() + " Class.");
+            }
+        }
+        return null;
+    }
+
     public Classroom addClassroom(CreateClassroomRequest request, Jwt jwt) throws ClassroomAlreadyExists {
-        CurrentUser currentUser=CurrentUser.fromJwt(jwt);
-        String classroomSlug=slugify(request.getTitle());
-        if(!classroomRepository.existsBySlug(classroomSlug)){
-            Classroom classroom=saveNew(request,jwt);
+        CurrentUser currentUser = CurrentUser.fromJwt(jwt);
+        String classroomSlug = slugify(request.getTitle());
+        if (!classroomRepository.existsBySlug(classroomSlug)) {
+            Classroom classroom = saveNew(request, jwt);
             classroom.getInstructors().add(classroom.getOwnerEmail());
-            userServiceClient.addInstructorToClass(classroom.getSlug(),classroom.getInstructors(),jwt);
+            userServiceClient.addInstructorToClass(classroom.getSlug(), classroom.getInstructors(), jwt);
 
             return classroom;
         }else {

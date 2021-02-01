@@ -11,19 +11,37 @@ import java.util.Optional;
 
 @Repository
 public interface AssignmentRepository extends MongoRepository<Assignment, String> {
-  Optional<Assignment> findBySlugAndEmail(String slug, String email);
+
+  boolean existsBySlugAndClassroomSlug(String slug, String classroomSlug);
+
+//  Optional<Assignment> findBySlugAndEmail(String slug, String email);
 
   Optional<Assignment> findBySlug(String slug);
 
+  Optional<Assignment> findBySlugAndClassroomSlug(String slug, String classroomSlug);
+
   Optional<Assignment> findBySlugAndStatus(String slug, String status);
+
+  Optional<Assignment> findBySlugAndStatusAndClassroomSlug(String slug, String status, String classroomSlug);
 
   List<Assignment> findAllByStatusEquals(String status);
 
-  List<Assignment> findAllByEmail(String email);
+  List<Assignment> findAllByClassroomSlugEqualsAndStatusEquals(String classroomSlug, String status);
 
-  void deleteByIdAndEmail(ObjectId id, String email);
+  //List<Assignment> findAllByEmail(String email);
 
-  Optional<Assignment> findByIdAndEmail(ObjectId id, String email);
+  List<Assignment> findAllByClassroomSlugEquals(String classroomSlug);
+
+  //void deleteByIdAndEmail(ObjectId id, String email);
+
+  void deleteByIdAndClassroomSlug(ObjectId id, String classroomSlug);
+
+  void deleteAssignmentBySlugAndClassroomSlug(String slug, String classroomSlug);
+  //Optional<Assignment> findByIdAndEmail(ObjectId id, String email);
+
+  Optional<Assignment> findByIdAndClassroomSlug(ObjectId id, String classroomSlug);
 
   Optional<Assignment> findByIdAndStatus(ObjectId id, String status);
+
+  Optional<Assignment> findByIdAndStatusAndClassroomSlug(ObjectId id, String status, String classroomSlug);
 }

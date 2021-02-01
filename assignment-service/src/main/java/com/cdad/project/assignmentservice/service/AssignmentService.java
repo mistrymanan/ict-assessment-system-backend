@@ -5,6 +5,7 @@ import com.cdad.project.assignmentservice.dto.QuestionDTO;
 import com.cdad.project.assignmentservice.entity.Assignment;
 import com.cdad.project.assignmentservice.entity.CurrentUser;
 import com.cdad.project.assignmentservice.entity.Question;
+import com.cdad.project.assignmentservice.exceptions.AssignmentAlreadyExistsException;
 import com.cdad.project.assignmentservice.exceptions.AssignmentNotFoundException;
 import com.cdad.project.assignmentservice.exceptions.QuestionNotFoundException;
 import com.cdad.project.assignmentservice.exchanges.AddQuestionRequest;
@@ -35,28 +36,42 @@ public class AssignmentService {
     this.mapper = mapper;
   }
 
-  public List<AssignmentDTO> getAllAssignments(CurrentUser user) {
+  public List<AssignmentDTO> getAllAssignmentsInClassroom(String classroomSlug) {
 //    List<AssignmentEntity> assignmentEntities = this.assignmentRepository.findAll();
 //    assignmentEntities.forEach(System.out::println);
     return this.assignmentRepository
-            .findAllByEmail(user.getEmail())
+            .findAllByClassroomSlugEquals(classroomSlug)
             .stream()
             .map(assignment -> mapper.map(assignment, AssignmentDTO.class))
             .collect(Collectors.toList());
   }
 
-  public AssignmentDTO createAssignment(CreateAssignmentRequest assignment, CurrentUser user) {
-    Assignment newAssignment = mapper.map(assignment, Assignment.class);
-    newAssignment.setStatus("ACTIVE");
-    newAssignment.setEmail(user.getEmail());
-    newAssignment.setSlug(slugify(assignment.getTitle()));
-    newAssignment.setTotalPoints(0);
-    newAssignment = this.assignmentRepository.save(newAssignment);
-    return mapper.map(newAssignment, AssignmentDTO.class);
+  public AssignmentDTO createAssignment(CreateAssignmentRequest assignment, String classroomSlug, CurrentUser user) throws AssignmentAlreadyExistsException {
+    String assignmentSlug = slugify(assignment.getTitle());
+    if (!assignmentRepository.existsBySlugAndClassroomSlug(assignmentSlug, classroomSlug)) {
+      Assignment newAssignment = mapper.map(assignment, Assignment.class);
+      newAssignment.setClassroomSlug(classroomSlug);
+      newAssignment.setStatus("ACTIVE");
+      //newAssignment.setEmail(user.getEmail());
+      newAssignment.setSlug(assignmentSlug);
+      newAssignment.setTotalPoints(0);
+      newAssignment = this.assignmentRepository.save(newAssignment);
+      return mapper.map(newAssignment, AssignmentDTO.class);
+    } else {
+      throw new AssignmentAlreadyExistsException("Assignment With given Name already Exists in classroom.");
+    }
   }
 
-  public AssignmentDTO updateAssignment(String id, UpdateAssignmentRequest request, CurrentUser user) throws AssignmentNotFoundException {
-    Assignment assignment = getAssignment(id, user);
+  public AssignmentDTO updateAssignment(String id, String classroomSlug, UpdateAssignmentRequest request, CurrentUser user) throws AssignmentNotFoundException {
+    Assignment assignment = getAssignment(id, classroomSlug);
+    this.mapper.map(request, assignment);
+    assignment.setSlug(slugify(assignment.getTitle()));
+    this.assignmentRepository.save(assignment);
+    return mapper.map(assignment, AssignmentDTO.class);
+  }
+
+  public AssignmentDTO updateAssignmentBySlug(String slug, String classroomSlug, UpdateAssignmentRequest request, CurrentUser user) throws AssignmentNotFoundException {
+    Assignment assignment = getAssignmentBySlug(slug, classroomSlug);
     this.mapper.map(request, assignment);
     assignment.setSlug(slugify(assignment.getTitle()));
     this.assignmentRepository.save(assignment);
@@ -67,12 +82,16 @@ public class AssignmentService {
     return String.join("-", str.trim().toLowerCase().split("\\s+"));
   }
 
-  public void deleteAssignment(String id, CurrentUser user) {
-    this.assignmentRepository.deleteByIdAndEmail(new ObjectId(id), user.getEmail());
+  public void deleteAssignment(String id, String classroomSlug) {
+    this.assignmentRepository.deleteByIdAndClassroomSlug(new ObjectId(id), classroomSlug);
   }
 
-  public AssignmentDTO getAssignmentById(String id, CurrentUser user) throws AssignmentNotFoundException {
-    Assignment assignment = getAssignment(id, user);
+  public void deleteAssignmentBySlug(String slug, String classroomSlug) {
+    this.assignmentRepository.deleteAssignmentBySlugAndClassroomSlug(slug, classroomSlug);
+  }
+
+  public AssignmentDTO getAssignmentById(String id, String classroomSlug) throws AssignmentNotFoundException {
+    Assignment assignment = getAssignment(id, classroomSlug);
     return mapper.map(assignment, AssignmentDTO.class);
   }
 
@@ -81,17 +100,19 @@ public class AssignmentService {
     return mapper.map(assignment, AssignmentDTO.class);
   }
 
-  public AssignmentDTO getAssignmentBySlug(String slug, CurrentUser user) throws AssignmentNotFoundException {
-    Optional<Assignment> assignmentEntity = this.assignmentRepository.findBySlugAndEmail(slug, user.getEmail());
-    if (assignmentEntity.isPresent()) {
-      return mapper.map(assignmentEntity.get(), AssignmentDTO.class);
-    } else {
-      throw new AssignmentNotFoundException(String.format("Assignment with slug '%s' not found.", slug));
-    }
-  }
+//  public AssignmentDTO getAssignmentBySlug(String slug, String classroomSlug)
+//          throws AssignmentNotFoundException {
+//    Optional<Assignment> assignmentEntity = this.assignmentRepository.findBySlugAndClassroomSlug(slug, classroomSlug);
+//    if (assignmentEntity.isPresent()) {
+//      return mapper.map(assignmentEntity.get(), AssignmentDTO.class);
+//    } else {
+//      throw new AssignmentNotFoundException(String.format("Assignment with slug '%s' not found.", slug));
+//    }
+//  }
 
-  public void addQuestionToAssignment(AddQuestionRequest request, CurrentUser user) throws AssignmentNotFoundException {
-    Assignment assignment = getAssignment(request.getAssignmentId(), user);
+  public void addQuestionToAssignment(AddQuestionRequest request, String classroomSlug) throws AssignmentNotFoundException {
+    //Assignment assignment = getAssignment(request.getAssignmentId(), classroomSlug);
+    Assignment assignment = getAssignmentBySlug(request.getAssignmentSlug(), classroomSlug);
     Question newQuestion = mapper.map(request, Question.class);
     newQuestion.setId(UUID.randomUUID());
     newQuestion.setSlug(slugify(request.getTitle()));
@@ -103,8 +124,8 @@ public class AssignmentService {
     this.assignmentRepository.save(assignment);
   }
 
-  public QuestionDTO getQuestion(String assignmentSlug, String questionSlug, CurrentUser user) throws AssignmentNotFoundException, QuestionNotFoundException {
-    Optional<Assignment> assignmentEntity = this.assignmentRepository.findBySlugAndEmail(assignmentSlug, user.getEmail());
+  public QuestionDTO getQuestion(String assignmentSlug, String questionSlug, String classroomSlug) throws AssignmentNotFoundException, QuestionNotFoundException {
+    Optional<Assignment> assignmentEntity = this.assignmentRepository.findBySlugAndClassroomSlug(assignmentSlug, classroomSlug);
     if (assignmentEntity.isPresent()) {
       Assignment assignment = assignmentEntity.get();
       Optional<Question> questionOptional = assignment.getQuestions()
@@ -120,15 +141,22 @@ public class AssignmentService {
     }
   }
 
-  public void toggleAssignmentStatus(String id, CurrentUser user) throws AssignmentNotFoundException {
-    Assignment assignment = getAssignment(id, user);
+  public void toggleAssignmentStatus(String id, String classroomSlug) throws AssignmentNotFoundException {
+    Assignment assignment = getAssignment(id, classroomSlug);
     String currentStatus = assignment.getStatus();
     assignment.setStatus(currentStatus.equals("ACTIVE") ? "INACTIVE" : "ACTIVE");
     this.assignmentRepository.save(assignment);
   }
 
-  public void deleteQuestionForAssignment(String assignmentId, String questionId, CurrentUser user) throws AssignmentNotFoundException, QuestionNotFoundException {
-    Assignment assignment = getAssignment(assignmentId, user);
+  public void toggleAssignmentStatusBySlug(String slug, String classroomSlug) throws AssignmentNotFoundException {
+    Assignment assignment = getAssignmentBySlug(slug, classroomSlug);
+    String currentStatus = assignment.getStatus();
+    assignment.setStatus(currentStatus.equals("ACTIVE") ? "INACTIVE" : "ACTIVE");
+    this.assignmentRepository.save(assignment);
+  }
+
+  public void deleteQuestionForAssignment(String assignmentId, String questionId, String classroomSlug) throws AssignmentNotFoundException, QuestionNotFoundException {
+    Assignment assignment = getAssignment(assignmentId, classroomSlug);
     Optional<Question> questionOptional = assignment.getQuestions()
             .stream()
             .filter(question -> question.getId().equals(UUID.fromString(questionId)))
@@ -141,8 +169,8 @@ public class AssignmentService {
     this.assignmentRepository.save(assignment);
   }
 
-  public void updateQuestionForAssignment(String assignmentId, QuestionDTO questionDTO, CurrentUser user) throws AssignmentNotFoundException, QuestionNotFoundException {
-    Assignment assignment = getAssignment(assignmentId, user);
+  public void updateQuestionForAssignment(String assignmentId,String classroomSlug, QuestionDTO questionDTO) throws AssignmentNotFoundException, QuestionNotFoundException {
+    Assignment assignment = getAssignment(assignmentId, classroomSlug);
     Optional<Question> questionOptional = assignment.getQuestions()
             .stream()
             .filter(q -> q.getId().equals(questionDTO.getId()))
@@ -162,11 +190,26 @@ public class AssignmentService {
     this.assignmentRepository.save(assignment);
   }
 
-  private Assignment getAssignment(String assignmentId, CurrentUser user) throws AssignmentNotFoundException {
-    Optional<Assignment> assignmentOptional = this.assignmentRepository.findByIdAndEmail(new ObjectId(assignmentId), user.getEmail());
+  private Assignment getAssignment(String assignmentId, String classroomSlug) throws AssignmentNotFoundException {
+    Optional<Assignment> assignmentOptional = this.assignmentRepository.findByIdAndClassroomSlug(new ObjectId(assignmentId), classroomSlug);
     return assignmentOptional.orElseThrow(
             () -> new AssignmentNotFoundException("Assignment with id '" + assignmentId + "' not found")
     );
+  }
+
+  private Assignment getAssignmentBySlug(String slug, String classroomSlug) throws AssignmentNotFoundException {
+    Optional<Assignment> assignmentOptional = this.assignmentRepository.findBySlugAndClassroomSlug(slug, classroomSlug);
+    return assignmentOptional.orElseThrow(
+            () -> new AssignmentNotFoundException("Assignment with Slug '" + slug + "' not found")
+    );
+  }
+
+  public AssignmentDTO getAssignmentDTOBySlug(String slug, String classroomSlug) throws AssignmentNotFoundException {
+    Optional<Assignment> assignmentOptional = this.assignmentRepository.findBySlugAndClassroomSlug(slug, classroomSlug);
+    Assignment assignment = assignmentOptional.orElseThrow(
+            () -> new AssignmentNotFoundException("Assignment with Slug '" + slug + "' not found")
+    );
+    return mapper.map(assignment, AssignmentDTO.class);
   }
 
   private Assignment getAssignment(String assignmentId) throws AssignmentNotFoundException {
@@ -176,8 +219,8 @@ public class AssignmentService {
     );
   }
 
-  public QuestionDTO getQuestionUsingId(String assignmentId, String questionId, CurrentUser user) throws AssignmentNotFoundException, QuestionNotFoundException {
-    Assignment assignment = getAssignment(assignmentId, user);
+  public QuestionDTO getQuestionUsingId(String assignmentId, String questionId, String classroomSlug) throws AssignmentNotFoundException, QuestionNotFoundException {
+    Assignment assignment = getAssignment(assignmentId, classroomSlug);
     Optional<Question> questionOptional = assignment.getQuestions()
             .stream()
             .filter(question -> question.getId().equals(UUID.fromString(questionId)))
@@ -188,15 +231,15 @@ public class AssignmentService {
     return mapper.map(question, QuestionDTO.class);
   }
 
-  public QuestionDTO getQuestionUsingId(String assignmentId, String questionId) throws AssignmentNotFoundException, QuestionNotFoundException {
-    Assignment assignment = getAssignment(assignmentId);
-    Optional<Question> questionOptional = assignment.getQuestions()
-            .stream()
-            .filter(question -> question.getId().equals(UUID.fromString(questionId)))
-            .findFirst();
-    Question question = questionOptional.orElseThrow(
-            () -> new QuestionNotFoundException("Question with id '" + questionId + "' not found")
-    );
-    return mapper.map(question, QuestionDTO.class);
-  }
+//  public QuestionDTO getQuestionUsingId(String assignmentId,String classroomSlug, String questionId) throws AssignmentNotFoundException, QuestionNotFoundException {
+//    Assignment assignment = getAssignment(assignmentId,classroomSlug);
+//    Optional<Question> questionOptional = assignment.getQuestions()
+//            .stream()
+//            .filter(question -> question.getId().equals(UUID.fromString(questionId)))
+//            .findFirst();
+//    Question question = questionOptional.orElseThrow(
+//            () -> new QuestionNotFoundException("Question with id '" + questionId + "' not found")
+//    );
+//    return mapper.map(question, QuestionDTO.class);
+//  }
 }

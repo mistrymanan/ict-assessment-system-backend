@@ -1,6 +1,9 @@
 package com.cdad.project.classroomservice.serviceclient.userservice;
 
+import com.cdad.project.classroomservice.entity.CurrentUser;
 import com.cdad.project.classroomservice.exchanges.DeleteClassroomRequest;
+import com.cdad.project.classroomservice.serviceclient.userservice.dtos.UserDetailsDTO;
+import com.cdad.project.classroomservice.serviceclient.userservice.exceptions.UserNotFoundException;
 import com.cdad.project.classroomservice.serviceclient.userservice.exchanges.AddInstructorsRequest;
 import com.cdad.project.classroomservice.serviceclient.userservice.exchanges.EnrollUsersRequest;
 import com.cdad.project.classroomservice.serviceclient.userservice.exchanges.RemoveInstructorsRequest;
@@ -13,22 +16,42 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.util.HashSet;
+import java.util.Optional;
 
 @Configuration
 public class UserServiceClient {
+
     private final String BASE_URL = "http://user-service.default.svc.cluster.local:8080";
     //private final String BASE_URL = "http://ict.assessment-system.tech:80/api/users";
     //private final String BASE_URL = "http://localhost:8081";
-    private final WebClient webClient = WebClient.create(BASE_URL);
-    private final String GET_USER_DETAILS = "/{id}/";
-    private final String ENROLL="/enroll";
-    private final String INSTRUCTORS="/instructors";
 
-    public Void addInstructorToClass(String classroomSlug, HashSet<String> users, Jwt jwt){
-        AddInstructorsRequest addInstructorsRequest=new AddInstructorsRequest(classroomSlug,users);
+    private final WebClient webClient = WebClient.create(BASE_URL);
+    private final String GET_USER_DETAILS = "/{email}/";
+    private final String ENROLL = "/enroll";
+    private final String INSTRUCTORS = "/instructors";
+
+    public UserDetailsDTO getUserDetails(Jwt jwt) throws UserNotFoundException {
+        CurrentUser currentUser = CurrentUser.fromJwt(jwt);
+        Optional<UserDetailsDTO> userDetailsDTOOptional = webClient.get()
+                .uri(uriBuilder -> {
+                    uriBuilder.path(GET_USER_DETAILS);
+                    return uriBuilder.build(currentUser.getEmail());
+                })
+                .headers(httpHeaders -> {
+                    httpHeaders.setBearerAuth(jwt.getTokenValue());
+                    httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+                })
+                .retrieve()
+                .bodyToMono(UserDetailsDTO.class)
+                .blockOptional();
+        return userDetailsDTOOptional.orElseThrow(() -> new UserNotFoundException("User Doesn't Exist."));
+    }
+
+    public Void addInstructorToClass(String classroomSlug, HashSet<String> users, Jwt jwt) {
+        AddInstructorsRequest addInstructorsRequest = new AddInstructorsRequest(classroomSlug, users);
         System.out.println("Sending Req to User Service");
         return webClient.post()
-                .uri(uriBuilder ->{
+                .uri(uriBuilder -> {
                     uriBuilder.path(INSTRUCTORS);
                     return uriBuilder.build();
                 })

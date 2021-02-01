@@ -38,15 +38,16 @@ public class ActiveAssignmentService {
     this.gradingServiceClient = gradingServiceClient;
   }
 
-  public List<ActiveAssignmentDTO> getAll(Jwt jwt) {
-    List<Assignment> assignments = this.assignmentRepository.findAllByStatusEquals("ACTIVE");
+  public List<ActiveAssignmentDTO> getAll(String classroomSlug,Jwt jwt) {
+    List<Assignment> assignments = this.assignmentRepository.findAllByClassroomSlugEqualsAndStatusEquals(classroomSlug,"ACTIVE");
     return assignments.parallelStream()
             .map(assignment -> mapAssignmentToActiveAssignment(assignment, jwt))
             .collect(Collectors.toList());
   }
 
-  public ActiveAssignmentDetailsDTO getDetails(String slug, Jwt jwt) throws AssignmentNotFoundException {
-    Optional<Assignment> assignmentOptional = this.assignmentRepository.findBySlugAndStatus(slug, "ACTIVE");
+  public ActiveAssignmentDetailsDTO getDetails(String classroomSlug,String slug, Jwt jwt) throws AssignmentNotFoundException {
+    Optional<Assignment> assignmentOptional = this.assignmentRepository.
+            findBySlugAndStatusAndClassroomSlug(slug, "ACTIVE",classroomSlug);
     if (assignmentOptional.isPresent()) {
       Assignment assignment = assignmentOptional.get();
       return mapAssignmentToActiveAssignmentDetails(assignment, jwt);
@@ -98,8 +99,9 @@ public class ActiveAssignmentService {
     return activeAssignment;
   }
 
-  public ActiveAssignmentDetailsDTO getDetailsById(String id, Jwt jwt) throws AssignmentNotFoundException {
-    Optional<Assignment> assignmentOptional = this.assignmentRepository.findByIdAndStatus(new ObjectId(id), "ACTIVE");
+  public ActiveAssignmentDetailsDTO getDetailsById(String id,String classroomSlug, Jwt jwt) throws AssignmentNotFoundException {
+    Optional<Assignment> assignmentOptional = this.assignmentRepository
+            .findByIdAndStatusAndClassroomSlug(new ObjectId(id), "ACTIVE",classroomSlug);
     if (assignmentOptional.isPresent()) {
       Assignment assignment = assignmentOptional.get();
       return mapAssignmentToActiveAssignmentDetails(assignment, jwt);
@@ -108,8 +110,8 @@ public class ActiveAssignmentService {
     }
   }
 
-  public UserQuestionDTO getActiveQuestion(GetActiveQuestionRequest request, Jwt jwt) throws AssignmentNotFoundException, QuestionNotFoundException {
-    Optional<Assignment> assignmentOptional = this.assignmentRepository.findBySlugAndStatus(request.getAssignmentSlug(), "ACTIVE");
+  public UserQuestionDTO getActiveQuestion(GetActiveQuestionRequest request,String classroomSlug, Jwt jwt) throws AssignmentNotFoundException, QuestionNotFoundException {
+    Optional<Assignment> assignmentOptional = this.assignmentRepository.findBySlugAndStatusAndClassroomSlug(request.getAssignmentSlug(), "ACTIVE",classroomSlug);
 
     Assignment assignment = assignmentOptional.orElseThrow(
             () -> new AssignmentNotFoundException("Assignment with slug '" + request.getAssignmentSlug() + "' not found")

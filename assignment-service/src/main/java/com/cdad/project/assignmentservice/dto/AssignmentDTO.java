@@ -18,6 +18,7 @@ import java.util.List;
 public class AssignmentDTO {
   private String id;
   private String title;
+  private String classroomSlug;
   private String slug;
   private String email;
   private String status;

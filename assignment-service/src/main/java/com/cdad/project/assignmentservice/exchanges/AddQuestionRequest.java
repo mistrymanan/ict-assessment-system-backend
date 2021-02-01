@@ -11,6 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 public class AddQuestionRequest {
   private String assignmentId;
+  private String assignmentSlug;
   private String title;
   private List<String> allowedLanguages;
   private Integer totalPoints;
