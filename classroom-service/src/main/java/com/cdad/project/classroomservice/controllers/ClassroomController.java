@@ -6,7 +6,9 @@ import com.cdad.project.classroomservice.exceptions.ClassroomAccessForbidden;
 import com.cdad.project.classroomservice.exceptions.ClassroomAlreadyExists;
 import com.cdad.project.classroomservice.exceptions.ClassroomNotFound;
 import com.cdad.project.classroomservice.exchanges.CreateClassroomRequest;
+import com.cdad.project.classroomservice.exchanges.GetClassroomsResponse;
 import com.cdad.project.classroomservice.service.ClassroomService;
+import com.cdad.project.classroomservice.serviceclient.userservice.exceptions.UserNotFoundException;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,16 +22,31 @@ import javax.validation.Valid;
 public class ClassroomController {
     final private ClassroomService classroomService;
     final private ModelMapper modelMapper;
+
     public ClassroomController(ClassroomService classroomService, ModelMapper modelMapper) {
         this.classroomService = classroomService;
         this.modelMapper = modelMapper;
     }
 
+    @GetMapping("")
+    @ResponseStatus(HttpStatus.OK)
+    GetClassroomsResponse getClassrooms(@AuthenticationPrincipal Jwt jwt) throws UserNotFoundException {
+        return classroomService.getUsersClassrooms(jwt);
+    }
+
+    @GetMapping("{classroomSlug}")
+    @ResponseStatus(HttpStatus.OK)
+    Classroom getClassroom(@PathVariable String classroomSlug, @AuthenticationPrincipal Jwt jwt) throws ClassroomAccessForbidden, ClassroomNotFound {
+        return classroomService.getClassroom(classroomSlug, jwt);
+    }
+
+
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
     Classroom createClassroom(@RequestBody @Valid CreateClassroomRequest createClassroomRequest, @AuthenticationPrincipal Jwt jwt) throws ClassroomAlreadyExists {
-        return classroomService.addClassroom(createClassroomRequest,jwt);
+        return classroomService.addClassroom(createClassroomRequest, jwt);
     }
+
     @DeleteMapping("{classroomSlug}")
     @ResponseStatus(HttpStatus.OK)
     void deleteClassroom(@PathVariable String classroomSlug, @AuthenticationPrincipal Jwt jwt) throws ClassroomNotFound, ClassroomAccessForbidden {
