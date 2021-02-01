@@ -3,6 +3,7 @@ package com.cdad.project.assignmentservice.controller;
 import com.cdad.project.assignmentservice.dto.AssignmentDTO;
 import com.cdad.project.assignmentservice.dto.ErrorResponse;
 import com.cdad.project.assignmentservice.entity.CurrentUser;
+import com.cdad.project.assignmentservice.exceptions.AssignmentAlreadyExistsException;
 import com.cdad.project.assignmentservice.exceptions.AssignmentNotFoundException;
 import com.cdad.project.assignmentservice.exchanges.CreateAssignmentRequest;
 import com.cdad.project.assignmentservice.exchanges.GetAllAssignmentsResponse;
@@ -39,18 +40,11 @@ public class ManageAssignmentController {
   @ResponseStatus(HttpStatus.CREATED)
   public AssignmentDTO createAssignment(@PathVariable String classroomSlug,
                                         @RequestBody @Valid CreateAssignmentRequest request,
-                                        @AuthenticationPrincipal Jwt jwt) {
+                                        @AuthenticationPrincipal Jwt jwt) throws AssignmentAlreadyExistsException {
     CurrentUser user = CurrentUser.fromJwt(jwt);
-    return this.assignmentService.createAssignment(request,classroomSlug, user);
+    return this.assignmentService.createAssignment(request, classroomSlug, user);
   }
 
-  @DeleteMapping("id/{id}")
-  @ResponseStatus(HttpStatus.OK)
-  public void deleteAssignment(@PathVariable String classroomSlug,
-                               @PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
-    CurrentUser user = CurrentUser.fromJwt(jwt);
-    this.assignmentService.deleteAssignment(id, classroomSlug);
-  }
 
   @GetMapping("id/{id}")
   @ResponseStatus(HttpStatus.OK)
@@ -60,6 +54,15 @@ public class ManageAssignmentController {
     return this.assignmentService.getAssignmentById(id, classroomSlug);
   }
 
+
+  @DeleteMapping("id/{id}")
+  @ResponseStatus(HttpStatus.OK)
+  public void deleteAssignment(@PathVariable String classroomSlug,
+                               @PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
+    CurrentUser user = CurrentUser.fromJwt(jwt);
+    this.assignmentService.deleteAssignment(id, classroomSlug);
+  }
+
   @PutMapping("id/{id}")
   @ResponseStatus(HttpStatus.OK)
   public AssignmentDTO updateAssignment(@PathVariable String classroomSlug,
@@ -67,16 +70,7 @@ public class ManageAssignmentController {
                                         @RequestBody @Valid UpdateAssignmentRequest updateRequest,
                                         @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException {
     CurrentUser user = CurrentUser.fromJwt(jwt);
-    return this.assignmentService.updateAssignment(id,classroomSlug, updateRequest, user);
-  }
-
-  @GetMapping("/slug/{slug}")
-  @ResponseStatus(HttpStatus.OK)
-  public AssignmentDTO getAssignmentBySlug(@PathVariable String classroomSlug,
-                                           @PathVariable String slug,
-                                           @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException {
-    CurrentUser user = CurrentUser.fromJwt(jwt);
-    return this.assignmentService.getAssignmentBySlug(slug, classroomSlug);
+    return this.assignmentService.updateAssignment(id, classroomSlug, updateRequest, user);
   }
 
   @PatchMapping("id/{id}")
@@ -88,6 +82,47 @@ public class ManageAssignmentController {
     this.assignmentService.toggleAssignmentStatus(id, classroomSlug);
   }
 
+  @GetMapping("/slug/{slug}")
+  @ResponseStatus(HttpStatus.OK)
+  public AssignmentDTO getAssignmentBySlug(@PathVariable String classroomSlug,
+                                           @PathVariable String slug,
+                                           @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException {
+    CurrentUser user = CurrentUser.fromJwt(jwt);
+    return this.assignmentService.getAssignmentDTOBySlug(slug, classroomSlug);
+  }
+
+  @PutMapping("slug/{slug}")
+  @ResponseStatus(HttpStatus.OK)
+  public AssignmentDTO updateAssignmentBySlug(@PathVariable String classroomSlug,
+                                              @PathVariable String slug,
+                                              @RequestBody @Valid UpdateAssignmentRequest updateRequest,
+                                              @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException {
+    CurrentUser user = CurrentUser.fromJwt(jwt);
+    return this.assignmentService.updateAssignmentBySlug(slug, classroomSlug, updateRequest, user);
+  }
+
+  @DeleteMapping("slug/{slug}")
+  @ResponseStatus(HttpStatus.OK)
+  public void deleteAssignmentBySlug(@PathVariable String classroomSlug,
+                                     @PathVariable String slug, @AuthenticationPrincipal Jwt jwt) {
+    CurrentUser user = CurrentUser.fromJwt(jwt);
+    this.assignmentService.deleteAssignmentBySlug(slug, classroomSlug);
+  }
+
+  @PatchMapping("slug/{slug}")
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  public void toggleAssignmentStatusBySlug(@PathVariable String classroomSlug,
+                                           @PathVariable String slug,
+                                           @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException {
+    CurrentUser user = CurrentUser.fromJwt(jwt);
+    this.assignmentService.toggleAssignmentStatusBySlug(slug, classroomSlug);
+  }
+
+  @ExceptionHandler(AssignmentAlreadyExistsException.class)
+  @ResponseStatus(HttpStatus.CONFLICT)
+  public ErrorResponse handle(AssignmentAlreadyExistsException e) {
+    return new ErrorResponse("Conflict", e.getMessage());
+  }
 
   @ExceptionHandler(AssignmentNotFoundException.class)
   @ResponseStatus(HttpStatus.NOT_FOUND)
