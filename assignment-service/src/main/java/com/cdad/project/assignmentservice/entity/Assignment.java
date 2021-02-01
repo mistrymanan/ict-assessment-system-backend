@@ -19,11 +19,12 @@ public class Assignment {
   @MongoId(FieldType.OBJECT_ID)
   private ObjectId id;
   private String title;
+  @Indexed
   private String classroomSlug;
   private String status;
   private Integer totalPoints;
-  @Indexed
-  private String email;
+  //  @Indexed
+//  private String email;
   @Indexed(unique = true)
   private String slug;
   private boolean timed;
