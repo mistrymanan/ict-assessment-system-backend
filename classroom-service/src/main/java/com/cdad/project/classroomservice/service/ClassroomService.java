@@ -43,6 +43,11 @@ public class ClassroomService {
         //instructors.add(currentUser.getEmail());
         return this.classroomRepository.save(classroom);
     }
+    public Classroom getClassroom(String classroomSlug,Jwt jwt) throws ClassroomNotFound {
+        Classroom classroom=classroomRepository.getClassroomBySlug(classroomSlug)
+                .orElseThrow(() -> new ClassroomNotFound("The Classroom that you are trying to delete doesn't exists"));
+        return classroom;
+    }
 
     public GetClassroomsResponse getUsersClassrooms(Jwt jwt) throws UserNotFoundException {
         CurrentUser user = CurrentUser.fromJwt(jwt);

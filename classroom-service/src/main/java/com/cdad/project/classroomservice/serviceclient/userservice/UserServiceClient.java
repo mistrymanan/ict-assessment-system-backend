@@ -20,8 +20,11 @@ import java.util.Optional;
 
 @Configuration
 public class UserServiceClient {
-    //private final String BASE_URL = "http://user-service.default.svc.cluster.local:8080";
-    private final String BASE_URL = "http://localhost:8081";
+
+    private final String BASE_URL = "http://user-service.default.svc.cluster.local:8080";
+    //private final String BASE_URL = "http://ict.assessment-system.tech:80/api/users";
+    //private final String BASE_URL = "http://localhost:8081";
+
     private final WebClient webClient = WebClient.create(BASE_URL);
     private final String GET_USER_DETAILS = "/{email}/";
     private final String ENROLL = "/enroll";
