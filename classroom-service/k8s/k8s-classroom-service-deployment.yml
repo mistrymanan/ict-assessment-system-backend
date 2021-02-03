@@ -25,7 +25,7 @@ spec:
           livenessProbe:
             failureThreshold: 3
             httpGet:
-              path: /actuator/info
+              path: /actuator/incfo
               port: 8080
               scheme: HTTP
             initialDelaySeconds: 0
