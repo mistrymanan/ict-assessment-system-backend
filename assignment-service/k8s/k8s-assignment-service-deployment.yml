@@ -2,22 +2,22 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: assignment-service
-  name: assignment-service
+    app: assignment-service-v2
+  name: assignment-service-v2
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: assignment-service
+      app: assignment-service-v2
   template:
     metadata:
       labels:
-        app: assignment-service
+        app: assignment-service-v2
     spec:
       containers:
-        - image: mananmistry/assignment-service:ee22843-dirty
+        - image: mananmistry/assignment-service:v2.1
           imagePullPolicy: IfNotPresent
-          name: assignment-service
+          name: assignment-service-v2
           ports:
             - containerPort: 8080
               name: http
