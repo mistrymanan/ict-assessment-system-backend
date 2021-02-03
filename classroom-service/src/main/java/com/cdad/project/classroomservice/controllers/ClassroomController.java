@@ -29,7 +29,7 @@ public class ClassroomController {
     }
     @GetMapping("{classroomSlug}")
     @ResponseStatus(HttpStatus.OK)
-    Classroom getClassroom(@PathVariable String classroomSlug,@AuthenticationPrincipal Jwt jwt) throws ClassroomNotFound {
+    Classroom getClassroom(@PathVariable String classroomSlug,@AuthenticationPrincipal Jwt jwt) throws ClassroomNotFound, ClassroomAccessForbidden {
         return classroomService.getClassroom(classroomSlug, jwt);
     }
 
@@ -38,13 +38,6 @@ public class ClassroomController {
     GetClassroomsResponse getClassrooms(@AuthenticationPrincipal Jwt jwt) throws UserNotFoundException {
         return classroomService.getUsersClassrooms(jwt);
     }
-
-    @GetMapping("{classroomSlug}")
-    @ResponseStatus(HttpStatus.OK)
-    Classroom getClassroom(@PathVariable String classroomSlug, @AuthenticationPrincipal Jwt jwt) throws ClassroomAccessForbidden, ClassroomNotFound {
-        return classroomService.getClassroom(classroomSlug, jwt);
-    }
-
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)

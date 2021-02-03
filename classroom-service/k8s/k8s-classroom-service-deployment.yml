@@ -15,9 +15,9 @@ spec:
         app: classroom-service
     spec:
       containers:
-        - image: mananmistry/classroom-service:v5
+        - image: mananmistry/classroom-service:v5.2
           imagePullPolicy: IfNotPresent
-          name: user-service
+          name: classroom-service
           ports:
             - containerPort: 8080
               name: http

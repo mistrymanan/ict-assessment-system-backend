@@ -43,11 +43,11 @@ public class ClassroomService {
         //instructors.add(currentUser.getEmail());
         return this.classroomRepository.save(classroom);
     }
-    public Classroom getClassroom(String classroomSlug,Jwt jwt) throws ClassroomNotFound {
-        Classroom classroom=classroomRepository.getClassroomBySlug(classroomSlug)
-                .orElseThrow(() -> new ClassroomNotFound("The Classroom that you are trying to delete doesn't exists"));
-        return classroom;
-    }
+//    public Classroom getClassroom(String classroomSlug,Jwt jwt) throws ClassroomNotFound {
+//        Classroom classroom=classroomRepository.getClassroomBySlug(classroomSlug)
+//                .orElseThrow(() -> new ClassroomNotFound("The Classroom that you are trying to delete doesn't exists"));
+//        return classroom;
+//    }
 
     public GetClassroomsResponse getUsersClassrooms(Jwt jwt) throws UserNotFoundException {
         CurrentUser user = CurrentUser.fromJwt(jwt);
@@ -77,7 +77,7 @@ public class ClassroomService {
                     || classroom.getInstructors().contains(user.getEmail()) || classroom.getOwnerEmail().equals(user.getEmail())) {
                 return classroom;
             } else {
-                throw new ClassroomAccessForbidden("You are neither Instructor or Student for Title: "
+                throw new ClassroomAccessForbidden("You are neither Instructor nor Student for Title: "
                         + classroom.getTitle() + " Class.");
             }
         }
