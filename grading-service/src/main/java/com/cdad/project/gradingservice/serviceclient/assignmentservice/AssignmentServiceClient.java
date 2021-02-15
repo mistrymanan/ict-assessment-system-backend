@@ -10,24 +10,29 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Configuration
 public class AssignmentServiceClient {
   //private final String BASE_URL = "http://localhost:8082";
   //private final String BASE_URL = "http://35.184.28.10/api/assignments";
-  private final String BASE_URL = "http://assignment-service.default.svc.cluster.local:8080";
+  private final String BASE_URL = "http://assignment-service-v2.default.svc.cluster.local:8080";
   private final WebClient webClient = WebClient.create(BASE_URL);
-  private final String GET_QUESTION = "/public/questions/id";
-  private final String GET_ASSIGNMENT = "/public/assignments/{assignmentId}";
-  private final String GET_USER_ASSIGNMENT = "/id/{assignmentId}";
+  private final String GET_QUESTION = "{classroomSlug}/public/questions/id";
+  private final String GET_ASSIGNMENT = "{classroomSlug}/public/assignments/{assignmentId}";
+  private final String GET_USER_ASSIGNMENT = "{classroomSlug}/id/{assignmentId}";
 
-  public Mono<Question> getQuestion(GetQuestionRequest request, String token) {
-    System.out.println(request);
+  public Mono<Question> getQuestion(GetQuestionRequest request, String classroomSlug, String token) {
+    //System.out.println(request);
+    Map<String, String> pathVariable = new HashMap<>();
+    pathVariable.put("classroomSlug", classroomSlug);
     return webClient.get()
             .uri(uriBuilder -> uriBuilder
                     .path(GET_QUESTION)
                     .queryParam("assignmentId", request.getAssignmentId())
                     .queryParam("questionId", request.getQuestionId())
-                    .build()
+                    .build(pathVariable)
             )
             .headers(httpHeaders -> httpHeaders.setBearerAuth(token))
             .header("X-Secret", "top-secret-communication")
@@ -35,11 +40,14 @@ public class AssignmentServiceClient {
             .bodyToMono(Question.class);
   }
 
-  public Mono<Assignment> getUserAssignment(String assignmentId, String token) {
+  public Mono<Assignment> getUserAssignment(String assignmentId, String classroomSlug, String token) {
+    Map<String, String> pathVariable = new HashMap<>();
+    pathVariable.put("classroomSlug", classroomSlug);
+    pathVariable.put("assignmentId", assignmentId);
     return webClient.get()
             .uri(uriBuilder -> uriBuilder
                     .path(GET_USER_ASSIGNMENT)
-                    .build(assignmentId)
+                    .build(pathVariable)
             )
             .headers(httpHeaders -> httpHeaders.setBearerAuth(token))
             .retrieve()
@@ -48,12 +56,15 @@ public class AssignmentServiceClient {
             .bodyToMono(Assignment.class);
   }
 
-  public Mono<Assignment> getAssignment(String assignmentId, String token) {
+  public Mono<Assignment> getAssignment(String assignmentId, String classroomSlug, String token) {
+    Map<String, String> pathVariable = new HashMap<>();
+    pathVariable.put("classroomSlug", classroomSlug);
+    pathVariable.put("assignmentId", assignmentId);
     Assignment assignment = new Assignment();
     return webClient.get()
             .uri(uriBuilder -> uriBuilder
                     .path(GET_ASSIGNMENT)
-                    .build(assignmentId)
+                    .build(pathVariable)
             )
             .headers(httpHeaders -> httpHeaders.setBearerAuth(token))
             .header("X-Secret", "top-secret-communication")

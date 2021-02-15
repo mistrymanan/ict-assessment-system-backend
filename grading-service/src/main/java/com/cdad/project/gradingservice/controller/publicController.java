@@ -24,29 +24,31 @@ import java.util.Objects;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("public/submissions")
+@RequestMapping("{classroomSlug}/public/submissions")
 public class publicController {
 
     public final SubmissionService submissionService;
     private final ModelMapper modelMapper;
+
     public publicController(SubmissionService submissionService, ModelMapper modelMapper) {
         this.submissionService = submissionService;
         this.modelMapper = modelMapper;
     }
+
     @GetMapping("{assignmentId}")
-    public SubmissionUserDetailsDTO getSubmissions(HttpServletRequest request,@PathVariable String assignmentId, @AuthenticationPrincipal Jwt jwt) throws AccessForbiddenException, InvalidSecretKeyException, SubmissionEntityNotFoundException {
+    public SubmissionUserDetailsDTO getSubmissions(HttpServletRequest request, @PathVariable String classroomSlug, @PathVariable String assignmentId, @AuthenticationPrincipal Jwt jwt) throws AccessForbiddenException, InvalidSecretKeyException, SubmissionEntityNotFoundException {
         checkSecret(request);
-        CurrentUser currentUser=CurrentUser.fromJwt(jwt);
-        SubmissionEntity submissionEntity=this.submissionService.getSubmissionEntity(assignmentId, currentUser.getEmail());
-        return modelMapper.map(submissionEntity,SubmissionUserDetailsDTO.class);
+        CurrentUser currentUser = CurrentUser.fromJwt(jwt);
+        SubmissionEntity submissionEntity = this.submissionService.getSubmissionEntity(classroomSlug, assignmentId, currentUser.getEmail());
+        return modelMapper.map(submissionEntity, SubmissionUserDetailsDTO.class);
     }
 
     @GetMapping("{assignmentId}/{questionId}")
-    public QuestionDTO getSubmissionUserDetails(HttpServletRequest request,@PathVariable String assignmentId,@PathVariable String questionId,@AuthenticationPrincipal Jwt jwt) throws InvalidSecretKeyException, SubmissionEntityNotFoundException, QuestionEntityNotFoundException {
+    public QuestionDTO getSubmissionUserDetails(HttpServletRequest request, @PathVariable String classroomSlug, @PathVariable String assignmentId, @PathVariable String questionId, @AuthenticationPrincipal Jwt jwt) throws InvalidSecretKeyException, SubmissionEntityNotFoundException, QuestionEntityNotFoundException {
         checkSecret(request);
-        CurrentUser currentUser=CurrentUser.fromJwt(jwt);
-        QuestionEntity questionEntity=this.submissionService.getQuestion(currentUser.getEmail(),assignmentId,questionId);
-        return modelMapper.map(questionEntity,QuestionDTO.class);
+        CurrentUser currentUser = CurrentUser.fromJwt(jwt);
+        QuestionEntity questionEntity = this.submissionService.getQuestion(classroomSlug, currentUser.getEmail(), assignmentId, questionId);
+        return modelMapper.map(questionEntity, QuestionDTO.class);
     }
 
     public void checkSecret(HttpServletRequest req) throws InvalidSecretKeyException {
