@@ -4,19 +4,19 @@ metadata:
   name: assessment-system-backend
 build:
   artifacts:
-#    - image: us.gcr.io/my-project-1529917597814/assignment-service
-#      jib:
-#        project: assignment-service
-#    - image: us.gcr.io/my-project-1529917597814/submission-service
+    - image: mananmistry/assignment-service
+      jib:
+        project: assignment-service
+#    - image:  mananmistry/submission-service
 #      jib:
 #        project: grading-service
 #    - image: us.gcr.io/my-project-1529917597814/execution-service
 #      jib:
 #        fromImage: us.gcr.io/my-project-1529917597814/jail
 #        project: execution-service
-    - image: mananmistry/classroom-service
-      jib:
-        project: classroom-service
+#    - image: mananmistry/classroom-service
+#      jib:
+#        project: classroom-service
 #deploy:
 #  kubectl:
 #    manifests:
