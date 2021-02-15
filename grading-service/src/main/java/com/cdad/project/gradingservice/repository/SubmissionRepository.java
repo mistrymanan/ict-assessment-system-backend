@@ -9,8 +9,18 @@ import java.util.List;
 
 @Repository
 public interface SubmissionRepository extends MongoRepository<SubmissionEntity,String> {
+    List<SubmissionEntity> findAllByClassroomSlugAndEmail(String classroomSlug, String email);
+
     List<SubmissionEntity> findAllByAssignmentId(String assignmentId);
-    SubmissionEntity findByAssignmentIdAndEmail(String assignmentId,String email);
-    boolean existsByAssignmentIdAndEmail(String assignmentId,String email);
+
+    List<SubmissionEntity> findAllByClassroomSlugAndAssignmentId(String classroomSlug, String assignmentId);
+
+    SubmissionEntity findByAssignmentIdAndEmail(String assignmentId, String email);
+
+    SubmissionEntity findByClassroomSlugAndAssignmentIdAndEmail(String classroomSlug, String assignmentId, String email);
+
+    boolean existsByAssignmentIdAndEmail(String assignmentId, String email);
+
+    boolean existsByClassroomSlugAndAssignmentIdAndEmail(String classroomSlug, String assignmentId, String email);
 
 }
