@@ -50,34 +50,34 @@ public class SubmissionService {
         this.executionServiceClient = executionServiceClient;
     }
 
-    public SubmissionEntity save(SubmissionEntity submissionEntity){
-        if(submissionEntity.getId()==null){
+    public SubmissionEntity save(SubmissionEntity submissionEntity) {
+        if (submissionEntity.getId() == null) {
             submissionEntity.setId(UUID.randomUUID());
         }
 
         return this.submissionRepository.save(submissionEntity);
     }
 
-    public SubmissionEntity getSubmissionEntity(String assignmentId,String email) throws SubmissionEntityNotFoundException {
-        SubmissionEntity submissionEntity=this.submissionRepository.findByAssignmentIdAndEmail(assignmentId, email);
-        if(submissionEntity!=null){
+    public SubmissionEntity getSubmissionEntity(String classroomSlug, String assignmentId, String email) throws SubmissionEntityNotFoundException {
+        SubmissionEntity submissionEntity = this.submissionRepository.findByClassroomSlugAndAssignmentIdAndEmail(classroomSlug, assignmentId, email);
+        if (submissionEntity != null) {
             return submissionEntity;
-        }
-else{
+        } else {
             throw new SubmissionEntityNotFoundException("Check AssignmentId");
         }
     }
-    public boolean isExist(String assignmentId,String email){
-        return this.submissionRepository.existsByAssignmentIdAndEmail(assignmentId,email);
+
+    public boolean isExist(String classroomSlug, String assignmentId, String email) {
+        return this.submissionRepository.existsByClassroomSlugAndAssignmentIdAndEmail(classroomSlug, assignmentId, email);
     }
 
-    public SubmissionEntity save(SubmissionEntity submissionEntity,QuestionEntity questionEntity,Assignment assignment){
-        int questionCount=assignment.getQuestions().size();
-        if(submissionEntity.getQuestionEntities()!=null){
-        boolean exist=submissionEntity.getQuestionEntities().stream().anyMatch(questionEntity1 -> {
-            return questionEntity1.getQuestionId().equals(questionEntity.getQuestionId());
-        });
-            if(exist) {
+    public SubmissionEntity save(SubmissionEntity submissionEntity, QuestionEntity questionEntity, Assignment assignment) {
+        int questionCount = assignment.getQuestions().size();
+        if (submissionEntity.getQuestionEntities() != null) {
+            boolean exist = submissionEntity.getQuestionEntities().stream().anyMatch(questionEntity1 -> {
+                return questionEntity1.getQuestionId().equals(questionEntity.getQuestionId());
+            });
+            if (exist) {
                 submissionEntity.getQuestionEntities().forEach(questionEntity1 -> {
                     if(questionEntity1.getQuestionId().equals(questionEntity.getQuestionId())){
                         modelMapper.map(questionEntity,questionEntity1);
@@ -87,26 +87,26 @@ else{
             else{
                 submissionEntity.getQuestionEntities().add(questionEntity);
             }
-        }
-        else{
-            List<QuestionEntity> questionEntities=new ArrayList<>();
+        } else {
+            List<QuestionEntity> questionEntities = new ArrayList<>();
             questionEntities.add(questionEntity);
             submissionEntity.setQuestionEntities(questionEntities);
         }
-       submissionEntity.setSubmissionStatus(getSubmissionStatus(submissionEntity,assignment));
-       submissionEntity.setCurrentScore(calculateSubmissionScore(submissionEntity));
+        submissionEntity.setSubmissionStatus(getSubmissionStatus(submissionEntity, assignment));
+        submissionEntity.setCurrentScore(calculateSubmissionScore(submissionEntity));
         return this.save(submissionEntity);
     }
-    public PostRunCodeResponse runCode(PostRunCodeRequest request ,Jwt jwt) throws RunCodeCompilationErrorException {
-        PostRunCodeResponse postRunResponse=new PostRunCodeResponse();
+
+    public PostRunCodeResponse runCode(PostRunCodeRequest request, String classroomSlug, Jwt jwt) throws RunCodeCompilationErrorException {
+        PostRunCodeResponse postRunResponse = new PostRunCodeResponse();
         postRunResponse.setInput(request.getInput());
 
-        GetQuestionRequest getQuestionRequest=new GetQuestionRequest();
-        modelMapper.map(request,getQuestionRequest);
-        Question question=assignmentServiceClient.getQuestion(getQuestionRequest, jwt.getTokenValue())
+        GetQuestionRequest getQuestionRequest = new GetQuestionRequest();
+        modelMapper.map(request, getQuestionRequest);
+        Question question = assignmentServiceClient.getQuestion(getQuestionRequest, classroomSlug, jwt.getTokenValue())
                 .block();
 
-        PostRunRequest postRunRequest=modelMapper.map(request,PostRunRequest.class);
+        PostRunRequest postRunRequest = modelMapper.map(request, PostRunRequest.class);
 
         PostRunResponse userResponse=this.executionServiceClient.postRunCode(postRunRequest, jwt.getTokenValue());
 
@@ -120,20 +120,20 @@ else{
         return postRunResponse;
     }
 
-    public PostSubmitResponse submit(PostSubmitRequest request,Jwt jwt) throws AssignmentNotStartedException, SubmissionCompilationErrorException, AssignmentNotActiveException, SubmissionEntityNotFoundException {
-        CurrentUser currentUser=CurrentUser.fromJwt(jwt);
-        if(this.isExist(request.getAssignmentId(), currentUser.getEmail())){
+    public PostSubmitResponse submit(PostSubmitRequest request, String classroomSlug, Jwt jwt) throws AssignmentNotStartedException, SubmissionCompilationErrorException, AssignmentNotActiveException, SubmissionEntityNotFoundException {
+        CurrentUser currentUser = CurrentUser.fromJwt(jwt);
+        if (this.isExist(classroomSlug, request.getAssignmentId(), currentUser.getEmail())) {
             PostSubmitResponse postSubmitResponse = new PostSubmitResponse();
-            modelMapper.map(request,postSubmitResponse);
-            SubmissionEntity submissionEntity=this.getSubmissionEntity(request.getAssignmentId()
+            modelMapper.map(request, postSubmitResponse);
+            SubmissionEntity submissionEntity = this.getSubmissionEntity(classroomSlug, request.getAssignmentId()
                     , currentUser.getEmail());
             postSubmitResponse.setSubmissionId(submissionEntity.getId().toString());
 
             GetQuestionRequest getQuestionRequest = new GetQuestionRequest();
             modelMapper.map(request, getQuestionRequest);
-            Assignment assignment=assignmentServiceClient.getAssignment(request.getAssignmentId(), jwt.getTokenValue()).block();
+            Assignment assignment = assignmentServiceClient.getAssignment(request.getAssignmentId(), classroomSlug, jwt.getTokenValue()).block();
             System.out.println(assignment);
-            Question question = assignmentServiceClient.getQuestion(getQuestionRequest, jwt.getTokenValue()).block();
+            Question question = assignmentServiceClient.getQuestion(getQuestionRequest, classroomSlug, jwt.getTokenValue()).block();
             System.out.println(question);
             if(assignment.getStatus().equals("ACTIVE")){
                 QuestionDTO questionDTO = null;
@@ -164,26 +164,27 @@ else{
 //        else{
 //            throw new LanguageNotAllowedException(request.getLanguage()+" Not Allowed for "+question.getTitle()+"'s Submission.");
 //        }
-            else{
-                throw new AssignmentNotActiveException("Assignment:"+assignment.getTitle()+" is Not Active!");
+            else {
+                throw new AssignmentNotActiveException("Assignment:" + assignment.getTitle() + " is Not Active!");
             }
-        }
-        else{
+        } else {
             throw new AssignmentNotStartedException("You Haven't Started Assignment. Please start the Assignment First");
         }
     }
-    public void startSubmission(String assignmentId, Jwt jwt) throws AssignmentNotFound {
-        CurrentUser currentUser=CurrentUser.fromJwt(jwt);
-        if(!this.isExist(assignmentId,currentUser.getEmail())){
+
+    public void startSubmission(String classroomSlug, String assignmentId, Jwt jwt) throws AssignmentNotFound {
+        CurrentUser currentUser = CurrentUser.fromJwt(jwt);
+        if (!this.isExist(classroomSlug, assignmentId, currentUser.getEmail())) {
             // SubmissionEntity submissionEntity=modelMapper.map(request,SubmissionEntity.class);
-            SubmissionEntity submissionEntity=new SubmissionEntity();
+            SubmissionEntity submissionEntity = new SubmissionEntity();
             submissionEntity.setAssignmentId(assignmentId);
             submissionEntity.setEmail(currentUser.getEmail());
-            Assignment assignment=null;
-            assignment=this.assignmentServiceClient.getAssignment(assignmentId, jwt.getTokenValue())
+            submissionEntity.setClassroomSlug(classroomSlug);
+            Assignment assignment = null;
+            assignment = this.assignmentServiceClient.getAssignment(assignmentId, classroomSlug, jwt.getTokenValue())
                     .block();
             System.out.println(assignment);
-            if(assignment.getQuestions()!=null) {
+            if (assignment.getQuestions() != null) {
                 submissionEntity.setAssignmentScore(assignment.getQuestions().stream().mapToDouble(QuestionDetails::getTotalPoints).sum());
             }
             else{
@@ -341,16 +342,15 @@ else{
         return testResults.stream()
                 .anyMatch(testResult -> testResult.getStatus().equals(ResultStatus.FAILED)); }
 
-        public List<SubmissionDetailsDTO> getSubmissionDetails(String assignmentId)
-        {
+    public List<SubmissionDetailsDTO> getSubmissionDetails(String classroomSlug, String assignmentId) {
 
-             List<SubmissionDetailsDTO> submissionDetailDTOS =this.submissionRepository
-                     .findAllByAssignmentId(assignmentId)
-                     .stream()
-                     .map(submissionEntity -> modelMapper.map(submissionEntity, SubmissionDetailsDTO.class))
-                     .collect(Collectors.toList());
-            return submissionDetailDTOS;
-        }
+        List<SubmissionDetailsDTO> submissionDetailDTOS = this.submissionRepository
+                .findAllByClassroomSlugAndAssignmentId(classroomSlug, assignmentId)
+                .stream()
+                .map(submissionEntity -> modelMapper.map(submissionEntity, SubmissionDetailsDTO.class))
+                .collect(Collectors.toList());
+        return submissionDetailDTOS;
+    }
 
         public List<TestResult> checkTestCases(PostBuildResponse userResponse,List<TestCase> expectedTestCase){
             HashMap<String, TestCase> testCaseHashMap = new HashMap<>();
@@ -384,24 +384,25 @@ else{
             return reason;
         }
 
-        public ResultStatus getResultStatus(TestCaseResult testCaseResult, TestCase actualTestCase){
-        ResultStatus resultStatus=ResultStatus.FAILED;
-            if (testCaseResult.getStatus().equals(Status.SUCCEED) && testCaseResult.getOutput().trim().equals(actualTestCase.getOutput().trim())) {
-                resultStatus=ResultStatus.PASSED;
-            }
-            return resultStatus;
+    public ResultStatus getResultStatus(TestCaseResult testCaseResult, TestCase actualTestCase) {
+        ResultStatus resultStatus = ResultStatus.FAILED;
+        if (testCaseResult.getStatus().equals(Status.SUCCEED) && testCaseResult.getOutput().trim().equals(actualTestCase.getOutput().trim())) {
+            resultStatus = ResultStatus.PASSED;
         }
-        public QuestionEntity getQuestion(String email,String assignmentId,String questionId) throws SubmissionEntityNotFoundException, QuestionEntityNotFoundException {
-            SubmissionEntity submissionEntity=this.getSubmissionEntity(assignmentId,email);
-            if(submissionEntity.getQuestionEntities()!=null){
+        return resultStatus;
+    }
+
+    public QuestionEntity getQuestion(String classroomSlug, String email, String assignmentId, String questionId) throws SubmissionEntityNotFoundException, QuestionEntityNotFoundException {
+        SubmissionEntity submissionEntity = this.getSubmissionEntity(classroomSlug, assignmentId, email);
+        if (submissionEntity.getQuestionEntities() != null) {
 
 
-                QuestionEntity questionEntity=
-                        submissionEntity.getQuestionEntities()
-                                .stream()
-                                .filter(questionEntity1 -> questionEntity1.getQuestionId().equals(questionId))
-                                .findFirst()
-                                .orElse(null);
+            QuestionEntity questionEntity =
+                    submissionEntity.getQuestionEntities()
+                            .stream()
+                            .filter(questionEntity1 -> questionEntity1.getQuestionId().equals(questionId))
+                            .findFirst()
+                            .orElse(null);
 
                 if(questionEntity==null){
                     throw new QuestionEntityNotFoundException("Not Found");
