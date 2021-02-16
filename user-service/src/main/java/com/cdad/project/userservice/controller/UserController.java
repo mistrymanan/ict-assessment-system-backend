@@ -4,6 +4,8 @@ import com.cdad.project.userservice.dto.ErrorResponse;
 import com.cdad.project.userservice.entity.User;
 import com.cdad.project.userservice.exceptions.UserNotFoundException;
 import com.cdad.project.userservice.exchanges.CreateUserRequest;
+import com.cdad.project.userservice.exchanges.GetUsersDetailRequest;
+import com.cdad.project.userservice.exchanges.GetUsersDetailsResponse;
 import com.cdad.project.userservice.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -20,7 +22,10 @@ public class UserController {
     public UserController(UserService userService) {
         this.userService = userService;
     }
-
+    @GetMapping("")
+    GetUsersDetailsResponse getUsersDetails(@RequestBody GetUsersDetailRequest request){
+        return this.userService.getUsersData(request);
+    }
     @GetMapping("{emailId:.+}")
     User getUser(@PathVariable String emailId, @AuthenticationPrincipal Jwt jwt) throws UserNotFoundException {
         return userService.getByEmailId(emailId);

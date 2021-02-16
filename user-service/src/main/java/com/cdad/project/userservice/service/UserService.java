@@ -1,5 +1,6 @@
 package com.cdad.project.userservice.service;
 
+import com.cdad.project.userservice.dto.UsersDetail;
 import com.cdad.project.userservice.entity.CurrentUser;
 import com.cdad.project.userservice.entity.User;
 import com.cdad.project.userservice.exceptions.UserNotFoundException;
@@ -9,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Optional;
 
@@ -106,6 +108,18 @@ public class UserService {
         }else {
             throw new UserNotFoundException("User with EmailId:"+emailId+" Not Found");
         }
+    }
+    public GetUsersDetailsResponse getUsersData(GetUsersDetailRequest request){
+        HashMap<String, UsersDetail> usersDetail=new HashMap<>();
+        request.getUsersEmail().forEach(email -> {
+            Optional<User> optionalUser=this.userRepository.findById(email);
+            if(optionalUser.isPresent() && optionalUser.get().getName()!=null){
+                usersDetail.put(email,modelMapper.map(optionalUser.get(),UsersDetail.class));
+            }
+        });
+        GetUsersDetailsResponse response=new GetUsersDetailsResponse();
+        response.setUsersDetail(usersDetail);
+        return response;
     }
 
 }
