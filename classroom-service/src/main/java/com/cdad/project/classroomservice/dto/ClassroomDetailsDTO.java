@@ -11,4 +11,5 @@ public class ClassroomDetailsDTO {
     private String classroomTitle;
     private String ownerEmail;
     private String ownerName;
+    private String ownerPicture;
 }
