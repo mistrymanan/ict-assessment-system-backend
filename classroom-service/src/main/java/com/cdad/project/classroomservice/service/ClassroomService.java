@@ -59,14 +59,19 @@ public class ClassroomService {
         UserDetailsDTO userDetailsDTO = userServiceClient.getUserDetails(jwt);
         List<ClassroomDetailsDTO> instructClassrooms = new LinkedList<>();
         List<ClassroomDetailsDTO> enrolledClassrooms = new LinkedList<>();
+        if(userDetailsDTO.getInstructClassrooms()!=null){
         userDetailsDTO.getInstructClassrooms().stream().forEach(classroomSlug -> {
             Optional<Classroom> classroom = classroomRepository.getClassroomBySlug(classroomSlug);
             classroom.ifPresent(value -> instructClassrooms.add(modelMapper.map(value, ClassroomDetailsDTO.class)));
         });
-        userDetailsDTO.getEnrolledClassrooms().stream().forEach(classroomSlug -> {
-            Optional<Classroom> classroom = classroomRepository.getClassroomBySlug(classroomSlug);
-            classroom.ifPresent(value -> enrolledClassrooms.add(modelMapper.map(value, ClassroomDetailsDTO.class)));
-        });
+        }
+        if(userDetailsDTO.getEnrolledClassrooms()!=null){
+            userDetailsDTO.getEnrolledClassrooms().stream().forEach(classroomSlug -> {
+                Optional<Classroom> classroom = classroomRepository.getClassroomBySlug(classroomSlug);
+                classroom.ifPresent(value -> enrolledClassrooms.add(modelMapper.map(value, ClassroomDetailsDTO.class)));
+            });
+        }
+
         GetClassroomsResponse response = new GetClassroomsResponse();
         response.setEnrolledClassrooms(enrolledClassrooms);
         response.setInstructClassrooms(instructClassrooms);

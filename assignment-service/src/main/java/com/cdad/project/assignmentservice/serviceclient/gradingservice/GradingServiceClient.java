@@ -11,20 +11,25 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.util.HashMap;
+
 @Configuration
 public class GradingServiceClient {
   //private final String BASE_URL = "http://localhost:8082";
-  private final String BASE_URL = "http://submission-service.default.svc.cluster.local:8080/public";
+  private final String BASE_URL = "http://submission-service-v2.default.svc.cluster.local:8080/";
 //  private final String BASE_URL = "http://35.184.28.10/public";
   private final WebClient webClient = WebClient.create(BASE_URL);
-  private final String GET_SUBMISSION = "/submissions/{id}";
-  private final String GET_QUESTION_OF_SUBMISSION = "/submissions/{assignmentId}/{questionId}";
+  private final String GET_SUBMISSION = "{classroomSlug}/public/submissions/{assignmentId}";
+  private final String GET_QUESTION_OF_SUBMISSION = "{classroomSlug}/public/submissions/{assignmentId}/{questionId}";
 
-  public Mono<SubmissionDetailsDTO> getSubmissionDetails(String assignmentId, Jwt jwt) {
+  public Mono<SubmissionDetailsDTO> getSubmissionDetails(String assignmentId,String classroomSlug, Jwt jwt) {
+      HashMap<String,String> pathVariable=new HashMap<>();
+      pathVariable.put("classroomSlug",classroomSlug);
+      pathVariable.put("assignmentId",assignmentId);
     return webClient.get()
             .uri(uriBuilder -> uriBuilder
                     .path(GET_SUBMISSION)
-                    .build(assignmentId)
+                    .build(pathVariable)
             )
             .headers(header -> header.setBearerAuth(jwt.getTokenValue()))
             .header("X-Secret", "top-secret-communication")
@@ -36,11 +41,15 @@ public class GradingServiceClient {
             .bodyToMono(SubmissionDetailsDTO.class);
   }
 
-  public Mono<QuestionDTO> getQuestionOfSubmission(String assignmentId, String questionId, Jwt jwt) {
+  public Mono<QuestionDTO> getQuestionOfSubmission(String assignmentId, String questionId,String classroomSlug, Jwt jwt) {
+      HashMap<String,String> pathVariable=new HashMap<>();
+      pathVariable.put("classroomSlug",classroomSlug);
+      pathVariable.put("assignmentId",assignmentId);
+      pathVariable.put("questionId",questionId);
     return webClient.get()
             .uri(uriBuilder -> uriBuilder
                     .path(GET_QUESTION_OF_SUBMISSION)
-                    .build(assignmentId, questionId)
+                    .build(pathVariable)
             )
             .headers(header -> header.setBearerAuth(jwt.getTokenValue()))
             .header("X-Secret", "top-secret-communication")

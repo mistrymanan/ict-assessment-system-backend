@@ -41,7 +41,7 @@ public class ActiveAssignmentService {
   public List<ActiveAssignmentDTO> getAll(String classroomSlug,Jwt jwt) {
     List<Assignment> assignments = this.assignmentRepository.findAllByClassroomSlugEqualsAndStatusEquals(classroomSlug,"ACTIVE");
     return assignments.parallelStream()
-            .map(assignment -> mapAssignmentToActiveAssignment(assignment, jwt))
+            .map(assignment -> mapAssignmentToActiveAssignment(assignment,classroomSlug, jwt))
             .collect(Collectors.toList());
   }
 
@@ -50,17 +50,17 @@ public class ActiveAssignmentService {
             findBySlugAndStatusAndClassroomSlug(slug, "ACTIVE",classroomSlug);
     if (assignmentOptional.isPresent()) {
       Assignment assignment = assignmentOptional.get();
-      return mapAssignmentToActiveAssignmentDetails(assignment, jwt);
+      return mapAssignmentToActiveAssignmentDetails(assignment,classroomSlug, jwt);
     } else {
       throw new AssignmentNotFoundException("Assignment with slug '" + slug + "' not found");
     }
   }
 
-  public ActiveAssignmentDTO mapAssignmentToActiveAssignment(Assignment assignment, Jwt jwt) {
+  public ActiveAssignmentDTO mapAssignmentToActiveAssignment(Assignment assignment,String classroomSlug, Jwt jwt) {
     ActiveAssignmentDTO activeAssignment = modelMapper.map(assignment, ActiveAssignmentDTO.class);
     try {
       this.gradingServiceClient
-              .getSubmissionDetails(assignment.getId().toString(), jwt)
+              .getSubmissionDetails(assignment.getId().toString(),classroomSlug, jwt)
               .doOnSuccess(submissionDetailsDTO -> {
                 activeAssignment.setCurrentStatus(submissionDetailsDTO.getSubmissionStatus());
               })
@@ -73,11 +73,11 @@ public class ActiveAssignmentService {
     return activeAssignment;
   }
 
-  public ActiveAssignmentDetailsDTO mapAssignmentToActiveAssignmentDetails(Assignment assignment, Jwt jwt) {
+  public ActiveAssignmentDetailsDTO mapAssignmentToActiveAssignmentDetails(Assignment assignment,String classroomSlug, Jwt jwt) {
     ActiveAssignmentDetailsDTO activeAssignment = modelMapper.map(assignment, ActiveAssignmentDetailsDTO.class);
     try {
       this.gradingServiceClient
-              .getSubmissionDetails(assignment.getId().toString(), jwt)
+              .getSubmissionDetails(assignment.getId().toString(),classroomSlug, jwt)
               .doOnSuccess(submissionDetailsDTO -> {
                 System.out.println(submissionDetailsDTO.getCurrentScore());
                 activeAssignment.setCurrentScore(Optional.ofNullable(submissionDetailsDTO.getCurrentScore()).orElse(0d));
@@ -104,7 +104,7 @@ public class ActiveAssignmentService {
             .findByIdAndStatusAndClassroomSlug(new ObjectId(id), "ACTIVE",classroomSlug);
     if (assignmentOptional.isPresent()) {
       Assignment assignment = assignmentOptional.get();
-      return mapAssignmentToActiveAssignmentDetails(assignment, jwt);
+      return mapAssignmentToActiveAssignmentDetails(assignment,classroomSlug, jwt);
     } else {
       throw new AssignmentNotFoundException("Assignment with id '" + id + "' not found");
     }

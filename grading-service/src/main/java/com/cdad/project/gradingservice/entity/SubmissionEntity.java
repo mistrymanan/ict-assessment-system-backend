@@ -14,6 +14,7 @@ public class SubmissionEntity {
     @MongoId
     private UUID id;
     private String assignmentId;
+    private String classroomSlug;
     private String email;
     private List<QuestionEntity> questionEntities;
     private SubmissionStatus submissionStatus;
