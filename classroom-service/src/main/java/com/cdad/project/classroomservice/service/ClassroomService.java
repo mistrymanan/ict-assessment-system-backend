@@ -1,5 +1,6 @@
 package com.cdad.project.classroomservice.service;
 
+import com.cdad.project.classroomservice.dto.ClassroomAndUserDetailsDTO;
 import com.cdad.project.classroomservice.dto.ClassroomDetailsDTO;
 import com.cdad.project.classroomservice.entity.Classroom;
 import com.cdad.project.classroomservice.entity.CurrentUser;
@@ -10,7 +11,10 @@ import com.cdad.project.classroomservice.exchanges.*;
 import com.cdad.project.classroomservice.repository.ClassroomRepository;
 import com.cdad.project.classroomservice.serviceclient.userservice.UserServiceClient;
 import com.cdad.project.classroomservice.serviceclient.userservice.dtos.UserDetailsDTO;
+import com.cdad.project.classroomservice.serviceclient.userservice.dtos.UserDetail;
 import com.cdad.project.classroomservice.serviceclient.userservice.exceptions.UserNotFoundException;
+import com.cdad.project.classroomservice.serviceclient.userservice.exchanges.GetUsersDetailRequest;
+import com.cdad.project.classroomservice.serviceclient.userservice.exchanges.GetUsersDetailsResponse;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
@@ -36,6 +40,7 @@ public class ClassroomService {
         classroom.setSlug(slugify(request.getTitle()));
         classroom.setOwnerEmail(currentUser.getEmail());
         classroom.setOwnerName(currentUser.getName());
+        classroom.setOwnerPicture(currentUser.getPicture());
         HashSet<String> instructors = new HashSet<>();
         HashSet<String> enrolledUsers = new HashSet<>();
         classroom.setInstructors(instructors);
@@ -68,20 +73,41 @@ public class ClassroomService {
         return response;
     }
 
-    public Classroom getClassroom(String classroomSlug, Jwt jwt) throws ClassroomNotFound, ClassroomAccessForbidden {
+    public ClassroomAndUserDetailsDTO getClassroom(String classroomSlug, Jwt jwt) throws ClassroomNotFound, ClassroomAccessForbidden {
         CurrentUser user = CurrentUser.fromJwt(jwt);
         Optional<Classroom> optionalClassroom = classroomRepository.getClassroomBySlug(classroomSlug);
         if (optionalClassroom.isPresent()) {
             Classroom classroom = optionalClassroom.orElseThrow(() -> new ClassroomNotFound("Classroom Not Found."));
             if (classroom.getEnrolledUsers().contains(user.getEmail())
                     || classroom.getInstructors().contains(user.getEmail()) || classroom.getOwnerEmail().equals(user.getEmail())) {
-                return classroom;
+                return getClassroomAndUserDetails(classroom, jwt);
             } else {
                 throw new ClassroomAccessForbidden("You are neither Instructor nor Student for Title: "
                         + classroom.getTitle() + " Class.");
             }
         }
         return null;
+    }
+
+    public ClassroomAndUserDetailsDTO getClassroomAndUserDetails(Classroom classroom, Jwt jwt) {
+        ClassroomAndUserDetailsDTO classroomAndUserDetailsDTO = this.modelMapper.map(classroom, ClassroomAndUserDetailsDTO.class);
+        GetUsersDetailsResponse instructorsDetails;
+        GetUsersDetailsResponse enrolledUserDetails;
+        if (classroom.getInstructors() != null && classroom.getInstructors().size() > 0) {
+            instructorsDetails = getUsersDetail(classroom.getInstructors(), jwt);
+            classroomAndUserDetailsDTO.setInstructors(instructorsDetails.getUsersDetail());
+        }
+        if (classroom.getEnrolledUsers() != null && classroom.getEnrolledUsers().size() > 0) {
+            enrolledUserDetails = getUsersDetail(classroom.getEnrolledUsers(), jwt);
+            classroomAndUserDetailsDTO.setEnrolledUsers(enrolledUserDetails.getUsersDetail());
+        }
+        return classroomAndUserDetailsDTO;
+    }
+
+    private GetUsersDetailsResponse getUsersDetail(HashSet<String> user, Jwt jwt) {
+        GetUsersDetailRequest request = new GetUsersDetailRequest();
+        request.setUsersEmail(user);
+        return this.userServiceClient.getUsersDetails(request, jwt);
     }
 
     public Classroom addClassroom(CreateClassroomRequest request, Jwt jwt) throws ClassroomAlreadyExists {
@@ -93,7 +119,7 @@ public class ClassroomService {
             userServiceClient.addInstructorToClass(classroom.getSlug(), classroom.getInstructors(), jwt);
 
             return classroom;
-        }else {
+        } else {
             throw new ClassroomAlreadyExists(
                     "Classroom With Name:"
                             +request.getTitle()

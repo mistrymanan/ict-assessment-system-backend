@@ -1,5 +1,6 @@
 package com.cdad.project.classroomservice.controllers;
 
+import com.cdad.project.classroomservice.dto.ClassroomAndUserDetailsDTO;
 import com.cdad.project.classroomservice.dto.ErrorResponse;
 import com.cdad.project.classroomservice.entity.Classroom;
 import com.cdad.project.classroomservice.exceptions.ClassroomAccessForbidden;
@@ -27,9 +28,10 @@ public class ClassroomController {
         this.classroomService = classroomService;
         this.modelMapper = modelMapper;
     }
+
     @GetMapping("{classroomSlug}")
     @ResponseStatus(HttpStatus.OK)
-    Classroom getClassroom(@PathVariable String classroomSlug,@AuthenticationPrincipal Jwt jwt) throws ClassroomNotFound, ClassroomAccessForbidden {
+    ClassroomAndUserDetailsDTO getClassroom(@PathVariable String classroomSlug, @AuthenticationPrincipal Jwt jwt) throws ClassroomNotFound, ClassroomAccessForbidden {
         return classroomService.getClassroom(classroomSlug, jwt);
     }
 
