@@ -2,6 +2,7 @@ package com.cdad.project.userservice.controller;
 
 import com.cdad.project.userservice.dto.ErrorResponse;
 import com.cdad.project.userservice.entity.User;
+import com.cdad.project.userservice.exceptions.InvalidSecretKeyException;
 import com.cdad.project.userservice.exceptions.UserNotFoundException;
 import com.cdad.project.userservice.exchanges.CreateUserRequest;
 import com.cdad.project.userservice.exchanges.GetUsersDetailRequest;
@@ -13,6 +14,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import java.util.Objects;
+
 
 @RestController
 @RequestMapping("")
@@ -23,7 +27,8 @@ public class UserController {
         this.userService = userService;
     }
     @GetMapping("")
-    GetUsersDetailsResponse getUsersDetails(@RequestBody GetUsersDetailRequest request){
+    GetUsersDetailsResponse getUsersDetails(@RequestBody GetUsersDetailRequest request,HttpServletRequest req) throws InvalidSecretKeyException {
+        checkSecret(req);
         return this.userService.getUsersData(request);
     }
     @GetMapping("{emailId:.+}")
@@ -42,10 +47,20 @@ public class UserController {
     User updateUserInfo(@PathVariable String emailId, @AuthenticationPrincipal Jwt jwt) throws UserNotFoundException {
     return userService.updateUserMetadata(emailId, jwt);
     }
+    public void checkSecret(HttpServletRequest req) throws InvalidSecretKeyException {
+        String key = req.getHeader("X-Secret");
+        if (Objects.isNull(key) || !key.equals("top-secret-communication")) {
+            throw new InvalidSecretKeyException("secret not valid");
+        }
+    }
 
     @ExceptionHandler(value = UserNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse userNotFoundHandler(UserNotFoundException e) {
         return new ErrorResponse("Not Found", e.getMessage());
+    }
+    @ExceptionHandler(InvalidSecretKeyException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public void forbidden() {
     }
 }

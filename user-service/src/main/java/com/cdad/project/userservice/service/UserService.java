@@ -1,6 +1,6 @@
 package com.cdad.project.userservice.service;
 
-import com.cdad.project.userservice.dto.UsersDetail;
+import com.cdad.project.userservice.dto.UserDetails;
 import com.cdad.project.userservice.entity.CurrentUser;
 import com.cdad.project.userservice.entity.User;
 import com.cdad.project.userservice.exceptions.UserNotFoundException;
@@ -10,9 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class UserService {
@@ -110,11 +108,11 @@ public class UserService {
         }
     }
     public GetUsersDetailsResponse getUsersData(GetUsersDetailRequest request){
-        HashMap<String, UsersDetail> usersDetail=new HashMap<>();
+        List<UserDetails> usersDetail=new LinkedList<>();
         request.getUsersEmail().forEach(email -> {
             Optional<User> optionalUser=this.userRepository.findById(email);
             if(optionalUser.isPresent() && optionalUser.get().getName()!=null){
-                usersDetail.put(email,modelMapper.map(optionalUser.get(),UsersDetail.class));
+                usersDetail.add(modelMapper.map(optionalUser.get(),UserDetails.class));
             }
         });
         GetUsersDetailsResponse response=new GetUsersDetailsResponse();
