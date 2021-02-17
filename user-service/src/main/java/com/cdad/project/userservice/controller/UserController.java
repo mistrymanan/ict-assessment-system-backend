@@ -26,6 +26,8 @@ public class UserController {
     public UserController(UserService userService) {
         this.userService = userService;
     }
+
+
     @GetMapping("")
     GetUsersDetailsResponse getUsersDetails(@RequestBody GetUsersDetailRequest request,HttpServletRequest req) throws InvalidSecretKeyException {
         checkSecret(req);
