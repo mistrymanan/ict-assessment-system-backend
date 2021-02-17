@@ -20,6 +20,7 @@ public class Classroom {
     @Indexed
     private String ownerEmail;
     private String ownerName;
+    private String ownerPicture;
     private HashSet<String> instructors;
     private HashSet<String> enrolledUsers;
 }
