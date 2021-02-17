@@ -17,6 +17,9 @@ build:
     - image: mananmistry/classroom-service
       jib:
         project: classroom-service
+    - image: mananmistry/user-service
+      jib:
+        project: user-service
 #deploy:
 #  kubectl:
 #    manifests:
