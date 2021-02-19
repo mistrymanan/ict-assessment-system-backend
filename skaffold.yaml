@@ -14,18 +14,12 @@ build:
 #      jib:
 #        fromImage: us.gcr.io/my-project-1529917597814/jail
 #        project: execution-service
-<<<<<<< HEAD
     - image: mananmistry/classroom-service
       jib:
         project: classroom-service
     - image: mananmistry/user-service
       jib:
         project: user-service
-=======
-#    - image: mananmistry/classroom-service
-#      jib:
-#        project: classroom-service
->>>>>>> 17db4c5810b4b3af7f698e531e5ea9af45f25cf4
 #deploy:
 #  kubectl:
 #    manifests:

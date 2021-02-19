@@ -133,6 +133,9 @@ public class ActiveAssignmentService {
     Map<String, QuestionUserDetailsDTO> questionDetailMap = submissionDetails.getQuestionEntities()
             .stream()
             .collect(Collectors.toMap(QuestionUserDetailsDTO::getQuestionId, question -> question));
+    if(activeAssignmentDetails.getQuestions()!=null){
+
+
     activeAssignmentDetails.getQuestions()
             .forEach(userQuestionDTO -> {
               String id = userQuestionDTO.getId().toString();
@@ -145,6 +148,7 @@ public class ActiveAssignmentService {
                 userQuestionDTO.setCurrentScore(questionUserDetailsDTO.getScore());
               }
             });
+    }
 //    activeAssignmentDetails.getQuestions()
 //            .forEach(userQuestionDTO -> {
 //              try {
