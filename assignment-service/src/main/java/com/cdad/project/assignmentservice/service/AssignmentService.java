@@ -187,6 +187,7 @@ public class AssignmentService {
     log.info("After :: " + question.getAllowedLanguages());
     question.setSlug(slugify(question.getTitle()));
     assignment.setTotalPoints(assignment.getTotalPoints() - oldTotalPoints + question.getTotalPoints());
+    System.out.println(assignment);
     this.assignmentRepository.save(assignment);
   }
 
