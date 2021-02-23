@@ -121,8 +121,10 @@ public class ClassroomService {
         if (!classroomRepository.existsBySlug(classroomSlug)) {
             Classroom classroom = saveNew(request, jwt);
             classroom.getInstructors().add(classroom.getOwnerEmail());
+            classroom.getInstructors().addAll(request.getInstructors());
+            System.out.println(request.getInstructors());
             userServiceClient.addInstructorToClass(classroom.getSlug(), classroom.getInstructors(), jwt);
-
+            this.classroomRepository.save(classroom);
             return classroom;
         } else {
             throw new ClassroomAlreadyExists(
