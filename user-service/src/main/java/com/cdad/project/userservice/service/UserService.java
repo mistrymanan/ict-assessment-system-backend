@@ -111,7 +111,7 @@ public class UserService {
         List<UserDetails> usersDetail=new LinkedList<>();
         request.getUsersEmail().forEach(email -> {
             Optional<User> optionalUser=this.userRepository.findById(email);
-            if(optionalUser.isPresent() && optionalUser.get().getName()!=null){
+            if(optionalUser.isPresent()){
                 usersDetail.add(modelMapper.map(optionalUser.get(),UserDetails.class));
             }
         });

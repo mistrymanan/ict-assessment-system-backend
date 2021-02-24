@@ -4,9 +4,9 @@ metadata:
   name: assessment-system-backend
 build:
   artifacts:
-    - image: mananmistry/assignment-service
-      jib:
-        project: assignment-service
+#    - image: mananmistry/assignment-service
+#      jib:
+#        project: assignment-service
 #    - image:  mananmistry/submission-service
 #      jib:
 #        project: grading-service
@@ -14,9 +14,9 @@ build:
 #      jib:
 #        fromImage: us.gcr.io/my-project-1529917597814/jail
 #        project: execution-service
-#    - image: mananmistry/classroom-service
-#      jib:
-#        project: classroom-service
+    - image: mananmistry/classroom-service
+      jib:
+        project: classroom-service
 #    - image: mananmistry/user-service
 #      jib:
 #        project: user-service
