@@ -172,17 +172,20 @@ public class SubmissionService {
         }
     }
 
-    public void startSubmission(String classroomSlug, String assignmentId, Jwt jwt) throws AssignmentNotFound {
+    public void startSubmission(String classroomSlug, String assignmentId, Jwt jwt) throws AssignmentNotFound, AssignmentNotStartedException {
         CurrentUser currentUser = CurrentUser.fromJwt(jwt);
+        LocalDateTime time=LocalDateTime.ofInstant(Instant.now(), ZoneId.of("Asia/Kolkata"));
         if (!this.isExist(classroomSlug, assignmentId, currentUser.getEmail())) {
             // SubmissionEntity submissionEntity=modelMapper.map(request,SubmissionEntity.class);
+
+            Assignment assignment = null;
+            assignment = this.assignmentServiceClient.getAssignment(assignmentId, classroomSlug, jwt.getTokenValue())
+                    .block();
+            if(assignment!=null && assignment.isHasStartTime() && time.isAfter(assignment.getStartTime())){
             SubmissionEntity submissionEntity = new SubmissionEntity();
             submissionEntity.setAssignmentId(assignmentId);
             submissionEntity.setEmail(currentUser.getEmail());
             submissionEntity.setClassroomSlug(classroomSlug);
-            Assignment assignment = null;
-            assignment = this.assignmentServiceClient.getAssignment(assignmentId, classroomSlug, jwt.getTokenValue())
-                    .block();
             System.out.println(assignment);
             if (assignment.getQuestions() != null) {
                 submissionEntity.setAssignmentScore(assignment.getQuestions().stream().mapToDouble(QuestionDetails::getTotalPoints).sum());
@@ -191,8 +194,12 @@ public class SubmissionService {
                 submissionEntity.setAssignmentScore(0.0);
             }
             submissionEntity.setSubmissionStatus(SubmissionStatus.IN_PROGRESS);
-            submissionEntity.setStartOn(LocalDateTime.now());
+            submissionEntity.setStartOn(LocalDateTime.ofInstant(Instant.now(), ZoneId.of("Asia/Kolkata")));
             this.save(submissionEntity);
+            }
+            else{
+                throw new AssignmentNotStartedException("Assignment has not started yet.Please check the start time.");
+            }
         }
     }
 

@@ -48,7 +48,7 @@ public class SubmissionController {
     }
 
     @PatchMapping("/start-submission/{assignmentId}")
-    void startQuestion(@PathVariable String classroomSlug, @PathVariable String assignmentId, @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFound {
+    void startQuestion(@PathVariable String classroomSlug, @PathVariable String assignmentId, @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFound, AssignmentNotStartedException {
         this.submissionService.startSubmission(classroomSlug, assignmentId, jwt);
     }
 
@@ -122,6 +122,12 @@ public class SubmissionController {
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ErrorResponse handle(AccessForbiddenException error){
         return modelMapper.map(error,ErrorResponse.class);
+    }
+
+    @ExceptionHandler(AssignmentNotStartedException.class)
+    @ResponseStatus(HttpStatus.LOCKED)
+    public ErrorResponse handle(AssignmentNotStartedException e){
+        return modelMapper.map(e,ErrorResponse.class);
     }
 
     @ExceptionHandler({
