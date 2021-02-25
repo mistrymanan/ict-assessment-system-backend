@@ -181,7 +181,8 @@ public class SubmissionService {
             Assignment assignment = null;
             assignment = this.assignmentServiceClient.getAssignment(assignmentId, classroomSlug, jwt.getTokenValue())
                     .block();
-            if(assignment!=null && assignment.isHasStartTime() && time.isAfter(assignment.getStartTime())){
+            if(assignment!=null && ((assignment.isHasStartTime() && time.isAfter(assignment.getStartTime())) ||
+                    (!assignment.isHasStartTime()))){
             SubmissionEntity submissionEntity = new SubmissionEntity();
             submissionEntity.setAssignmentId(assignmentId);
             submissionEntity.setEmail(currentUser.getEmail());

@@ -7,9 +7,9 @@ build:
 #    - image: mananmistry/assignment-service
 #      jib:
 #        project: assignment-service
-#    - image:  mananmistry/submission-service
-#      jib:
-#        project: grading-service
+    - image:  mananmistry/submission-service
+      jib:
+        project: grading-service
 #    - image: us.gcr.io/my-project-1529917597814/execution-service
 #      jib:
 #        fromImage: us.gcr.io/my-project-1529917597814/jail
@@ -17,9 +17,9 @@ build:
 #    - image: mananmistry/classroom-service
 #      jib:
 #        project: classroom-service
-    - image: mananmistry/user-service
-      jib:
-        project: user-service
+#    - image: mananmistry/user-service
+#      jib:
+#        project: user-service
 #deploy:
 #  kubectl:
 #    manifests:
