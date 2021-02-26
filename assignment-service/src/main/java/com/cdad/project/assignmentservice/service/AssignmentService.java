@@ -55,7 +55,7 @@ public class AssignmentService {
 
   public AssignmentDTO createAssignment(CreateAssignmentRequest assignment, String classroomSlug, CurrentUser user,Jwt jwt) throws AssignmentAlreadyExistsException, UserNotFoundException, AccessForbiddenException {
     UserDetailsDTO userDetails=userServiceClient.getUserDetails(user.getEmail(),jwt);
-    if(userDetails.getInstructClassrooms().contains(user.getEmail())) {
+    if(userDetails.getInstructClassrooms().contains(classroomSlug)) {
       String assignmentSlug = slugify(assignment.getTitle());
       if (!assignmentRepository.existsBySlugAndClassroomSlug(assignmentSlug, classroomSlug)) {
         Assignment newAssignment = mapper.map(assignment, Assignment.class);
@@ -76,7 +76,7 @@ public class AssignmentService {
 
   public AssignmentDTO updateAssignment(String id, String classroomSlug, UpdateAssignmentRequest request, CurrentUser user,Jwt jwt) throws AssignmentNotFoundException, AccessForbiddenException, UserNotFoundException {
     UserDetailsDTO userDetails=userServiceClient.getUserDetails(user.getEmail(),jwt);
-    if(userDetails.getInstructClassrooms().contains(user.getEmail())) {
+    if(userDetails.getInstructClassrooms().contains(classroomSlug)) {
       Assignment assignment = getAssignment(id, classroomSlug);
       this.mapper.map(request, assignment);
       assignment.setSlug(slugify(assignment.getTitle()));
@@ -90,7 +90,7 @@ public class AssignmentService {
 
   public AssignmentDTO updateAssignmentBySlug(String slug, String classroomSlug, UpdateAssignmentRequest request, CurrentUser user,Jwt jwt) throws AssignmentNotFoundException, UserNotFoundException, AccessForbiddenException {
     UserDetailsDTO userDetails=userServiceClient.getUserDetails(user.getEmail(),jwt);
-    if(userDetails.getInstructClassrooms().contains(user.getEmail())){
+    if(userDetails.getInstructClassrooms().contains(classroomSlug)){
       Assignment assignment = getAssignmentBySlug(slug, classroomSlug);
       this.mapper.map(request, assignment);
       assignment.setSlug(slugify(assignment.getTitle()));
@@ -128,8 +128,8 @@ public class AssignmentService {
   public AssignmentDTO getAssignmentById(String id, String classroomSlug,Jwt jwt) throws AssignmentNotFoundException, UserNotFoundException, AccessForbiddenException {
     CurrentUser user=CurrentUser.fromJwt(jwt);
     UserDetailsDTO userDetails=userServiceClient.getUserDetails(user.getEmail(),jwt);
-    if(userDetails.getInstructClassrooms().contains(user.getEmail())
-            ||userDetails.getEnrolledClassrooms().contains(user.getEmail())) {
+    if(userDetails.getInstructClassrooms().contains(classroomSlug)
+            ||userDetails.getEnrolledClassrooms().contains(classroomSlug)) {
       Assignment assignment = getAssignment(id, classroomSlug);
       return mapper.map(assignment, AssignmentDTO.class);
     }else{
@@ -138,15 +138,8 @@ public class AssignmentService {
   }
 
   public AssignmentDTO getAssignmentById(String id,Jwt jwt) throws AssignmentNotFoundException, UserNotFoundException, AccessForbiddenException {
-    CurrentUser user=CurrentUser.fromJwt(jwt);
-    UserDetailsDTO userDetails=userServiceClient.getUserDetails(user.getEmail(),jwt);
-    if(userDetails.getInstructClassrooms().contains(user.getEmail())||
-    userDetails.getEnrolledClassrooms().contains(user.getEmail())) {
       Assignment assignment = getAssignment(id);
       return mapper.map(assignment, AssignmentDTO.class);
-    }else{
-      throw new AccessForbiddenException("You don't have required authorization to access the assignments.");
-    }
   }
 
 //  public AssignmentDTO getAssignmentBySlug(String slug, String classroomSlug)
@@ -162,7 +155,7 @@ public class AssignmentService {
   public void addQuestionToAssignment(AddQuestionRequest request, String classroomSlug,Jwt jwt) throws AssignmentNotFoundException, UserNotFoundException, AccessForbiddenException {
     CurrentUser user=CurrentUser.fromJwt(jwt);
     UserDetailsDTO userDetails=userServiceClient.getUserDetails(user.getEmail(),jwt);
-    if(userDetails.getInstructClassrooms().contains(user.getEmail())) {
+    if(userDetails.getInstructClassrooms().contains(classroomSlug)) {
       Assignment assignment = getAssignmentBySlug(request.getAssignmentSlug(), classroomSlug);
       Question newQuestion = mapper.map(request, Question.class);
       newQuestion.setId(UUID.randomUUID());
@@ -200,7 +193,7 @@ public class AssignmentService {
   public void toggleAssignmentStatus(String id, String classroomSlug,Jwt jwt) throws AssignmentNotFoundException, UserNotFoundException, AccessForbiddenException {
     CurrentUser user=CurrentUser.fromJwt(jwt);
     UserDetailsDTO userDetails=userServiceClient.getUserDetails(user.getEmail(),jwt);
-    if(userDetails.getInstructClassrooms().contains(user.getEmail())) {
+    if(userDetails.getInstructClassrooms().contains(classroomSlug)) {
       Assignment assignment = getAssignment(id, classroomSlug);
       String currentStatus = assignment.getStatus();
       assignment.setStatus(currentStatus.equals("ACTIVE") ? "INACTIVE" : "ACTIVE");
@@ -213,7 +206,7 @@ public class AssignmentService {
   public void toggleAssignmentStatusBySlug(String slug, String classroomSlug,Jwt jwt) throws AssignmentNotFoundException, UserNotFoundException, AccessForbiddenException {
     CurrentUser user=CurrentUser.fromJwt(jwt);
     UserDetailsDTO userDetails=userServiceClient.getUserDetails(user.getEmail(),jwt);
-    if(userDetails.getInstructClassrooms().contains(user.getEmail())) {
+    if(userDetails.getInstructClassrooms().contains(classroomSlug)) {
       Assignment assignment = getAssignmentBySlug(slug, classroomSlug);
       String currentStatus = assignment.getStatus();
       assignment.setStatus(currentStatus.equals("ACTIVE") ? "INACTIVE" : "ACTIVE");
@@ -226,7 +219,7 @@ public class AssignmentService {
   public void deleteQuestionForAssignment(String assignmentId, String questionId, String classroomSlug,Jwt jwt) throws AssignmentNotFoundException, QuestionNotFoundException, UserNotFoundException, AccessForbiddenException {
     CurrentUser user=CurrentUser.fromJwt(jwt);
     UserDetailsDTO userDetails=userServiceClient.getUserDetails(user.getEmail(),jwt);
-    if(userDetails.getInstructClassrooms().contains(user.getEmail())){
+    if(userDetails.getInstructClassrooms().contains(classroomSlug)){
       Assignment assignment = getAssignment(assignmentId, classroomSlug);
       Optional<Question> questionOptional = assignment.getQuestions()
               .stream()
@@ -246,7 +239,7 @@ public class AssignmentService {
   public void updateQuestionForAssignment(String assignmentId,String classroomSlug, QuestionDTO questionDTO,Jwt jwt) throws AssignmentNotFoundException, QuestionNotFoundException, UserNotFoundException, AccessForbiddenException {
     CurrentUser user=CurrentUser.fromJwt(jwt);
     UserDetailsDTO userDetails=userServiceClient.getUserDetails(user.getEmail(),jwt);
-    if(userDetails.getInstructClassrooms().contains(user.getEmail())) {
+    if(userDetails.getInstructClassrooms().contains(classroomSlug)) {
       Assignment assignment = getAssignment(assignmentId, classroomSlug);
       Optional<Question> questionOptional = assignment.getQuestions()
               .stream()
