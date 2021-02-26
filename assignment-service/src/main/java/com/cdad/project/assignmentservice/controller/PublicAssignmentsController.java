@@ -33,9 +33,9 @@ public class PublicAssignmentsController {
 
   @GetMapping("assignments/{id}")
   public AssignmentDTO getAssignment(@PathVariable String classroomSlug,
-                                     @PathVariable String id, HttpServletRequest req,Jwt jwt) throws AssignmentNotFoundException, InvalidSecretKeyException, UserNotFoundException, AccessForbiddenException {
+                                     @PathVariable String id, HttpServletRequest req) throws AssignmentNotFoundException, InvalidSecretKeyException, UserNotFoundException, AccessForbiddenException {
     checkSecret(req);
-    return this.assignmentService.getAssignmentById(id,jwt);
+    return this.assignmentService.getAssignmentById(id);
   }
 
   @GetMapping("questions/id")

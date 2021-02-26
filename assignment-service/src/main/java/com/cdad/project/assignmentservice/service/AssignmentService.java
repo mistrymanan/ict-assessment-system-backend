@@ -137,7 +137,7 @@ public class AssignmentService {
     }
   }
 
-  public AssignmentDTO getAssignmentById(String id,Jwt jwt) throws AssignmentNotFoundException, UserNotFoundException, AccessForbiddenException {
+  public AssignmentDTO getAssignmentById(String id) throws AssignmentNotFoundException, UserNotFoundException, AccessForbiddenException {
       Assignment assignment = getAssignment(id);
       return mapper.map(assignment, AssignmentDTO.class);
   }
