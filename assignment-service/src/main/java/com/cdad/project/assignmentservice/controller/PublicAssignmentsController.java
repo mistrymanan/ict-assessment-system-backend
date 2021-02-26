@@ -5,11 +5,13 @@ import com.cdad.project.assignmentservice.dto.ErrorResponse;
 import com.cdad.project.assignmentservice.dto.QuestionDTO;
 import com.cdad.project.assignmentservice.entity.Assignment;
 import com.cdad.project.assignmentservice.entity.CurrentUser;
+import com.cdad.project.assignmentservice.exceptions.AccessForbiddenException;
 import com.cdad.project.assignmentservice.exceptions.AssignmentNotFoundException;
 import com.cdad.project.assignmentservice.exceptions.InvalidSecretKeyException;
 import com.cdad.project.assignmentservice.exceptions.QuestionNotFoundException;
 import com.cdad.project.assignmentservice.exchanges.GetQuestionUsingIdRequest;
 import com.cdad.project.assignmentservice.service.AssignmentService;
+import com.cdad.project.assignmentservice.serviceclient.userservice.exceptions.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -31,9 +33,9 @@ public class PublicAssignmentsController {
 
   @GetMapping("assignments/{id}")
   public AssignmentDTO getAssignment(@PathVariable String classroomSlug,
-                                     @PathVariable String id, HttpServletRequest req) throws AssignmentNotFoundException, InvalidSecretKeyException {
+                                     @PathVariable String id, HttpServletRequest req,Jwt jwt) throws AssignmentNotFoundException, InvalidSecretKeyException, UserNotFoundException, AccessForbiddenException {
     checkSecret(req);
-    return this.assignmentService.getAssignmentById(id);
+    return this.assignmentService.getAssignmentById(id,jwt);
   }
 
   @GetMapping("questions/id")
@@ -46,7 +48,7 @@ public class PublicAssignmentsController {
     );
   }
 
-  @ExceptionHandler(InvalidSecretKeyException.class)
+  @ExceptionHandler({InvalidSecretKeyException.class,AccessForbiddenException.class})
   @ResponseStatus(HttpStatus.FORBIDDEN)
   public void forbidden() {
   }

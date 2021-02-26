@@ -3,12 +3,14 @@ package com.cdad.project.assignmentservice.controller;
 import com.cdad.project.assignmentservice.dto.AssignmentDTO;
 import com.cdad.project.assignmentservice.dto.ErrorResponse;
 import com.cdad.project.assignmentservice.entity.CurrentUser;
+import com.cdad.project.assignmentservice.exceptions.AccessForbiddenException;
 import com.cdad.project.assignmentservice.exceptions.AssignmentAlreadyExistsException;
 import com.cdad.project.assignmentservice.exceptions.AssignmentNotFoundException;
 import com.cdad.project.assignmentservice.exchanges.CreateAssignmentRequest;
 import com.cdad.project.assignmentservice.exchanges.GetAllAssignmentsResponse;
 import com.cdad.project.assignmentservice.exchanges.UpdateAssignmentRequest;
 import com.cdad.project.assignmentservice.service.AssignmentService;
+import com.cdad.project.assignmentservice.serviceclient.userservice.exceptions.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -40,27 +42,27 @@ public class ManageAssignmentController {
   @ResponseStatus(HttpStatus.CREATED)
   public AssignmentDTO createAssignment(@PathVariable String classroomSlug,
                                         @RequestBody @Valid CreateAssignmentRequest request,
-                                        @AuthenticationPrincipal Jwt jwt) throws AssignmentAlreadyExistsException {
+                                        @AuthenticationPrincipal Jwt jwt) throws AssignmentAlreadyExistsException, UserNotFoundException, AccessForbiddenException {
     CurrentUser user = CurrentUser.fromJwt(jwt);
-    return this.assignmentService.createAssignment(request, classroomSlug, user);
+    return this.assignmentService.createAssignment(request, classroomSlug, user,jwt);
   }
 
 
   @GetMapping("id/{id}")
   @ResponseStatus(HttpStatus.OK)
   public AssignmentDTO getAssignment(@PathVariable String classroomSlug,
-                                     @PathVariable String id, @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException {
+                                     @PathVariable String id, @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, UserNotFoundException, AccessForbiddenException {
     CurrentUser user = CurrentUser.fromJwt(jwt);
-    return this.assignmentService.getAssignmentById(id, classroomSlug);
+    return this.assignmentService.getAssignmentById(id, classroomSlug,jwt);
   }
 
 
   @DeleteMapping("id/{id}")
   @ResponseStatus(HttpStatus.OK)
   public void deleteAssignment(@PathVariable String classroomSlug,
-                               @PathVariable String id, @AuthenticationPrincipal Jwt jwt) {
+                               @PathVariable String id, @AuthenticationPrincipal Jwt jwt) throws UserNotFoundException, AccessForbiddenException {
     CurrentUser user = CurrentUser.fromJwt(jwt);
-    this.assignmentService.deleteAssignment(id, classroomSlug);
+    this.assignmentService.deleteAssignment(id, classroomSlug,jwt);
   }
 
   @PutMapping("id/{id}")
@@ -68,18 +70,18 @@ public class ManageAssignmentController {
   public AssignmentDTO updateAssignment(@PathVariable String classroomSlug,
                                         @PathVariable String id,
                                         @RequestBody @Valid UpdateAssignmentRequest updateRequest,
-                                        @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException {
+                                        @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, AccessForbiddenException, UserNotFoundException {
     CurrentUser user = CurrentUser.fromJwt(jwt);
-    return this.assignmentService.updateAssignment(id, classroomSlug, updateRequest, user);
+    return this.assignmentService.updateAssignment(id, classroomSlug, updateRequest, user,jwt);
   }
 
   @PatchMapping("id/{id}")
   @ResponseStatus(HttpStatus.ACCEPTED)
   public void toggleAssignmentStatus(@PathVariable String classroomSlug,
                                      @PathVariable String id,
-                                     @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException {
+                                     @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, UserNotFoundException, AccessForbiddenException {
     CurrentUser user = CurrentUser.fromJwt(jwt);
-    this.assignmentService.toggleAssignmentStatus(id, classroomSlug);
+    this.assignmentService.toggleAssignmentStatus(id, classroomSlug,jwt);
   }
 
   @GetMapping("/slug/{slug}")
@@ -96,26 +98,32 @@ public class ManageAssignmentController {
   public AssignmentDTO updateAssignmentBySlug(@PathVariable String classroomSlug,
                                               @PathVariable String slug,
                                               @RequestBody @Valid UpdateAssignmentRequest updateRequest,
-                                              @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException {
+                                              @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, UserNotFoundException, AccessForbiddenException {
     CurrentUser user = CurrentUser.fromJwt(jwt);
-    return this.assignmentService.updateAssignmentBySlug(slug, classroomSlug, updateRequest, user);
+    return this.assignmentService.updateAssignmentBySlug(slug, classroomSlug, updateRequest, user,jwt);
   }
 
   @DeleteMapping("slug/{slug}")
   @ResponseStatus(HttpStatus.OK)
   public void deleteAssignmentBySlug(@PathVariable String classroomSlug,
-                                     @PathVariable String slug, @AuthenticationPrincipal Jwt jwt) {
+                                     @PathVariable String slug, @AuthenticationPrincipal Jwt jwt) throws UserNotFoundException, AccessForbiddenException {
     CurrentUser user = CurrentUser.fromJwt(jwt);
-    this.assignmentService.deleteAssignmentBySlug(slug, classroomSlug);
+    this.assignmentService.deleteAssignmentBySlug(slug, classroomSlug,jwt);
   }
 
   @PatchMapping("slug/{slug}")
   @ResponseStatus(HttpStatus.ACCEPTED)
   public void toggleAssignmentStatusBySlug(@PathVariable String classroomSlug,
                                            @PathVariable String slug,
-                                           @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException {
+                                           @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, UserNotFoundException, AccessForbiddenException {
     CurrentUser user = CurrentUser.fromJwt(jwt);
-    this.assignmentService.toggleAssignmentStatusBySlug(slug, classroomSlug);
+    this.assignmentService.toggleAssignmentStatusBySlug(slug, classroomSlug,jwt);
+  }
+
+  @ExceptionHandler(AccessForbiddenException.class)
+  @ResponseStatus(HttpStatus.FORBIDDEN)
+  public ErrorResponse handle(AccessForbiddenException e){
+    return new ErrorResponse("Forbidden",e.getMessage());
   }
 
   @ExceptionHandler(AssignmentAlreadyExistsException.class)

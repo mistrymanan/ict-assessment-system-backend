@@ -3,10 +3,12 @@ package com.cdad.project.assignmentservice.controller;
 import com.cdad.project.assignmentservice.dto.ErrorResponse;
 import com.cdad.project.assignmentservice.dto.QuestionDTO;
 import com.cdad.project.assignmentservice.entity.CurrentUser;
+import com.cdad.project.assignmentservice.exceptions.AccessForbiddenException;
 import com.cdad.project.assignmentservice.exceptions.AssignmentNotFoundException;
 import com.cdad.project.assignmentservice.exceptions.QuestionNotFoundException;
 import com.cdad.project.assignmentservice.exchanges.*;
 import com.cdad.project.assignmentservice.service.AssignmentService;
+import com.cdad.project.assignmentservice.serviceclient.userservice.exceptions.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -26,9 +28,9 @@ public class QuestionsController {
   @ResponseStatus(HttpStatus.CREATED)
   public void addQuestionToAssignment(@PathVariable String classroomSlug,
                                       @RequestBody AddQuestionRequest request,
-                                      @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException {
+                                      @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, UserNotFoundException, AccessForbiddenException {
     CurrentUser user = CurrentUser.fromJwt(jwt);
-    this.assignmentService.addQuestionToAssignment(request, classroomSlug);
+    this.assignmentService.addQuestionToAssignment(request, classroomSlug,jwt);
   }
 
   @GetMapping
@@ -57,11 +59,12 @@ public class QuestionsController {
   @ResponseStatus(HttpStatus.ACCEPTED)
   public void deleteQuestionForAssignment(@PathVariable String classroomSlug,
                                           DeleteQuestionRequest request,
-                                          @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, QuestionNotFoundException {
+                                          @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, QuestionNotFoundException, UserNotFoundException, AccessForbiddenException {
     this.assignmentService.deleteQuestionForAssignment(
             request.getAssignmentId(),
             request.getQuestionId(),
-            classroomSlug
+            classroomSlug,
+            jwt
     );
   }
 
@@ -69,13 +72,19 @@ public class QuestionsController {
   @ResponseStatus(HttpStatus.OK)
   public void updateQuestionForAssignment(@PathVariable String classroomSlug,
                                           @RequestBody UpdateAssignmentQuestionRequest updateRequest,
-                                          @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, QuestionNotFoundException {
+                                          @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, QuestionNotFoundException, UserNotFoundException, AccessForbiddenException {
     this.assignmentService.updateQuestionForAssignment(
             updateRequest.getAssignmentId(),
             classroomSlug,
-            updateRequest.getQuestion()
-
+            updateRequest.getQuestion(),
+            jwt
     );
+  }
+
+  @ExceptionHandler(AccessForbiddenException.class)
+  @ResponseStatus(HttpStatus.FORBIDDEN)
+  public ErrorResponse handle(AccessForbiddenException e){
+    return new ErrorResponse("Forbidden",e.getMessage());
   }
 
   @ExceptionHandler({AssignmentNotFoundException.class, QuestionNotFoundException.class})
@@ -83,4 +92,6 @@ public class QuestionsController {
   public ErrorResponse handle(Exception e) {
     return new ErrorResponse("Not Found", e.getMessage());
   }
+
+
 }

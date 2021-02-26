@@ -4,6 +4,7 @@ import com.cdad.project.assignmentservice.dto.ActiveAssignmentDTO;
 import com.cdad.project.assignmentservice.dto.ActiveAssignmentDetailsDTO;
 import com.cdad.project.assignmentservice.dto.ErrorResponse;
 import com.cdad.project.assignmentservice.dto.UserQuestionDTO;
+import com.cdad.project.assignmentservice.exceptions.AccessForbiddenException;
 import com.cdad.project.assignmentservice.exceptions.AssignmentNotFoundException;
 import com.cdad.project.assignmentservice.exceptions.QuestionNotFoundException;
 import com.cdad.project.assignmentservice.exchanges.GetActiveQuestionRequest;
@@ -62,6 +63,10 @@ public class AssignmentsController {
   public ErrorResponse handle(Exception e) {
     return new ErrorResponse("Not Found", e.getMessage());
   }
-
+  @ExceptionHandler(AccessForbiddenException.class)
+  @ResponseStatus(HttpStatus.FORBIDDEN)
+  public ErrorResponse handle(AccessForbiddenException e){
+    return new ErrorResponse("Forbidden",e.getMessage());
+  }
 
 }
