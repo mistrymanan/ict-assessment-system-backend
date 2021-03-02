@@ -15,7 +15,7 @@ spec:
         app: assignment-service-v2
     spec:
       containers:
-        - image: mananmistry/assignment-service:v2.1
+        - image: mananmistry/assignment-service
           imagePullPolicy: IfNotPresent
           name: assignment-service-v2
           ports:

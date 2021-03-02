@@ -14,10 +14,10 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://securetoken.google.com/assessment-system-auth
+          issuer-uri: https://securetoken.google.com/assessment-system-ff99e
           jwk-set-uri: https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com
 #management:
-#  endpoints:
+#  endpoints:assessment-system-ff99e
 #    web:
 #      exposure:
 #        include: httptrace,loggers,health,info,metrics

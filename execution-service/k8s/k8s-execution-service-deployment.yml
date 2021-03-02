@@ -16,7 +16,7 @@ spec:
         app: execution-service
     spec:
       containers:
-        - image: mananmistry/execution-service:ee22843-dirty
+        - image: mananmistry/execution-service
           imagePullPolicy: IfNotPresent
           name: execution-service
           ports:

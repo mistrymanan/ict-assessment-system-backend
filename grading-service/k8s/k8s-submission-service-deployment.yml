@@ -15,7 +15,7 @@ spec:
         app: submission-service
     spec:
       containers:
-        - image: mananmistry/submission-service:ee22843-dirty
+        - image: mananmistry/submission-service
           imagePullPolicy: IfNotPresent
           name: submission-service
           ports:
