@@ -2,17 +2,17 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: submission-service
-  name: submission-service
+    app: submission-service-v2
+  name: submission-service-v2
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: submission-service
+      app: submission-service-v2
   template:
     metadata:
       labels:
-        app: submission-service
+        app: submission-service-v2
     spec:
       containers:
         - image: mananmistry/submission-service
