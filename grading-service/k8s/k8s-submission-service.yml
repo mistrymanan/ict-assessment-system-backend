@@ -12,6 +12,6 @@ spec:
       port: 8080
       targetPort: 8080
   selector:
-    app: submission-service
+    app: submission-service-v2
   type: NodePort
 

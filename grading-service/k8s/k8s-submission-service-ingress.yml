@@ -11,5 +11,5 @@ spec:
         paths:
           - path: /api/v2/submissions(/|$)(.*)
             backend:
-              serviceName: submission-service
+              serviceName: submission-service-v2
               servicePort: 8080
