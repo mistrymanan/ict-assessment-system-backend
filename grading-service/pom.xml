@@ -7,6 +7,7 @@
         <artifactId>assessment-system-backend</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
+    <packaging>jar</packaging>
     <artifactId>grading-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>grading-service</name>
