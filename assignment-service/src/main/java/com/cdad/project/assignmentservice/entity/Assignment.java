@@ -25,7 +25,7 @@ public class Assignment {
   private Integer totalPoints;
   //  @Indexed
 //  private String email;
-  @Indexed(unique = true)
+//  @Indexed(unique = true)
   private String slug;
   private boolean timed;
   private Integer duration;
