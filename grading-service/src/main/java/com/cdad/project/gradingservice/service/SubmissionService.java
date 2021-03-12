@@ -206,7 +206,7 @@ public class SubmissionService {
                     .allMatch(questionEntity1 ->
                             questionEntity1.getResultStatus().equals(ResultStatus.PASSED));
             if (allPassed) {
-                submissionEntity.setCompletedOn(LocalDateTime.now());
+                submissionEntity.setCompletedOn(LocalDateTime.ofInstant(Instant.now(), ZoneId.of("Asia/Kolkata")));
                 if (assignment.isTimed() && assignment.isHasDeadline()) {
                     if (submissionEntity.getCompletedOn().isAfter(assignment.getDeadline())) {
                         status = SubmissionStatus.LATE_SUBMITTED;
