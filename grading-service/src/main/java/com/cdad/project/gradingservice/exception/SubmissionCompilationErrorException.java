@@ -15,8 +15,9 @@ public class SubmissionCompilationErrorException extends Exception {
     private String buildId;
     private String assignmentId;
     private String questionId;
-    private QuestionStatus questionStatus=QuestionStatus.IN_PROGRESS;
+    private QuestionStatus questionStatus = QuestionStatus.IN_PROGRESS;
     private ResultStatus resultStatus = ResultStatus.NOT_ACCEPTED;
+
     public SubmissionCompilationErrorException(String message) {
         super(message);
     }

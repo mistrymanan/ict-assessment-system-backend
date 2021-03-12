@@ -1,11 +1,10 @@
-
 server:
   port: 8080
 spring:
   data:
     mongodb:
-#      authentication-database: admin
-#      uri: mongodb://root:eQWRv7lGgR@my-release-mongodb.default.svc.cluster.local:27017/assignment-service-db?authSource=admin
+      #      authentication-database: admin
+      #      uri: mongodb://root:eQWRv7lGgR@my-release-mongodb.default.svc.cluster.local:27017/assignment-service-db?authSource=admin
       uri: mongodb://root:Root_123@172.16.10.101:27017/assignment-service-db?authSource=admin
       auto-index-creation: true
   application:

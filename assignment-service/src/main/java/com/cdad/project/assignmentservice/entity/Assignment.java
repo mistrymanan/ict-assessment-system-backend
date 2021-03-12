@@ -16,22 +16,22 @@ import java.util.List;
 @Data
 @ToString
 public class Assignment {
-  @MongoId(FieldType.OBJECT_ID)
-  private ObjectId id;
-  private String title;
-  @Indexed
-  private String classroomSlug;
-  private String status;
-  private Integer totalPoints;
-  //  @Indexed
+    @MongoId(FieldType.OBJECT_ID)
+    private ObjectId id;
+    private String title;
+    @Indexed
+    private String classroomSlug;
+    private String status;
+    private Integer totalPoints;
+    //  @Indexed
 //  private String email;
 //  @Indexed(unique = true)
-  private String slug;
-  private boolean timed;
-  private Integer duration;
-  private boolean hasStartTime;
-  private LocalDateTime startTime;
-  private boolean hasDeadline;
-  private LocalDateTime deadline;
-  private List<Question> questions;
+    private String slug;
+    private boolean timed;
+    private Integer duration;
+    private boolean hasStartTime;
+    private LocalDateTime startTime;
+    private boolean hasDeadline;
+    private LocalDateTime deadline;
+    private List<Question> questions;
 }

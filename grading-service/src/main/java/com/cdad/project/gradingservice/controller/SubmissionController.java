@@ -95,8 +95,8 @@ public class SubmissionController {
 
     @ExceptionHandler(SubmissionCompilationErrorException.class)
     @ResponseStatus(HttpStatus.OK)
-    public ErrorResponse handle(SubmissionCompilationErrorException error){
-        ErrorResponse errorResponse=modelMapper.map(error,ErrorResponse.class);
+    public ErrorResponse handle(SubmissionCompilationErrorException error) {
+        ErrorResponse errorResponse = modelMapper.map(error, ErrorResponse.class);
         errorResponse.setStatus(Status.COMPILE_ERROR);
         return errorResponse;
     }
@@ -111,23 +111,22 @@ public class SubmissionController {
 //    }
 
 
-
     @ExceptionHandler(RunCodeCompilationErrorException.class)
     @ResponseStatus(HttpStatus.OK)
-    public ErrorResponse handle(RunCodeCompilationErrorException error){
-        return modelMapper.map(error,ErrorResponse.class);
+    public ErrorResponse handle(RunCodeCompilationErrorException error) {
+        return modelMapper.map(error, ErrorResponse.class);
     }
 
     @ExceptionHandler(AccessForbiddenException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ErrorResponse handle(AccessForbiddenException error){
-        return modelMapper.map(error,ErrorResponse.class);
+    public ErrorResponse handle(AccessForbiddenException error) {
+        return modelMapper.map(error, ErrorResponse.class);
     }
 
     @ExceptionHandler(AssignmentNotStartedException.class)
     @ResponseStatus(HttpStatus.LOCKED)
-    public ErrorResponse handle(AssignmentNotStartedException e){
-        return modelMapper.map(e,ErrorResponse.class);
+    public ErrorResponse handle(AssignmentNotStartedException e) {
+        return modelMapper.map(e, ErrorResponse.class);
     }
 
     @ExceptionHandler({
@@ -135,13 +134,13 @@ public class SubmissionController {
             AssignmentNotFound.class,
             QuestionEntityNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public void handle(Exception e)
-    {
+    public void handle(Exception e) {
     }
-    public void checkAccess(CurrentUser user,Assignment assignment) throws AccessForbiddenException {
+
+    public void checkAccess(CurrentUser user, Assignment assignment) throws AccessForbiddenException {
         System.out.println(assignment.getEmail());
         System.out.println(user.getEmail());
-        if(!assignment.getEmail().equals(user.getEmail())){
+        if (!assignment.getEmail().equals(user.getEmail())) {
             throw new AccessForbiddenException("Access Forbidden");
         }
     }

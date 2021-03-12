@@ -10,13 +10,13 @@ import java.util.UUID;
 @Data
 @ToString
 public class UserQuestionDTO {
-  private UUID id;
-  private String title;
-  private String slug;
-  private List<String> allowedLanguages;
-  private int totalPoints;
-  private String description;
-  private Double currentScore;
-  private QuestionStatus currentStatus;
-  private boolean showExpectedOutput;
+    private UUID id;
+    private String title;
+    private String slug;
+    private List<String> allowedLanguages;
+    private int totalPoints;
+    private String description;
+    private Double currentScore;
+    private QuestionStatus currentStatus;
+    private boolean showExpectedOutput;
 }

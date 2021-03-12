@@ -11,9 +11,9 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class QuestionDetails {
-  private UUID id;
-  private String title;
-  private String slug;
-  private List<String> allowedLanguages;
-  private Integer totalPoints;
+    private UUID id;
+    private String title;
+    private String slug;
+    private List<String> allowedLanguages;
+    private Integer totalPoints;
 }

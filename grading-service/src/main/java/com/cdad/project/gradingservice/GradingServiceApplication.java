@@ -22,15 +22,16 @@ import java.util.HashMap;
 @Log4j2
 public class GradingServiceApplication {
 
-  @Bean
-  public ModelMapper modelMapper(){
-    return new ModelMapper();
-  }
-  private final AssignmentServiceClient assignmentServiceClient;
+    @Bean
+    public ModelMapper modelMapper() {
+        return new ModelMapper();
+    }
 
-  public GradingServiceApplication(AssignmentServiceClient assignmentServiceClient) {
-    this.assignmentServiceClient = assignmentServiceClient;
-  }
+    private final AssignmentServiceClient assignmentServiceClient;
+
+    public GradingServiceApplication(AssignmentServiceClient assignmentServiceClient) {
+        this.assignmentServiceClient = assignmentServiceClient;
+    }
 //  public HashMap<Language,String> languageMap(){
 //    HashMap<Language,String> hashMap=new HashMap<>();
 //    hashMap.put(Language.C,"C");
@@ -39,8 +40,8 @@ public class GradingServiceApplication {
 //    hashMap.put(Language.PYTHON,"Python3.8");
 //  }
 
-  public static void main(String[] args) {
-    SpringApplication.run(GradingServiceApplication.class, args);
-  }
+    public static void main(String[] args) {
+        SpringApplication.run(GradingServiceApplication.class, args);
+    }
 
 }

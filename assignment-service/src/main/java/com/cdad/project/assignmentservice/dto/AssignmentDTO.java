@@ -16,20 +16,20 @@ import java.util.List;
 @NoArgsConstructor
 @ToString
 public class AssignmentDTO {
-  private String id;
-  private String title;
-  private String classroomSlug;
-  private String slug;
-  private String email;
-  private String status;
-  private Integer totalPoints;
-  private boolean timed;
-  private Integer duration;
-  private boolean hasStartTime;
-  @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")
-  private LocalDateTime startTime;
-  private boolean hasDeadline;
-  @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")
-  private LocalDateTime deadline;
-  List<QuestionDetails> questions;
+    private String id;
+    private String title;
+    private String classroomSlug;
+    private String slug;
+    private String email;
+    private String status;
+    private Integer totalPoints;
+    private boolean timed;
+    private Integer duration;
+    private boolean hasStartTime;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    private LocalDateTime startTime;
+    private boolean hasDeadline;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    private LocalDateTime deadline;
+    List<QuestionDetails> questions;
 }

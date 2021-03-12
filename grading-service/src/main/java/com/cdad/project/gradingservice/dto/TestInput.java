@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 public class TestInput {
     private String id;
     private String input;
+
     public TestInput(String input) {
         this.input = input;
     }

@@ -22,125 +22,125 @@ import java.util.List;
 @RestController
 @RequestMapping("{classroomSlug}")
 public class ManageAssignmentController {
-  private final AssignmentService assignmentService;
+    private final AssignmentService assignmentService;
 
-  public ManageAssignmentController(AssignmentService assignmentService) {
-    this.assignmentService = assignmentService;
-  }
+    public ManageAssignmentController(AssignmentService assignmentService) {
+        this.assignmentService = assignmentService;
+    }
 
-  @GetMapping("/all")
-  public GetAllAssignmentsResponse getAllAssignments(@PathVariable String classroomSlug,
-                                                     @AuthenticationPrincipal Jwt jwt) {
-    CurrentUser user = CurrentUser.fromJwt(jwt);
-    GetAllAssignmentsResponse response = new GetAllAssignmentsResponse();
-    List<AssignmentDTO> assignments = assignmentService.getAllAssignmentsInClassroom(classroomSlug);
-    response.setAssignments(assignments);
-    return response;
-  }
+    @GetMapping("/all")
+    public GetAllAssignmentsResponse getAllAssignments(@PathVariable String classroomSlug,
+                                                       @AuthenticationPrincipal Jwt jwt) {
+        CurrentUser user = CurrentUser.fromJwt(jwt);
+        GetAllAssignmentsResponse response = new GetAllAssignmentsResponse();
+        List<AssignmentDTO> assignments = assignmentService.getAllAssignmentsInClassroom(classroomSlug);
+        response.setAssignments(assignments);
+        return response;
+    }
 
-  @PostMapping
-  @ResponseStatus(HttpStatus.CREATED)
-  public AssignmentDTO createAssignment(@PathVariable String classroomSlug,
-                                        @RequestBody @Valid CreateAssignmentRequest request,
-                                        @AuthenticationPrincipal Jwt jwt) throws AssignmentAlreadyExistsException, UserNotFoundException, AccessForbiddenException {
-    CurrentUser user = CurrentUser.fromJwt(jwt);
-    return this.assignmentService.createAssignment(request, classroomSlug, user,jwt);
-  }
-
-
-  @GetMapping("id/{id}")
-  @ResponseStatus(HttpStatus.OK)
-  public AssignmentDTO getAssignment(@PathVariable String classroomSlug,
-                                     @PathVariable String id, @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, UserNotFoundException, AccessForbiddenException {
-    CurrentUser user = CurrentUser.fromJwt(jwt);
-    return this.assignmentService.getAssignmentById(id, classroomSlug,jwt);
-  }
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public AssignmentDTO createAssignment(@PathVariable String classroomSlug,
+                                          @RequestBody @Valid CreateAssignmentRequest request,
+                                          @AuthenticationPrincipal Jwt jwt) throws AssignmentAlreadyExistsException, UserNotFoundException, AccessForbiddenException {
+        CurrentUser user = CurrentUser.fromJwt(jwt);
+        return this.assignmentService.createAssignment(request, classroomSlug, user, jwt);
+    }
 
 
-  @DeleteMapping("id/{id}")
-  @ResponseStatus(HttpStatus.OK)
-  public void deleteAssignment(@PathVariable String classroomSlug,
-                               @PathVariable String id, @AuthenticationPrincipal Jwt jwt) throws UserNotFoundException, AccessForbiddenException {
-    CurrentUser user = CurrentUser.fromJwt(jwt);
-    this.assignmentService.deleteAssignment(id, classroomSlug,jwt);
-  }
+    @GetMapping("id/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public AssignmentDTO getAssignment(@PathVariable String classroomSlug,
+                                       @PathVariable String id, @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, UserNotFoundException, AccessForbiddenException {
+        CurrentUser user = CurrentUser.fromJwt(jwt);
+        return this.assignmentService.getAssignmentById(id, classroomSlug, jwt);
+    }
 
-  @PutMapping("id/{id}")
-  @ResponseStatus(HttpStatus.OK)
-  public AssignmentDTO updateAssignment(@PathVariable String classroomSlug,
-                                        @PathVariable String id,
-                                        @RequestBody @Valid UpdateAssignmentRequest updateRequest,
-                                        @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, AccessForbiddenException, UserNotFoundException {
-    CurrentUser user = CurrentUser.fromJwt(jwt);
-    return this.assignmentService.updateAssignment(id, classroomSlug, updateRequest, user,jwt);
-  }
 
-  @PatchMapping("id/{id}")
-  @ResponseStatus(HttpStatus.ACCEPTED)
-  public void toggleAssignmentStatus(@PathVariable String classroomSlug,
-                                     @PathVariable String id,
-                                     @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, UserNotFoundException, AccessForbiddenException {
-    CurrentUser user = CurrentUser.fromJwt(jwt);
-    this.assignmentService.toggleAssignmentStatus(id, classroomSlug,jwt);
-  }
+    @DeleteMapping("id/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteAssignment(@PathVariable String classroomSlug,
+                                 @PathVariable String id, @AuthenticationPrincipal Jwt jwt) throws UserNotFoundException, AccessForbiddenException {
+        CurrentUser user = CurrentUser.fromJwt(jwt);
+        this.assignmentService.deleteAssignment(id, classroomSlug, jwt);
+    }
 
-  @GetMapping("/slug/{slug}")
-  @ResponseStatus(HttpStatus.OK)
-  public AssignmentDTO getAssignmentBySlug(@PathVariable String classroomSlug,
-                                           @PathVariable String slug,
-                                           @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException {
-    CurrentUser user = CurrentUser.fromJwt(jwt);
-    return this.assignmentService.getAssignmentDTOBySlug(slug, classroomSlug);
-  }
+    @PutMapping("id/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public AssignmentDTO updateAssignment(@PathVariable String classroomSlug,
+                                          @PathVariable String id,
+                                          @RequestBody @Valid UpdateAssignmentRequest updateRequest,
+                                          @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, AccessForbiddenException, UserNotFoundException {
+        CurrentUser user = CurrentUser.fromJwt(jwt);
+        return this.assignmentService.updateAssignment(id, classroomSlug, updateRequest, user, jwt);
+    }
 
-  @PutMapping("slug/{slug}")
-  @ResponseStatus(HttpStatus.OK)
-  public AssignmentDTO updateAssignmentBySlug(@PathVariable String classroomSlug,
-                                              @PathVariable String slug,
-                                              @RequestBody @Valid UpdateAssignmentRequest updateRequest,
-                                              @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, UserNotFoundException, AccessForbiddenException {
-    CurrentUser user = CurrentUser.fromJwt(jwt);
-    return this.assignmentService.updateAssignmentBySlug(slug, classroomSlug, updateRequest, user,jwt);
-  }
+    @PatchMapping("id/{id}")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void toggleAssignmentStatus(@PathVariable String classroomSlug,
+                                       @PathVariable String id,
+                                       @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, UserNotFoundException, AccessForbiddenException {
+        CurrentUser user = CurrentUser.fromJwt(jwt);
+        this.assignmentService.toggleAssignmentStatus(id, classroomSlug, jwt);
+    }
 
-  @DeleteMapping("slug/{slug}")
-  @ResponseStatus(HttpStatus.OK)
-  public void deleteAssignmentBySlug(@PathVariable String classroomSlug,
-                                     @PathVariable String slug, @AuthenticationPrincipal Jwt jwt) throws UserNotFoundException, AccessForbiddenException {
-    CurrentUser user = CurrentUser.fromJwt(jwt);
-    this.assignmentService.deleteAssignmentBySlug(slug, classroomSlug,jwt);
-  }
+    @GetMapping("/slug/{slug}")
+    @ResponseStatus(HttpStatus.OK)
+    public AssignmentDTO getAssignmentBySlug(@PathVariable String classroomSlug,
+                                             @PathVariable String slug,
+                                             @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException {
+        CurrentUser user = CurrentUser.fromJwt(jwt);
+        return this.assignmentService.getAssignmentDTOBySlug(slug, classroomSlug);
+    }
 
-  @PatchMapping("slug/{slug}")
-  @ResponseStatus(HttpStatus.ACCEPTED)
-  public void toggleAssignmentStatusBySlug(@PathVariable String classroomSlug,
-                                           @PathVariable String slug,
-                                           @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, UserNotFoundException, AccessForbiddenException {
-    CurrentUser user = CurrentUser.fromJwt(jwt);
-    this.assignmentService.toggleAssignmentStatusBySlug(slug, classroomSlug,jwt);
-  }
+    @PutMapping("slug/{slug}")
+    @ResponseStatus(HttpStatus.OK)
+    public AssignmentDTO updateAssignmentBySlug(@PathVariable String classroomSlug,
+                                                @PathVariable String slug,
+                                                @RequestBody @Valid UpdateAssignmentRequest updateRequest,
+                                                @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, UserNotFoundException, AccessForbiddenException {
+        CurrentUser user = CurrentUser.fromJwt(jwt);
+        return this.assignmentService.updateAssignmentBySlug(slug, classroomSlug, updateRequest, user, jwt);
+    }
 
-  @ExceptionHandler(AccessForbiddenException.class)
-  @ResponseStatus(HttpStatus.FORBIDDEN)
-  public ErrorResponse handle(AccessForbiddenException e){
-    return new ErrorResponse("Forbidden",e.getMessage());
-  }
+    @DeleteMapping("slug/{slug}")
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteAssignmentBySlug(@PathVariable String classroomSlug,
+                                       @PathVariable String slug, @AuthenticationPrincipal Jwt jwt) throws UserNotFoundException, AccessForbiddenException {
+        CurrentUser user = CurrentUser.fromJwt(jwt);
+        this.assignmentService.deleteAssignmentBySlug(slug, classroomSlug, jwt);
+    }
 
-  @ExceptionHandler(AssignmentAlreadyExistsException.class)
-  @ResponseStatus(HttpStatus.CONFLICT)
-  public ErrorResponse handle(AssignmentAlreadyExistsException e) {
-    return new ErrorResponse("Conflict", e.getMessage());
-  }
+    @PatchMapping("slug/{slug}")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void toggleAssignmentStatusBySlug(@PathVariable String classroomSlug,
+                                             @PathVariable String slug,
+                                             @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, UserNotFoundException, AccessForbiddenException {
+        CurrentUser user = CurrentUser.fromJwt(jwt);
+        this.assignmentService.toggleAssignmentStatusBySlug(slug, classroomSlug, jwt);
+    }
 
-  @ExceptionHandler(AssignmentNotFoundException.class)
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  public ErrorResponse handle(Exception e) {
-    return new ErrorResponse("Not Found", e.getMessage());
-  }
+    @ExceptionHandler(AccessForbiddenException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handle(AccessForbiddenException e) {
+        return new ErrorResponse("Forbidden", e.getMessage());
+    }
 
-  @ExceptionHandler(IllegalArgumentException.class)
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ErrorResponse handle(IllegalArgumentException e) {
-    return new ErrorResponse("Invalid ID", "Please Provide Valid Hexadecimal ID");
-  }
+    @ExceptionHandler(AssignmentAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handle(AssignmentAlreadyExistsException e) {
+        return new ErrorResponse("Conflict", e.getMessage());
+    }
+
+    @ExceptionHandler(AssignmentNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handle(Exception e) {
+        return new ErrorResponse("Not Found", e.getMessage());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handle(IllegalArgumentException e) {
+        return new ErrorResponse("Invalid ID", "Please Provide Valid Hexadecimal ID");
+    }
 }

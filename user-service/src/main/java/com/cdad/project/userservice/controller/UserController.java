@@ -29,10 +29,11 @@ public class UserController {
 
 
     @GetMapping("")
-    GetUsersDetailsResponse getUsersDetails(@RequestBody GetUsersDetailRequest request,HttpServletRequest req) throws InvalidSecretKeyException {
+    GetUsersDetailsResponse getUsersDetails(@RequestBody GetUsersDetailRequest request, HttpServletRequest req) throws InvalidSecretKeyException {
         checkSecret(req);
         return this.userService.getUsersData(request);
     }
+
     @GetMapping("{emailId:.+}")
     User getUser(@PathVariable String emailId, @AuthenticationPrincipal Jwt jwt) throws UserNotFoundException {
         return userService.getByEmailId(emailId);
@@ -40,15 +41,16 @@ public class UserController {
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    User createUser(@RequestBody CreateUserRequest user, @AuthenticationPrincipal Jwt jwt){
+    User createUser(@RequestBody CreateUserRequest user, @AuthenticationPrincipal Jwt jwt) {
         return userService.save(user);
     }
 
     @PatchMapping("{emailId:.+}")
     @ResponseStatus(HttpStatus.OK)
     User updateUserInfo(@PathVariable String emailId, @AuthenticationPrincipal Jwt jwt) throws UserNotFoundException {
-    return userService.updateUserMetadata(emailId, jwt);
+        return userService.updateUserMetadata(emailId, jwt);
     }
+
     public void checkSecret(HttpServletRequest req) throws InvalidSecretKeyException {
         String key = req.getHeader("X-Secret");
         if (Objects.isNull(key) || !key.equals("top-secret-communication")) {
@@ -61,6 +63,7 @@ public class UserController {
     public ErrorResponse userNotFoundHandler(UserNotFoundException e) {
         return new ErrorResponse("Not Found", e.getMessage());
     }
+
     @ExceptionHandler(InvalidSecretKeyException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public void forbidden() {

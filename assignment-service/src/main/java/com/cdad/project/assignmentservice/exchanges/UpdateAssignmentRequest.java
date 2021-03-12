@@ -13,17 +13,17 @@ import java.util.Date;
 @NoArgsConstructor
 @ToString
 public class UpdateAssignmentRequest {
-  @NotNull
-  private String title;
-  @NotNull
-  private boolean isTimed;
-  private Integer duration;
-  @NotNull
-  private boolean hasStartTime;
-  @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")
-  private LocalDateTime startTime;
-  @NotNull
-  private boolean hasDeadline;
-  @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")
-  private LocalDateTime deadline;
+    @NotNull
+    private String title;
+    @NotNull
+    private boolean isTimed;
+    private Integer duration;
+    @NotNull
+    private boolean hasStartTime;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    private LocalDateTime startTime;
+    @NotNull
+    private boolean hasDeadline;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    private LocalDateTime deadline;
 }

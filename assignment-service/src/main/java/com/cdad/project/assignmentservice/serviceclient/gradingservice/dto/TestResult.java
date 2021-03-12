@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TestResult {
-  private String id;
-  private ResultStatus status;
-  private Reason reason;
+    private String id;
+    private ResultStatus status;
+    private Reason reason;
 }

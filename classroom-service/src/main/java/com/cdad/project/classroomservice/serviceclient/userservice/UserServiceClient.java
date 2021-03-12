@@ -76,12 +76,13 @@ public class UserServiceClient {
                 })
                 .header("X-Secret", "top-secret-communication")
                 //.header(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON_VALUE)
-                .body(Mono.just(addInstructorsRequest),AddInstructorsRequest.class)
+                .body(Mono.just(addInstructorsRequest), AddInstructorsRequest.class)
                 .retrieve()
                 .bodyToMono(Void.class).block();
     }
-    public Void removeInstructorFromClass(String classroomSlug,HashSet<String> users,Jwt jwt){
-        RemoveInstructorsRequest removeInstructorsRequest=new RemoveInstructorsRequest(classroomSlug,users);
+
+    public Void removeInstructorFromClass(String classroomSlug, HashSet<String> users, Jwt jwt) {
+        RemoveInstructorsRequest removeInstructorsRequest = new RemoveInstructorsRequest(classroomSlug, users);
         return webClient.method(HttpMethod.DELETE)
                 .uri(INSTRUCTORS)
                 .headers(httpHeaders -> {
@@ -94,8 +95,9 @@ public class UserServiceClient {
                 .bodyToMono(Void.class)
                 .block();
     }
-    public Void unrollUsersFromClass(String classroomSlug,HashSet<String> users,Jwt jwt){
-        UnrollUsersRequest unrollUsersRequest=new UnrollUsersRequest(classroomSlug,users);
+
+    public Void unrollUsersFromClass(String classroomSlug, HashSet<String> users, Jwt jwt) {
+        UnrollUsersRequest unrollUsersRequest = new UnrollUsersRequest(classroomSlug, users);
         return webClient.method(HttpMethod.DELETE)
                 .uri(ENROLL)
                 .headers(httpHeaders -> {
@@ -103,13 +105,14 @@ public class UserServiceClient {
                     httpHeaders.setContentType(MediaType.APPLICATION_JSON);
                 })
                 .header("X-Secret", "top-secret-communication")
-                .body(Mono.just(unrollUsersRequest),UnrollUsersRequest.class)
+                .body(Mono.just(unrollUsersRequest), UnrollUsersRequest.class)
                 .retrieve()
                 .bodyToMono(Void.class)
                 .block();
     }
-    public Void enrollUsersToClass(String classroomSlug,HashSet<String> users,Jwt jwt){
-        EnrollUsersRequest enrollUsersRequest=new EnrollUsersRequest(classroomSlug,users);
+
+    public Void enrollUsersToClass(String classroomSlug, HashSet<String> users, Jwt jwt) {
+        EnrollUsersRequest enrollUsersRequest = new EnrollUsersRequest(classroomSlug, users);
         return webClient.post()
                 .uri(ENROLL)
                 .headers(httpHeaders -> {
@@ -118,7 +121,7 @@ public class UserServiceClient {
                 })
                 .header("X-Secret", "top-secret-communication")
                 //.header(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON_VALUE)
-                .body(Mono.just(enrollUsersRequest),EnrollUsersRequest.class)
+                .body(Mono.just(enrollUsersRequest), EnrollUsersRequest.class)
                 .retrieve()
                 .bodyToMono(Void.class)
                 .block();

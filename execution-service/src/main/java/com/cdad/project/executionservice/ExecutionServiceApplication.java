@@ -9,13 +9,14 @@ import java.io.IOException;
 
 @SpringBootApplication()
 public class ExecutionServiceApplication {
-	@Bean
-	public ModelMapper modelMapper(){
-		return new ModelMapper();
-	}
-	public static void main(String[] args) throws IOException, InterruptedException {
+    @Bean
+    public ModelMapper modelMapper() {
+        return new ModelMapper();
+    }
 
-		SpringApplication.run(ExecutionServiceApplication.class, args);
+    public static void main(String[] args) throws IOException, InterruptedException {
+
+        SpringApplication.run(ExecutionServiceApplication.class, args);
 //		Program program=new Program();
 //		program.setSourceCode("import java.util.Scanner;\n" +
 //				"class Solution {\n" +
@@ -34,6 +35,6 @@ public class ExecutionServiceApplication {
 //				"2");
 //		program.setLanguage(Language.JAVA);
 //		JavaExecutor javaExecutor=new JavaExecutor(program);
-		//javaExecutor.run();
-	}
+        //javaExecutor.run();
+    }
 }

@@ -10,14 +10,14 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 public class AddQuestionRequest {
-  private String assignmentId;
-  private String assignmentSlug;
-  private String title;
-  private List<String> allowedLanguages;
-  private Integer totalPoints;
-  private boolean showExpectedOutput;
-  private String description;
-  private String solutionLanguage;
-  private String solutionCode;
-  private List<TestCase> testCases;
+    private String assignmentId;
+    private String assignmentSlug;
+    private String title;
+    private List<String> allowedLanguages;
+    private Integer totalPoints;
+    private boolean showExpectedOutput;
+    private String description;
+    private String solutionLanguage;
+    private String solutionCode;
+    private List<TestCase> testCases;
 }

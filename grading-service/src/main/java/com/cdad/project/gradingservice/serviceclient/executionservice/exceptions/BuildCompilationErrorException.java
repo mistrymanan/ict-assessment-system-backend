@@ -13,14 +13,16 @@ import java.util.UUID;
 public class BuildCompilationErrorException extends CompilationErrorException {
     private String buildId;
     private UUID questionId;
-    public BuildCompilationErrorException(String message,String buildId) {
+
+    public BuildCompilationErrorException(String message, String buildId) {
         super(message);
-        this.buildId=buildId;
+        this.buildId = buildId;
     }
+
     public BuildCompilationErrorException(String message, String buildId, UUID questionId) {
         super(message);
-        this.buildId=buildId;
-        this.questionId=questionId;
+        this.buildId = buildId;
+        this.questionId = questionId;
     }
 
 }

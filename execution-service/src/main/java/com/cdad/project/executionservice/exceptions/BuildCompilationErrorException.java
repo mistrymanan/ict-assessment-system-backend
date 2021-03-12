@@ -13,6 +13,7 @@ public class BuildCompilationErrorException extends CompilationErrorException {
     private Status status;
     private String sourceCode;
     private Language language;
+
     public BuildCompilationErrorException(String message) {
         super(message);
     }

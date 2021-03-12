@@ -22,100 +22,105 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public User save(CreateUserRequest userRequest){
+    public User save(CreateUserRequest userRequest) {
         System.out.println(userRequest.getEmailId());
-        return this.userRepository.save(modelMapper.map(userRequest,User.class));
+        return this.userRepository.save(modelMapper.map(userRequest, User.class));
     }
 
-    public void enrollUsers(EnrollUsersRequest request){
-        String classroomSlug= request.getClassroomSlug();
+    public void enrollUsers(EnrollUsersRequest request) {
+        String classroomSlug = request.getClassroomSlug();
         request.getUsers().stream().forEach(userEmail -> {
             User user1;
             try {
-                user1=this.getByEmailId(userEmail);
-            }catch (UserNotFoundException e){
-                user1=new User();
+                user1 = this.getByEmailId(userEmail);
+            } catch (UserNotFoundException e) {
+                user1 = new User();
                 user1.setEmailId(userEmail);
             }
-            if(user1.getEnrolledClassrooms()==null){
-             user1.setEnrolledClassrooms(new HashSet<>());
+            if (user1.getEnrolledClassrooms() == null) {
+                user1.setEnrolledClassrooms(new HashSet<>());
             }
-                user1.getEnrolledClassrooms().add(classroomSlug);
+            user1.getEnrolledClassrooms().add(classroomSlug);
             this.userRepository.save(user1);
         });
     }
 
-    public void unrollUsers(UnrollUsersRequest request){
-        String classroomSlug=request.getClassroomSlug();
-        request.getUsers().stream().forEach(userEmail->{
+    public void unrollUsers(UnrollUsersRequest request) {
+        String classroomSlug = request.getClassroomSlug();
+        request.getUsers().stream().forEach(userEmail -> {
             User user1 = null;
-            try{
-                user1=this.getByEmailId(userEmail);
-                if(user1.getEnrolledClassrooms()!=null){
+            try {
+                user1 = this.getByEmailId(userEmail);
+                if (user1.getEnrolledClassrooms() != null) {
                     user1.getEnrolledClassrooms().remove(classroomSlug);
                 }
                 this.userRepository.save(user1);
-            }catch (UserNotFoundException e){
+            } catch (UserNotFoundException e) {
                 System.out.println("User is not present so no need to unroll");
             }
         });
     }
-    public void addInstructorToClassroom(AddInstructorsRequest request){
-        String classroomSlug=request.getClassroomSlug();
-        request.getUsers().stream().forEach(userEmail ->{
+
+    public void addInstructorToClassroom(AddInstructorsRequest request) {
+        String classroomSlug = request.getClassroomSlug();
+        request.getUsers().stream().forEach(userEmail -> {
             User user1;
             try {
-                user1=this.getByEmailId(userEmail);
-            }
-            catch (UserNotFoundException e){
-                user1=new User();
+                user1 = this.getByEmailId(userEmail);
+            } catch (UserNotFoundException e) {
+                user1 = new User();
                 user1.setEmailId(userEmail);
             }
-            if(user1.getInstructClassrooms()==null){user1.setInstructClassrooms(new HashSet<>());}
+            if (user1.getInstructClassrooms() == null) {
+                user1.setInstructClassrooms(new HashSet<>());
+            }
             user1.getInstructClassrooms().add(classroomSlug);
             this.userRepository.save(user1);
         });
-    };
-    public void removeInstructorsFromClassroom(RemoveInstructorsRequest request){
-        String classroomSlug=request.getClassroomSlug();
-        request.getUsers().stream().forEach(userEmail ->{
+    }
+
+    ;
+
+    public void removeInstructorsFromClassroom(RemoveInstructorsRequest request) {
+        String classroomSlug = request.getClassroomSlug();
+        request.getUsers().stream().forEach(userEmail -> {
             User user1;
             try {
-                user1=this.getByEmailId(userEmail);
+                user1 = this.getByEmailId(userEmail);
                 user1.getInstructClassrooms().remove(classroomSlug);
                 this.userRepository.save(user1);
-            }
-            catch (UserNotFoundException e){
+            } catch (UserNotFoundException e) {
                 System.out.println("User Not Found while removing from classroom");
             }
         });
     }
 
     public User updateUserMetadata(String emailId, Jwt jwt) throws UserNotFoundException {
-        User user=this.getByEmailId(emailId);
-        CurrentUser currentUser=CurrentUser.fromJwt(jwt);
-        modelMapper.map(currentUser,user);
+        User user = this.getByEmailId(emailId);
+        CurrentUser currentUser = CurrentUser.fromJwt(jwt);
+        modelMapper.map(currentUser, user);
         return this.userRepository.save(user);
     }
 
 
     public User getByEmailId(String emailId) throws UserNotFoundException {
-        Optional<User> userOptional=this.userRepository.findById(emailId);
-        if(userOptional.isPresent()){
+        Optional<User> userOptional = this.userRepository.findById(emailId);
+        if (userOptional.isPresent()) {
             return userOptional.get();
-        }else {
-            throw new UserNotFoundException("User with EmailId:"+emailId+" Not Found");
+        } else {
+            throw new UserNotFoundException("User with EmailId:" + emailId + " Not Found");
         }
     }
-    public GetUsersDetailsResponse getUsersData(GetUsersDetailRequest request){
-        List<UserDetails> usersDetail=new LinkedList<>();
+
+    public GetUsersDetailsResponse getUsersData(GetUsersDetailRequest request) {
+        List<UserDetails> usersDetail = new LinkedList<>();
         request.getUsersEmail().forEach(email -> {
-            Optional<User> optionalUser=this.userRepository.findById(email);
-            if(optionalUser.isPresent()){
-                usersDetail.add(modelMapper.map(optionalUser.get(),UserDetails.class));
+            Optional<User> optionalUser = this.userRepository.findById(email);
+            if (optionalUser.isPresent()) {
+                usersDetail.add(modelMapper.map(optionalUser.get(), UserDetails.class));
             }
         });
-        GetUsersDetailsResponse response=new GetUsersDetailsResponse();
+        GetUsersDetailsResponse response = new GetUsersDetailsResponse();
         response.setUsersDetail(usersDetail);
         return response;
     }

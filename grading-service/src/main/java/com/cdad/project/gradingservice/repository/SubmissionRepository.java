@@ -8,7 +8,7 @@ import java.util.List;
 
 
 @Repository
-public interface SubmissionRepository extends MongoRepository<SubmissionEntity,String> {
+public interface SubmissionRepository extends MongoRepository<SubmissionEntity, String> {
     List<SubmissionEntity> findAllByClassroomSlugAndEmail(String classroomSlug, String email);
 
     List<SubmissionEntity> findAllByAssignmentId(String assignmentId);

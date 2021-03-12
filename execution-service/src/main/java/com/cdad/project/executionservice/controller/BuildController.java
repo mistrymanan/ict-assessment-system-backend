@@ -43,45 +43,43 @@ public class BuildController {
 
     @PostMapping("/builds")
     public BuildOutput postBuild(@RequestBody PostBuildRequest postBuildRequest) throws IOException, InterruptedException, BuildCompilationErrorException {
-        ProgramInput programInput=new ProgramInput();
+        ProgramInput programInput = new ProgramInput();
         programInput.setSourceCode(postBuildRequest.getSourceCode());
         programInput.setLanguage(postBuildRequest.getLanguage());
-        List<TestInput> testInputs=postBuildRequest.getInputs();
-        BaseExecutor executor= (BaseExecutor) this.executorFactory.createExecutor(programInput);
+        List<TestInput> testInputs = postBuildRequest.getInputs();
+        BaseExecutor executor = (BaseExecutor) this.executorFactory.createExecutor(programInput);
         List<TestOutput> testOutputs = null;
         try {
             testOutputs = executor.run(testInputs);
         } catch (CompilationErrorException e) {
-            BuildCompilationErrorException buildCompilationErrorException=new BuildCompilationErrorException(e.getMessage());
-            modelMapper.map(programInput,buildCompilationErrorException);
-            modelMapper.map(executor,buildCompilationErrorException);
-          
+            BuildCompilationErrorException buildCompilationErrorException = new BuildCompilationErrorException(e.getMessage());
+            modelMapper.map(programInput, buildCompilationErrorException);
+            modelMapper.map(executor, buildCompilationErrorException);
+
             throw buildCompilationErrorException;
-        }
-        finally{
+        } finally {
             executor.clean();
         }
-    
-        BuildOutput buildOutput=new BuildOutput();
+
+        BuildOutput buildOutput = new BuildOutput();
         buildOutput.setId(executor.getBuildId());
         buildOutput.setTestOutputs(testOutputs);
         buildOutput.setStatus(executor.getStatus());
-        BuildEntity buildEntity=modelMapper.map(buildOutput,BuildEntity.class);
+        BuildEntity buildEntity = modelMapper.map(buildOutput, BuildEntity.class);
         buildEntity.setLanguage(programInput.getLanguage());
         buildEntity.setSourceCode(programInput.getSourceCode());
         buildEntity.setTimeStamp(LocalDateTime.now());
         this.buildService.save(buildEntity);
-  
 
-        
+
         return buildOutput;
     }
 
     @GetMapping("/builds/{buildId}")
     public BuildEntity postBuild(@PathVariable String buildId) throws BuildNotFoundException {
-        BuildEntity buildEntity=this.buildService.getBuildById(buildId);
-        if(buildEntity==null){
-            throw new BuildNotFoundException("Build:"+buildId+" Not Found");
+        BuildEntity buildEntity = this.buildService.getBuildById(buildId);
+        if (buildEntity == null) {
+            throw new BuildNotFoundException("Build:" + buildId + " Not Found");
         }
         return this.buildService.getBuildById(buildId);
     }
@@ -93,24 +91,24 @@ public class BuildController {
 
     @PostMapping("/run")
     public TestOutput postRun(@RequestBody PostRunRequest postRunRequest) throws IOException, InterruptedException, CompilationErrorException {
-        ProgramInput programInput=new ProgramInput();
+        ProgramInput programInput = new ProgramInput();
         programInput.setSourceCode(postRunRequest.getSourceCode());
         programInput.setLanguage(postRunRequest.getLanguage());
         Executor executor = this.executorFactory.createExecutor(programInput);
-        TestOutput testOutput=executor.run(postRunRequest.getInput());
+        TestOutput testOutput = executor.run(postRunRequest.getInput());
         executor.clean(); // we don't need it in synchronous manner. clean up task can be asynchronous.
         return testOutput;
     }
 
     @PostMapping("/run-multiple")
     public BuildOutput postRunMultiple(@RequestBody PostBuildRequest postBuildRequest) throws IOException, InterruptedException, CompilationErrorException {
-        ProgramInput programInput=new ProgramInput();
+        ProgramInput programInput = new ProgramInput();
         programInput.setSourceCode(postBuildRequest.getSourceCode());
         programInput.setLanguage(postBuildRequest.getLanguage());
-        List<TestInput> testInputs=postBuildRequest.getInputs();
-        BaseExecutor executor= (BaseExecutor) this.executorFactory.createExecutor(programInput);
-        List<TestOutput> testOutputs =executor.run(testInputs);
-        BuildOutput buildOutput=new BuildOutput();
+        List<TestInput> testInputs = postBuildRequest.getInputs();
+        BaseExecutor executor = (BaseExecutor) this.executorFactory.createExecutor(programInput);
+        List<TestOutput> testOutputs = executor.run(testInputs);
+        BuildOutput buildOutput = new BuildOutput();
         buildOutput.setId(executor.getBuildId());
         buildOutput.setTestOutputs(testOutputs);
         buildOutput.setStatus(executor.getStatus());
@@ -120,23 +118,24 @@ public class BuildController {
     }
 
     @ExceptionHandler(CompilationErrorException.class)
-    public ErrorResponse handle(CompilationErrorException e){
-        return new ErrorResponse(Status.COMPILE_ERROR,e.getMessage());
+    public ErrorResponse handle(CompilationErrorException e) {
+        return new ErrorResponse(Status.COMPILE_ERROR, e.getMessage());
     }
 
     @ExceptionHandler(NoSuchElementException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handle(Exception e){
-        ErrorResponse errorResponse=modelMapper.map(e,ErrorResponse.class);
+    public ErrorResponse handle(Exception e) {
+        ErrorResponse errorResponse = modelMapper.map(e, ErrorResponse.class);
         return errorResponse;
     }
-    @ExceptionHandler(BuildCompilationErrorException.class)
-    public BuildErrorResponse handle(BuildCompilationErrorException e){
-            BuildEntity buildEntity=modelMapper.map(e,BuildEntity.class);
-            this.buildService.save(buildEntity);
 
-            BuildErrorResponse buildErrorResponse=new BuildErrorResponse();
-            modelMapper.map(e,buildErrorResponse);
-            return buildErrorResponse;
+    @ExceptionHandler(BuildCompilationErrorException.class)
+    public BuildErrorResponse handle(BuildCompilationErrorException e) {
+        BuildEntity buildEntity = modelMapper.map(e, BuildEntity.class);
+        this.buildService.save(buildEntity);
+
+        BuildErrorResponse buildErrorResponse = new BuildErrorResponse();
+        modelMapper.map(e, buildErrorResponse);
+        return buildErrorResponse;
     }
 }

@@ -6,5 +6,5 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 
 @Repository
-public interface BuildRepository extends MongoRepository<BuildEntity,String> {
+public interface BuildRepository extends MongoRepository<BuildEntity, String> {
 }

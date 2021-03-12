@@ -12,36 +12,36 @@ import java.util.Optional;
 @Repository
 public interface AssignmentRepository extends MongoRepository<Assignment, String> {
 
-  boolean existsBySlugAndClassroomSlug(String slug, String classroomSlug);
+    boolean existsBySlugAndClassroomSlug(String slug, String classroomSlug);
 
 //  Optional<Assignment> findBySlugAndEmail(String slug, String email);
 
-  Optional<Assignment> findBySlug(String slug);
+    Optional<Assignment> findBySlug(String slug);
 
-  Optional<Assignment> findBySlugAndClassroomSlug(String slug, String classroomSlug);
+    Optional<Assignment> findBySlugAndClassroomSlug(String slug, String classroomSlug);
 
-  Optional<Assignment> findBySlugAndStatus(String slug, String status);
+    Optional<Assignment> findBySlugAndStatus(String slug, String status);
 
-  Optional<Assignment> findBySlugAndStatusAndClassroomSlug(String slug, String status, String classroomSlug);
+    Optional<Assignment> findBySlugAndStatusAndClassroomSlug(String slug, String status, String classroomSlug);
 
-  List<Assignment> findAllByStatusEquals(String status);
+    List<Assignment> findAllByStatusEquals(String status);
 
-  List<Assignment> findAllByClassroomSlugEqualsAndStatusEquals(String classroomSlug, String status);
+    List<Assignment> findAllByClassroomSlugEqualsAndStatusEquals(String classroomSlug, String status);
 
-  //List<Assignment> findAllByEmail(String email);
+    //List<Assignment> findAllByEmail(String email);
 
-  List<Assignment> findAllByClassroomSlugEquals(String classroomSlug);
+    List<Assignment> findAllByClassroomSlugEquals(String classroomSlug);
 
-  //void deleteByIdAndEmail(ObjectId id, String email);
+    //void deleteByIdAndEmail(ObjectId id, String email);
 
-  void deleteByIdAndClassroomSlug(ObjectId id, String classroomSlug);
+    void deleteByIdAndClassroomSlug(ObjectId id, String classroomSlug);
 
-  void deleteAssignmentBySlugAndClassroomSlug(String slug, String classroomSlug);
-  //Optional<Assignment> findByIdAndEmail(ObjectId id, String email);
+    void deleteAssignmentBySlugAndClassroomSlug(String slug, String classroomSlug);
+    //Optional<Assignment> findByIdAndEmail(ObjectId id, String email);
 
-  Optional<Assignment> findByIdAndClassroomSlug(ObjectId id, String classroomSlug);
+    Optional<Assignment> findByIdAndClassroomSlug(ObjectId id, String classroomSlug);
 
-  Optional<Assignment> findByIdAndStatus(ObjectId id, String status);
+    Optional<Assignment> findByIdAndStatus(ObjectId id, String status);
 
-  Optional<Assignment> findByIdAndStatusAndClassroomSlug(ObjectId id, String status, String classroomSlug);
+    Optional<Assignment> findByIdAndStatusAndClassroomSlug(ObjectId id, String status, String classroomSlug);
 }

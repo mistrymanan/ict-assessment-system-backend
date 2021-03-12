@@ -9,13 +9,13 @@ import java.time.LocalDateTime;
 
 @Data
 public class QuestionUserDetailsDTO {
-  private String questionId;
-  private String buildId;
-  private String title;
-  @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")
-  private LocalDateTime time;
-  private QuestionStatus questionStatus;
-  private ResultStatus resultStatus;
-  private Double totalPoints;
-  private Double score;
+    private String questionId;
+    private String buildId;
+    private String title;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    private LocalDateTime time;
+    private QuestionStatus questionStatus;
+    private ResultStatus resultStatus;
+    private Double totalPoints;
+    private Double score;
 }

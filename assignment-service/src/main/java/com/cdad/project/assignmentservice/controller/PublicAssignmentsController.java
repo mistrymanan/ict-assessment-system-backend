@@ -25,44 +25,44 @@ import java.util.Objects;
 @RequestMapping("{classroomSlug}/public/")
 public class PublicAssignmentsController {
 
-  private final AssignmentService assignmentService;
+    private final AssignmentService assignmentService;
 
-  public PublicAssignmentsController(AssignmentService assignmentService) {
-    this.assignmentService = assignmentService;
-  }
-
-  @GetMapping("assignments/{id}")
-  public AssignmentDTO getAssignment(@PathVariable String classroomSlug,
-                                     @PathVariable String id, HttpServletRequest req) throws AssignmentNotFoundException, InvalidSecretKeyException, UserNotFoundException, AccessForbiddenException {
-    checkSecret(req);
-    return this.assignmentService.getAssignmentById(id);
-  }
-
-  @GetMapping("questions/id")
-  public QuestionDTO getQuestionForAssignmentById(@PathVariable String classroomSlug,
-          GetQuestionUsingIdRequest request, HttpServletRequest req) throws AssignmentNotFoundException, QuestionNotFoundException, InvalidSecretKeyException {
-    checkSecret(req);
-    return this.assignmentService.getQuestionUsingId(
-            request.getAssignmentId(),
-            request.getQuestionId(),classroomSlug
-    );
-  }
-
-  @ExceptionHandler({InvalidSecretKeyException.class,AccessForbiddenException.class})
-  @ResponseStatus(HttpStatus.FORBIDDEN)
-  public void forbidden() {
-  }
-
-  @ExceptionHandler({AssignmentNotFoundException.class, QuestionNotFoundException.class})
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  public ErrorResponse handle(Exception e) {
-    return new ErrorResponse("Not Found", e.getMessage());
-  }
-
-  public void checkSecret(HttpServletRequest req) throws InvalidSecretKeyException {
-    String key = req.getHeader("X-Secret");
-    if (Objects.isNull(key) || !key.equals("top-secret-communication")) {
-      throw new InvalidSecretKeyException("secret not valid");
+    public PublicAssignmentsController(AssignmentService assignmentService) {
+        this.assignmentService = assignmentService;
     }
-  }
+
+    @GetMapping("assignments/{id}")
+    public AssignmentDTO getAssignment(@PathVariable String classroomSlug,
+                                       @PathVariable String id, HttpServletRequest req) throws AssignmentNotFoundException, InvalidSecretKeyException, UserNotFoundException, AccessForbiddenException {
+        checkSecret(req);
+        return this.assignmentService.getAssignmentById(id);
+    }
+
+    @GetMapping("questions/id")
+    public QuestionDTO getQuestionForAssignmentById(@PathVariable String classroomSlug,
+                                                    GetQuestionUsingIdRequest request, HttpServletRequest req) throws AssignmentNotFoundException, QuestionNotFoundException, InvalidSecretKeyException {
+        checkSecret(req);
+        return this.assignmentService.getQuestionUsingId(
+                request.getAssignmentId(),
+                request.getQuestionId(), classroomSlug
+        );
+    }
+
+    @ExceptionHandler({InvalidSecretKeyException.class, AccessForbiddenException.class})
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public void forbidden() {
+    }
+
+    @ExceptionHandler({AssignmentNotFoundException.class, QuestionNotFoundException.class})
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handle(Exception e) {
+        return new ErrorResponse("Not Found", e.getMessage());
+    }
+
+    public void checkSecret(HttpServletRequest req) throws InvalidSecretKeyException {
+        String key = req.getHeader("X-Secret");
+        if (Objects.isNull(key) || !key.equals("top-secret-communication")) {
+            throw new InvalidSecretKeyException("secret not valid");
+        }
+    }
 }

@@ -79,12 +79,11 @@ public class SubmissionService {
             });
             if (exist) {
                 submissionEntity.getQuestionEntities().forEach(questionEntity1 -> {
-                    if(questionEntity1.getQuestionId().equals(questionEntity.getQuestionId())){
-                        modelMapper.map(questionEntity,questionEntity1);
+                    if (questionEntity1.getQuestionId().equals(questionEntity.getQuestionId())) {
+                        modelMapper.map(questionEntity, questionEntity1);
                     }
                 });
-            }
-            else{
+            } else {
                 submissionEntity.getQuestionEntities().add(questionEntity);
             }
         } else {
@@ -108,14 +107,13 @@ public class SubmissionService {
 
         PostRunRequest postRunRequest = modelMapper.map(request, PostRunRequest.class);
 
-        PostRunResponse userResponse=this.executionServiceClient.postRunCode(postRunRequest, jwt.getTokenValue());
+        PostRunResponse userResponse = this.executionServiceClient.postRunCode(postRunRequest, jwt.getTokenValue());
 
-        if(question.isShowExpectedOutput()){
-            postRunResponse=this.getExpectedResult(userResponse,question,postRunRequest,jwt.getTokenValue());
-            modelMapper.map(request,postRunResponse);
-        }
-        else{
-            modelMapper.map(userResponse,postRunResponse);
+        if (question.isShowExpectedOutput()) {
+            postRunResponse = this.getExpectedResult(userResponse, question, postRunRequest, jwt.getTokenValue());
+            modelMapper.map(request, postRunResponse);
+        } else {
+            modelMapper.map(userResponse, postRunResponse);
         }
         return postRunResponse;
     }
@@ -135,27 +133,26 @@ public class SubmissionService {
             System.out.println(assignment);
             Question question = assignmentServiceClient.getQuestion(getQuestionRequest, classroomSlug, jwt.getTokenValue()).block();
             System.out.println(question);
-            if(assignment.getStatus().equals("ACTIVE")){
+            if (assignment.getStatus().equals("ACTIVE")) {
                 QuestionDTO questionDTO = null;
                 try {
-                    questionDTO = this.evaluate(request,question, jwt.getTokenValue());
+                    questionDTO = this.evaluate(request, question, jwt.getTokenValue());
                     postSubmitResponse.setBuildId(questionDTO.getBuildId());
-                    modelMapper.map(questionDTO,postSubmitResponse);
+                    modelMapper.map(questionDTO, postSubmitResponse);
                     System.out.println(questionDTO);
                     postSubmitResponse.setStatus(questionDTO.getResultStatus());
                 } catch (SubmissionCompilationErrorException error) {
                     error.setSubmissionId(submissionEntity.getId().toString());
-                    questionDTO=modelMapper.map(error,QuestionDTO.class);
-                    modelMapper.map(question,questionDTO);
+                    questionDTO = modelMapper.map(error, QuestionDTO.class);
+                    modelMapper.map(question, questionDTO);
                     questionDTO.setScore(0.0);
                     questionDTO.setTime(LocalDateTime.now());
                     throw error;
-                }
-                finally {
-                    QuestionEntity questionEntity=this.modelMapper.map(questionDTO,QuestionEntity.class);
+                } finally {
+                    QuestionEntity questionEntity = this.modelMapper.map(questionDTO, QuestionEntity.class);
                     questionDTO.setTitle(question.getTitle());
-                    submissionEntity=this.save(submissionEntity,questionEntity,assignment);
-                    modelMapper.map(submissionEntity,postSubmitResponse);
+                    submissionEntity = this.save(submissionEntity, questionEntity, assignment);
+                    modelMapper.map(submissionEntity, postSubmitResponse);
                     postSubmitResponse.setStatus(questionEntity.getResultStatus());
                 }
 
@@ -174,108 +171,97 @@ public class SubmissionService {
 
     public void startSubmission(String classroomSlug, String assignmentId, Jwt jwt) throws AssignmentNotFound, AssignmentNotStartedException {
         CurrentUser currentUser = CurrentUser.fromJwt(jwt);
-        LocalDateTime time=LocalDateTime.ofInstant(Instant.now(), ZoneId.of("Asia/Kolkata"));
+        LocalDateTime time = LocalDateTime.ofInstant(Instant.now(), ZoneId.of("Asia/Kolkata"));
         if (!this.isExist(classroomSlug, assignmentId, currentUser.getEmail())) {
             // SubmissionEntity submissionEntity=modelMapper.map(request,SubmissionEntity.class);
 
             Assignment assignment = null;
             assignment = this.assignmentServiceClient.getAssignment(assignmentId, classroomSlug, jwt.getTokenValue())
                     .block();
-            if(assignment!=null && ((assignment.isHasStartTime() && time.isAfter(assignment.getStartTime())) ||
-                    (!assignment.isHasStartTime()))){
-            SubmissionEntity submissionEntity = new SubmissionEntity();
-            submissionEntity.setAssignmentId(assignmentId);
-            submissionEntity.setEmail(currentUser.getEmail());
-            submissionEntity.setClassroomSlug(classroomSlug);
-            System.out.println(assignment);
-            if (assignment.getQuestions() != null) {
-                submissionEntity.setAssignmentScore(assignment.getQuestions().stream().mapToDouble(QuestionDetails::getTotalPoints).sum());
-            }
-            else{
-                submissionEntity.setAssignmentScore(0.0);
-            }
-            submissionEntity.setSubmissionStatus(SubmissionStatus.IN_PROGRESS);
-            submissionEntity.setStartOn(LocalDateTime.ofInstant(Instant.now(), ZoneId.of("Asia/Kolkata")));
-            this.save(submissionEntity);
-            }
-            else{
+            if (assignment != null && ((assignment.isHasStartTime() && time.isAfter(assignment.getStartTime())) ||
+                    (!assignment.isHasStartTime()))) {
+                SubmissionEntity submissionEntity = new SubmissionEntity();
+                submissionEntity.setAssignmentId(assignmentId);
+                submissionEntity.setEmail(currentUser.getEmail());
+                submissionEntity.setClassroomSlug(classroomSlug);
+                System.out.println(assignment);
+                if (assignment.getQuestions() != null) {
+                    submissionEntity.setAssignmentScore(assignment.getQuestions().stream().mapToDouble(QuestionDetails::getTotalPoints).sum());
+                } else {
+                    submissionEntity.setAssignmentScore(0.0);
+                }
+                submissionEntity.setSubmissionStatus(SubmissionStatus.IN_PROGRESS);
+                submissionEntity.setStartOn(LocalDateTime.ofInstant(Instant.now(), ZoneId.of("Asia/Kolkata")));
+                this.save(submissionEntity);
+            } else {
                 throw new AssignmentNotStartedException("Assignment has not started yet.Please check the start time.");
             }
         }
     }
 
-    public SubmissionStatus getSubmissionStatus(SubmissionEntity submissionEntity,Assignment assignment){
-            SubmissionStatus status=SubmissionStatus.IN_PROGRESS;
-        if(assignment.getQuestions().size()==submissionEntity.getQuestionEntities().size()){
-            boolean allPassed=submissionEntity.getQuestionEntities().stream()
+    public SubmissionStatus getSubmissionStatus(SubmissionEntity submissionEntity, Assignment assignment) {
+        SubmissionStatus status = SubmissionStatus.IN_PROGRESS;
+        if (assignment.getQuestions().size() == submissionEntity.getQuestionEntities().size()) {
+            boolean allPassed = submissionEntity.getQuestionEntities().stream()
                     .allMatch(questionEntity1 ->
                             questionEntity1.getResultStatus().equals(ResultStatus.PASSED));
-            if(allPassed) {
+            if (allPassed) {
                 submissionEntity.setCompletedOn(LocalDateTime.now());
-                if(assignment.isTimed() && assignment.isHasDeadline()){
-                    if(submissionEntity.getCompletedOn().isAfter(assignment.getDeadline())){
-                        status=SubmissionStatus.LATE_SUBMITTED;
-                    }
-                    else{
-                        long actualDuration=ChronoUnit.MINUTES.between(submissionEntity.getStartOn(),submissionEntity.getCompletedOn());
-                        if(Double.valueOf(assignment.getDuration())>=actualDuration){
-                            status=SubmissionStatus.COMPLETED;
-                        }
-                        else{
-                            status=SubmissionStatus.LATE_SUBMITTED;
+                if (assignment.isTimed() && assignment.isHasDeadline()) {
+                    if (submissionEntity.getCompletedOn().isAfter(assignment.getDeadline())) {
+                        status = SubmissionStatus.LATE_SUBMITTED;
+                    } else {
+                        long actualDuration = ChronoUnit.MINUTES.between(submissionEntity.getStartOn(), submissionEntity.getCompletedOn());
+                        if (Double.valueOf(assignment.getDuration()) >= actualDuration) {
+                            status = SubmissionStatus.COMPLETED;
+                        } else {
+                            status = SubmissionStatus.LATE_SUBMITTED;
                         }
                     }
-                }
-                else{
-                    if(assignment.isTimed()){
-                        long actualDuration=ChronoUnit.MINUTES.between(submissionEntity.getStartOn(),submissionEntity.getCompletedOn());
-                        if(Double.valueOf(assignment.getDuration())>=actualDuration){
-                            status=SubmissionStatus.COMPLETED;
+                } else {
+                    if (assignment.isTimed()) {
+                        long actualDuration = ChronoUnit.MINUTES.between(submissionEntity.getStartOn(), submissionEntity.getCompletedOn());
+                        if (Double.valueOf(assignment.getDuration()) >= actualDuration) {
+                            status = SubmissionStatus.COMPLETED;
+                        } else {
+                            status = SubmissionStatus.LATE_SUBMITTED;
                         }
-                        else{
-                            status=SubmissionStatus.LATE_SUBMITTED;
+                    } else if (assignment.isHasDeadline()) {
+                        if (submissionEntity.getCompletedOn().isBefore(assignment.getDeadline())) {
+                            status = SubmissionStatus.COMPLETED;
+                        } else {
+                            status = SubmissionStatus.LATE_SUBMITTED;
                         }
-                    }
-                    else if(assignment.isHasDeadline()){
-                        if(submissionEntity.getCompletedOn().isBefore(assignment.getDeadline())){
-                            status=SubmissionStatus.COMPLETED;
-                        }
-                        else{
-                            status=SubmissionStatus.LATE_SUBMITTED;
-                        }
-                    }
-                    else{
-                        status=SubmissionStatus.COMPLETED;
+                    } else {
+                        status = SubmissionStatus.COMPLETED;
                     }
                 }
+            } else {
+                status = SubmissionStatus.IN_PROGRESS;
             }
-            else{ status=SubmissionStatus.IN_PROGRESS; }
         }
         submissionEntity.setCurrentScore(calculateSubmissionScore(submissionEntity));
         return status;
     }
 
-    public PostRunCodeResponse getExpectedResult(PostRunResponse userResponse, Question question, PostRunRequest request,String token) throws RunCodeCompilationErrorException {
-        PostRunCodeResponse response=new PostRunCodeResponse();
-        if(userResponse.getStatus().equals(Status.COMPILE_ERROR)){
-            throw new RunCodeCompilationErrorException(userResponse.getMessage(),userResponse.getStatus());
-        }
-        else if(userResponse.getStatus().equals(Status.SUCCEED) ||userResponse.getStatus().equals(Status.RUNTIME_ERROR) || userResponse.getStatus().equals(Status.TIMEOUT) ){
-                modelMapper.map(userResponse,response);
+    public PostRunCodeResponse getExpectedResult(PostRunResponse userResponse, Question question, PostRunRequest request, String token) throws RunCodeCompilationErrorException {
+        PostRunCodeResponse response = new PostRunCodeResponse();
+        if (userResponse.getStatus().equals(Status.COMPILE_ERROR)) {
+            throw new RunCodeCompilationErrorException(userResponse.getMessage(), userResponse.getStatus());
+        } else if (userResponse.getStatus().equals(Status.SUCCEED) || userResponse.getStatus().equals(Status.RUNTIME_ERROR) || userResponse.getStatus().equals(Status.TIMEOUT)) {
+            modelMapper.map(userResponse, response);
             request.setSourceCode(question.getSolutionCode());
             request.setLanguage(Language.valueOf(question.getSolutionLanguage().toUpperCase()));
-            PostRunResponse expectedResponse=this.executionServiceClient.postRunCode(request,token);
-            modelMapper.map(userResponse,response);
-            if(expectedResponse.getStatus().equals(Status.SUCCEED)){
+            PostRunResponse expectedResponse = this.executionServiceClient.postRunCode(request, token);
+            modelMapper.map(userResponse, response);
+            if (expectedResponse.getStatus().equals(Status.SUCCEED)) {
                 response.setExpectedOutput(expectedResponse.getOutput());
-                if(userResponse.getStatus().equals(Status.SUCCEED)&&expectedResponse.getOutput().trim().equals(userResponse.getOutput().trim())){
+                if (userResponse.getStatus().equals(Status.SUCCEED) && expectedResponse.getOutput().trim().equals(userResponse.getOutput().trim())) {
                     response.setStatus(Status.ACCEPTED);
-                }
-                else if (userResponse.getStatus().equals(Status.SUCCEED)){
+                } else if (userResponse.getStatus().equals(Status.SUCCEED)) {
                     response.setStatus(Status.WRONG_OUTPUT);
                 }
-            }
-            else{
+            } else {
                 response.setStatus(Status.UNEXPECTED_ERROR);
             }
         }
@@ -283,72 +269,73 @@ public class SubmissionService {
         response.setOutput(userResponse.getOutput());
         return response;
     }
-    public QuestionDTO evaluate(PostSubmitRequest request, Question question,String token) throws SubmissionCompilationErrorException {
+
+    public QuestionDTO evaluate(PostSubmitRequest request, Question question, String token) throws SubmissionCompilationErrorException {
         QuestionDTO questionDTO = null;
         PostBuildRequest postBuildRequest = modelMapper.map(request, PostBuildRequest.class);
         postBuildRequest.setInputs(question.getTestCases());
 
         PostBuildResponse userBuildResponse = null;
         try {
-            userBuildResponse = this.executionServiceClient.postBuild(postBuildRequest,token);
-            questionDTO = assess(userBuildResponse,question);
-            modelMapper.map(request,questionDTO);
+            userBuildResponse = this.executionServiceClient.postBuild(postBuildRequest, token);
+            questionDTO = assess(userBuildResponse, question);
+            modelMapper.map(request, questionDTO);
         } catch (BuildCompilationErrorException e) {
-            SubmissionCompilationErrorException error=new SubmissionCompilationErrorException(e.getMessage());
-            modelMapper.map(e,error);
-            modelMapper.map(request,error);
+            SubmissionCompilationErrorException error = new SubmissionCompilationErrorException(e.getMessage());
+            modelMapper.map(e, error);
+            modelMapper.map(request, error);
             throw error;
         }
 
         return questionDTO;
     }
+
     public QuestionDTO assess(PostBuildResponse userResponse, Question question) throws BuildCompilationErrorException {
-        QuestionDTO questionDTO =modelMapper.map(question,QuestionDTO.class);
-        LocalDateTime submissionTime=LocalDateTime.ofInstant(Instant.now(), ZoneId.of("Asia/Kolkata"));
+        QuestionDTO questionDTO = modelMapper.map(question, QuestionDTO.class);
+        LocalDateTime submissionTime = LocalDateTime.ofInstant(Instant.now(), ZoneId.of("Asia/Kolkata"));
         questionDTO.setTime(submissionTime);
         questionDTO.setBuildId(userResponse.getId());
-        if(userResponse.getStatus().equals(Status.COMPILE_ERROR)){
-            throw new BuildCompilationErrorException(userResponse.getMessage(),userResponse.getId(),question.getId());
-        }
-        else if (question.getTestCases() != null && (userResponse.getStatus().equals(Status.SUCCEED) || userResponse.getStatus().equals(Status.TEST_FAILED)))
-        {
-            List<TestResult> testResults =checkTestCases(userResponse,question.getTestCases());
-            Double scoreAchieved= calculatedScore(testResults,question);
+        if (userResponse.getStatus().equals(Status.COMPILE_ERROR)) {
+            throw new BuildCompilationErrorException(userResponse.getMessage(), userResponse.getId(), question.getId());
+        } else if (question.getTestCases() != null && (userResponse.getStatus().equals(Status.SUCCEED) || userResponse.getStatus().equals(Status.TEST_FAILED))) {
+            List<TestResult> testResults = checkTestCases(userResponse, question.getTestCases());
+            Double scoreAchieved = calculatedScore(testResults, question);
             questionDTO.setTestResults(testResults);
             questionDTO.setScore(scoreAchieved);
-            setQuestionStatus(testResults,questionDTO);
+            setQuestionStatus(testResults, questionDTO);
         }
         return questionDTO;
-        }
+    }
 
-        public Double calculateSubmissionScore(SubmissionEntity submissionEntity){
+    public Double calculateSubmissionScore(SubmissionEntity submissionEntity) {
         return submissionEntity.getQuestionEntities().stream().mapToDouble(QuestionEntity::getScore).sum();
-        }
-        public Double calculatedScore(List<TestResult> testResults, Question question){
-            double scoreForSingleTestCase=question.getTotalPoints().doubleValue()/question.getTestCases().size();
-            long count=testResults.stream()
-                    .filter(
-                            testResult ->
-                                    testResult.getStatus().equals(ResultStatus.PASSED))
-                    .count();
-        return scoreForSingleTestCase*count;
-        }
+    }
 
-        public void setQuestionStatus(List<TestResult> testResults,QuestionDTO questionDTO){
-            boolean anyFailed=isTestResultFailed(testResults);
-            if(anyFailed){
-                questionDTO.setResultStatus(ResultStatus.FAILED);
-                questionDTO.setQuestionStatus(QuestionStatus.IN_PROGRESS);
-            }
-            else {
-                questionDTO.setResultStatus(ResultStatus.PASSED);
-                questionDTO.setQuestionStatus(QuestionStatus.COMPLETED);
-            }
-        }
+    public Double calculatedScore(List<TestResult> testResults, Question question) {
+        double scoreForSingleTestCase = question.getTotalPoints().doubleValue() / question.getTestCases().size();
+        long count = testResults.stream()
+                .filter(
+                        testResult ->
+                                testResult.getStatus().equals(ResultStatus.PASSED))
+                .count();
+        return scoreForSingleTestCase * count;
+    }
 
-        public boolean isTestResultFailed(List<TestResult> testResults ){
+    public void setQuestionStatus(List<TestResult> testResults, QuestionDTO questionDTO) {
+        boolean anyFailed = isTestResultFailed(testResults);
+        if (anyFailed) {
+            questionDTO.setResultStatus(ResultStatus.FAILED);
+            questionDTO.setQuestionStatus(QuestionStatus.IN_PROGRESS);
+        } else {
+            questionDTO.setResultStatus(ResultStatus.PASSED);
+            questionDTO.setQuestionStatus(QuestionStatus.COMPLETED);
+        }
+    }
+
+    public boolean isTestResultFailed(List<TestResult> testResults) {
         return testResults.stream()
-                .anyMatch(testResult -> testResult.getStatus().equals(ResultStatus.FAILED)); }
+                .anyMatch(testResult -> testResult.getStatus().equals(ResultStatus.FAILED));
+    }
 
     public List<SubmissionDetailsDTO> getSubmissionDetails(String classroomSlug, String assignmentId) {
 
@@ -360,37 +347,35 @@ public class SubmissionService {
         return submissionDetailDTOS;
     }
 
-        public List<TestResult> checkTestCases(PostBuildResponse userResponse,List<TestCase> expectedTestCase){
-            HashMap<String, TestCase> testCaseHashMap = new HashMap<>();
-            expectedTestCase.stream().forEach(testCase -> {
-                testCaseHashMap.put(testCase.getId(), testCase);
-            });
+    public List<TestResult> checkTestCases(PostBuildResponse userResponse, List<TestCase> expectedTestCase) {
+        HashMap<String, TestCase> testCaseHashMap = new HashMap<>();
+        expectedTestCase.stream().forEach(testCase -> {
+            testCaseHashMap.put(testCase.getId(), testCase);
+        });
 
-           return userResponse.getTestOutputs().stream().map(testCaseResult -> {
-                TestCase actualTestCase = testCaseHashMap.get(testCaseResult.getId());
+        return userResponse.getTestOutputs().stream().map(testCaseResult -> {
+            TestCase actualTestCase = testCaseHashMap.get(testCaseResult.getId());
 
-                Reason reason=getReason(testCaseResult,actualTestCase);
-                ResultStatus status=getResultStatus(testCaseResult,actualTestCase);
+            Reason reason = getReason(testCaseResult, actualTestCase);
+            ResultStatus status = getResultStatus(testCaseResult, actualTestCase);
 
-                return new TestResult(testCaseResult.getId(), status,reason);
-            }).collect(Collectors.toList());
+            return new TestResult(testCaseResult.getId(), status, reason);
+        }).collect(Collectors.toList());
+    }
+
+    public Reason getReason(TestCaseResult testCaseResult, TestCase actualTestCase) {
+        Reason reason = null;
+        if (testCaseResult.getStatus().equals(Status.SUCCEED) && !testCaseResult.getOutput().trim().equals(actualTestCase.getOutput().trim())) {
+
+            reason = Reason.WRONG_OUTPUT;
+        } else if (testCaseResult.getStatus().equals(Status.RUNTIME_ERROR)) {
+            reason = Reason.RUNTIME_ERROR;
+        } else if (testCaseResult.getStatus().equals(Status.TIMEOUT)) {
+
+            reason = Reason.TIMEOUT;
         }
-        public Reason getReason(TestCaseResult testCaseResult, TestCase actualTestCase)
-        {
-            Reason reason=null;
-            if (testCaseResult.getStatus().equals(Status.SUCCEED) && !testCaseResult.getOutput().trim().equals(actualTestCase.getOutput().trim())){
-
-                reason=Reason.WRONG_OUTPUT;
-            }
-            else if(testCaseResult.getStatus().equals(Status.RUNTIME_ERROR)){
-                reason=Reason.RUNTIME_ERROR;
-            }
-            else if(testCaseResult.getStatus().equals(Status.TIMEOUT)){
-
-                reason=Reason.TIMEOUT;
-            }
-            return reason;
-        }
+        return reason;
+    }
 
     public ResultStatus getResultStatus(TestCaseResult testCaseResult, TestCase actualTestCase) {
         ResultStatus resultStatus = ResultStatus.FAILED;
@@ -412,14 +397,13 @@ public class SubmissionService {
                             .findFirst()
                             .orElse(null);
 
-                if(questionEntity==null){
-                    throw new QuestionEntityNotFoundException("Not Found");
-                }
-
-                return questionEntity;
-            }
-            else {
+            if (questionEntity == null) {
                 throw new QuestionEntityNotFoundException("Not Found");
             }
+
+            return questionEntity;
+        } else {
+            throw new QuestionEntityNotFoundException("Not Found");
         }
     }
+}

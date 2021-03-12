@@ -11,7 +11,11 @@ import java.util.List;
 
 public interface Executor {
     String jailPath = "/jail";
-    static String getJailPath(){return jailPath;}
+
+    static String getJailPath() {
+        return jailPath;
+    }
+
     void setupEnvironment() throws IOException;
 
     void setupEnvironment(List<TestInput> testInputs) throws IOException;
@@ -25,30 +29,39 @@ public interface Executor {
     void createSourceFile() throws IOException;
 
     void createInputFile(String testInput) throws IOException;
+
     void createInputFile(List<TestInput> testInputs) throws IOException;
 
     void createOutputFile() throws IOException;
+
     void createOutputFile(List<TestInput> testInputs) throws IOException;
 
     void createErrorFile() throws IOException;
+
     void createErrorFile(List<TestInput> testInputs) throws IOException;
 
     //void createErrorFile() throws IOException;
     //void writeOutput() throws IOException;
 
     TestOutput run(String input) throws InterruptedException, IOException, CompilationErrorException;
+
     List<TestOutput> run(List<TestInput> testInputs) throws InterruptedException, IOException, CompilationErrorException;
     //List<TestOutput> run(List<TestInput> testInputs,boolean isBuild) throws InterruptedException, IOException, CompilationErrorException;
 
-//    TestOutput run(String commandString,TestInput testInput) throws InterruptedException, IOException, CompilationErrorException;
+    //    TestOutput run(String commandString,TestInput testInput) throws InterruptedException, IOException, CompilationErrorException;
     List<TestOutput> run(String commandString, List<TestInput> testInputs) throws InterruptedException, IOException, CompilationErrorException;
 
     void clean() throws IOException;
 
     String getOutput(Status status) throws IOException, InterruptedException;
+
     String getOutput(String testId, Status status) throws IOException, InterruptedException;
+
     String getBuildId();
-    String getErrorMessage() throws IOException,InterruptedException;
+
+    String getErrorMessage() throws IOException, InterruptedException;
+
     String getErrorMessage(String testId) throws IOException;
+
     long getExecutionTime();
 }

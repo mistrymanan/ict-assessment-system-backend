@@ -27,36 +27,37 @@ public class ExecutionServiceClient {
         this.modelMapper = modelMapper;
     }
 
-    public PostRunResponse postRunCode(PostRunRequest request,String token) throws RunCodeCompilationErrorException {
-        PostRunResponse response=webClient.post()
+    public PostRunResponse postRunCode(PostRunRequest request, String token) throws RunCodeCompilationErrorException {
+        PostRunResponse response = webClient.post()
                 .uri(uriBuilder ->
                         uriBuilder
                                 .path(POST_RUN)
                                 .build()
                 )
-                .body(Mono.just(request),PostRunRequest.class)
+                .body(Mono.just(request), PostRunRequest.class)
                 .headers(httpHeaders -> httpHeaders.setBearerAuth(token))
                 .retrieve()
                 .bodyToMono(PostRunResponse.class).block();
-        if(response.getStatus().equals(Status.COMPILE_ERROR)){
-            throw new RunCodeCompilationErrorException(response.getMessage(),response.getStatus());
+        if (response.getStatus().equals(Status.COMPILE_ERROR)) {
+            throw new RunCodeCompilationErrorException(response.getMessage(), response.getStatus());
         }
-            return response;
+        return response;
     }
-    public PostBuildResponse postBuild(PostBuildRequest request,String token) throws BuildCompilationErrorException {
-         PostBuildResponse postBuildResponse=webClient.post()
+
+    public PostBuildResponse postBuild(PostBuildRequest request, String token) throws BuildCompilationErrorException {
+        PostBuildResponse postBuildResponse = webClient.post()
                 .uri(uriBuilder -> uriBuilder
-                .path(POST_BUILD)
+                        .path(POST_BUILD)
                         .build()
                 )
-                .body(Mono.just(request),PostBuildRequest.class)
-                 .headers(httpHeaders -> httpHeaders.setBearerAuth(token))
+                .body(Mono.just(request), PostBuildRequest.class)
+                .headers(httpHeaders -> httpHeaders.setBearerAuth(token))
                 .retrieve()
                 .bodyToMono(PostBuildResponse.class).block();
 
-            if(postBuildResponse.getStatus().equals(Status.COMPILE_ERROR)){
-                throw new BuildCompilationErrorException(postBuildResponse.getMessage(), postBuildResponse.getId());
-            }
+        if (postBuildResponse.getStatus().equals(Status.COMPILE_ERROR)) {
+            throw new BuildCompilationErrorException(postBuildResponse.getMessage(), postBuildResponse.getId());
+        }
 
         return postBuildResponse;
     }

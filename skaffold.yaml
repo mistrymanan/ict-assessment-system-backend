@@ -7,7 +7,7 @@ build:
     - image: mananmistry/assignment-service
       jib:
         project: assignment-service
-    - image:  mananmistry/submission-service
+    - image: mananmistry/submission-service
       jib:
         project: grading-service
     - image: mananmistry/execution-service

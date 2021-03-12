@@ -18,80 +18,80 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("{classroomSlug}/questions")
 public class QuestionsController {
 
-  private final AssignmentService assignmentService;
+    private final AssignmentService assignmentService;
 
-  public QuestionsController(AssignmentService assignmentService) {
-    this.assignmentService = assignmentService;
-  }
+    public QuestionsController(AssignmentService assignmentService) {
+        this.assignmentService = assignmentService;
+    }
 
-  @PostMapping("/add-question")
-  @ResponseStatus(HttpStatus.CREATED)
-  public void addQuestionToAssignment(@PathVariable String classroomSlug,
-                                      @RequestBody AddQuestionRequest request,
-                                      @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, UserNotFoundException, AccessForbiddenException {
-    CurrentUser user = CurrentUser.fromJwt(jwt);
-    this.assignmentService.addQuestionToAssignment(request, classroomSlug,jwt);
-  }
+    @PostMapping("/add-question")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void addQuestionToAssignment(@PathVariable String classroomSlug,
+                                        @RequestBody AddQuestionRequest request,
+                                        @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, UserNotFoundException, AccessForbiddenException {
+        CurrentUser user = CurrentUser.fromJwt(jwt);
+        this.assignmentService.addQuestionToAssignment(request, classroomSlug, jwt);
+    }
 
-  @GetMapping
-  public QuestionDTO getQuestionForAssignment(@PathVariable String classroomSlug,
-                                              GetQuestionUsingSlugRequest request,
-                                              @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, QuestionNotFoundException {
-    return this.assignmentService.getQuestion(
-            request.getAssignmentSlug(),
-            request.getQuestionSlug(),
-            classroomSlug
-    );
-  }
+    @GetMapping
+    public QuestionDTO getQuestionForAssignment(@PathVariable String classroomSlug,
+                                                GetQuestionUsingSlugRequest request,
+                                                @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, QuestionNotFoundException {
+        return this.assignmentService.getQuestion(
+                request.getAssignmentSlug(),
+                request.getQuestionSlug(),
+                classroomSlug
+        );
+    }
 
-  @GetMapping("/id")
-  public QuestionDTO getQuestionForAssignmentById(@PathVariable String classroomSlug,
-                                                  GetQuestionUsingIdRequest request,
-                                                  @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, QuestionNotFoundException {
-    return this.assignmentService.getQuestionUsingId(
-            request.getAssignmentId(),
-            request.getQuestionId(),
-            classroomSlug
-    );
-  }
+    @GetMapping("/id")
+    public QuestionDTO getQuestionForAssignmentById(@PathVariable String classroomSlug,
+                                                    GetQuestionUsingIdRequest request,
+                                                    @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, QuestionNotFoundException {
+        return this.assignmentService.getQuestionUsingId(
+                request.getAssignmentId(),
+                request.getQuestionId(),
+                classroomSlug
+        );
+    }
 
-  @DeleteMapping
-  @ResponseStatus(HttpStatus.ACCEPTED)
-  public void deleteQuestionForAssignment(@PathVariable String classroomSlug,
-                                          DeleteQuestionRequest request,
-                                          @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, QuestionNotFoundException, UserNotFoundException, AccessForbiddenException {
-    this.assignmentService.deleteQuestionForAssignment(
-            request.getAssignmentId(),
-            request.getQuestionId(),
-            classroomSlug,
-            jwt
-    );
-  }
+    @DeleteMapping
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void deleteQuestionForAssignment(@PathVariable String classroomSlug,
+                                            DeleteQuestionRequest request,
+                                            @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, QuestionNotFoundException, UserNotFoundException, AccessForbiddenException {
+        this.assignmentService.deleteQuestionForAssignment(
+                request.getAssignmentId(),
+                request.getQuestionId(),
+                classroomSlug,
+                jwt
+        );
+    }
 
-  @PutMapping("/update-question")
-  @ResponseStatus(HttpStatus.OK)
-  public void updateQuestionForAssignment(@PathVariable String classroomSlug,
-                                          @RequestBody UpdateAssignmentQuestionRequest updateRequest,
-                                          @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, QuestionNotFoundException, UserNotFoundException, AccessForbiddenException {
-    this.assignmentService.updateQuestionForAssignment(
-            updateRequest.getAssignmentId(),
-            classroomSlug,
-            updateRequest.getQuestion(),
-            jwt
-    );
-  }
+    @PutMapping("/update-question")
+    @ResponseStatus(HttpStatus.OK)
+    public void updateQuestionForAssignment(@PathVariable String classroomSlug,
+                                            @RequestBody UpdateAssignmentQuestionRequest updateRequest,
+                                            @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, QuestionNotFoundException, UserNotFoundException, AccessForbiddenException {
+        this.assignmentService.updateQuestionForAssignment(
+                updateRequest.getAssignmentId(),
+                classroomSlug,
+                updateRequest.getQuestion(),
+                jwt
+        );
+    }
 
-  @ExceptionHandler(AccessForbiddenException.class)
-  @ResponseStatus(HttpStatus.FORBIDDEN)
-  public ErrorResponse handle(AccessForbiddenException e){
-    return new ErrorResponse("Forbidden",e.getMessage());
-  }
+    @ExceptionHandler(AccessForbiddenException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handle(AccessForbiddenException e) {
+        return new ErrorResponse("Forbidden", e.getMessage());
+    }
 
-  @ExceptionHandler({AssignmentNotFoundException.class, QuestionNotFoundException.class})
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  public ErrorResponse handle(Exception e) {
-    return new ErrorResponse("Not Found", e.getMessage());
-  }
+    @ExceptionHandler({AssignmentNotFoundException.class, QuestionNotFoundException.class})
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handle(Exception e) {
+        return new ErrorResponse("Not Found", e.getMessage());
+    }
 
 
 }

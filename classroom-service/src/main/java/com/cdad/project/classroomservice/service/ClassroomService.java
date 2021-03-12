@@ -26,17 +26,20 @@ public class ClassroomService {
     final private ClassroomRepository classroomRepository;
     final private ModelMapper modelMapper;
     final private UserServiceClient userServiceClient;
+
     public ClassroomService(ClassroomRepository classroomRepository, ModelMapper modelMapper, UserServiceClient userServiceClient) {
         this.classroomRepository = classroomRepository;
         this.modelMapper = modelMapper;
         this.userServiceClient = userServiceClient;
     }
+
     private String slugify(String str) {
         return String.join("-", str.trim().toLowerCase().split("\\s+"));
     }
-    private Classroom saveNew(CreateClassroomRequest request,Jwt jwt){
-        CurrentUser currentUser=CurrentUser.fromJwt(jwt);
-        Classroom classroom=modelMapper.map(request,Classroom.class);
+
+    private Classroom saveNew(CreateClassroomRequest request, Jwt jwt) {
+        CurrentUser currentUser = CurrentUser.fromJwt(jwt);
+        Classroom classroom = modelMapper.map(request, Classroom.class);
         classroom.setSlug(slugify(request.getTitle()));
         classroom.setOwnerEmail(currentUser.getEmail());
         classroom.setOwnerName(currentUser.getName());
@@ -59,13 +62,13 @@ public class ClassroomService {
         UserDetailsDTO userDetailsDTO = userServiceClient.getUserDetails(jwt);
         List<ClassroomDetailsDTO> instructClassrooms = new LinkedList<>();
         List<ClassroomDetailsDTO> enrolledClassrooms = new LinkedList<>();
-        if(userDetailsDTO.getInstructClassrooms()!=null){
-        userDetailsDTO.getInstructClassrooms().stream().forEach(classroomSlug -> {
-            Optional<Classroom> classroom = classroomRepository.getClassroomBySlug(classroomSlug);
-            classroom.ifPresent(value -> instructClassrooms.add(modelMapper.map(value, ClassroomDetailsDTO.class)));
-        });
+        if (userDetailsDTO.getInstructClassrooms() != null) {
+            userDetailsDTO.getInstructClassrooms().stream().forEach(classroomSlug -> {
+                Optional<Classroom> classroom = classroomRepository.getClassroomBySlug(classroomSlug);
+                classroom.ifPresent(value -> instructClassrooms.add(modelMapper.map(value, ClassroomDetailsDTO.class)));
+            });
         }
-        if(userDetailsDTO.getEnrolledClassrooms()!=null){
+        if (userDetailsDTO.getEnrolledClassrooms() != null) {
             userDetailsDTO.getEnrolledClassrooms().stream().forEach(classroomSlug -> {
                 Optional<Classroom> classroom = classroomRepository.getClassroomBySlug(classroomSlug);
                 classroom.ifPresent(value -> enrolledClassrooms.add(modelMapper.map(value, ClassroomDetailsDTO.class)));
@@ -129,76 +132,78 @@ public class ClassroomService {
         } else {
             throw new ClassroomAlreadyExists(
                     "Classroom With Name:"
-                            +request.getTitle()
-                            +" already exists. please try again with different name.");
+                            + request.getTitle()
+                            + " already exists. please try again with different name.");
         }
     }
-    public void removeClassroom(String classroomSlug,Jwt jwt) throws ClassroomNotFound, ClassroomAccessForbidden {
-        CurrentUser currentUser=CurrentUser.fromJwt(jwt);
-        Classroom classroom=classroomRepository.getClassroomBySlug(classroomSlug)
+
+    public void removeClassroom(String classroomSlug, Jwt jwt) throws ClassroomNotFound, ClassroomAccessForbidden {
+        CurrentUser currentUser = CurrentUser.fromJwt(jwt);
+        Classroom classroom = classroomRepository.getClassroomBySlug(classroomSlug)
                 .orElseThrow(() -> new ClassroomNotFound("The Classroom that you are trying to delete doesn't exists"));
-        if(classroom.getOwnerEmail().equals(currentUser.getEmail())){
+        if (classroom.getOwnerEmail().equals(currentUser.getEmail())) {
             classroom.getInstructors().add(classroom.getOwnerEmail());
-            userServiceClient.removeInstructorFromClass(classroom.getSlug(), classroom.getInstructors(),jwt);
+            userServiceClient.removeInstructorFromClass(classroom.getSlug(), classroom.getInstructors(), jwt);
             userServiceClient.unrollUsersFromClass(classroom.getSlug(), classroom.getEnrolledUsers(), jwt);
             this.classroomRepository.deleteById(classroom.getId());
-        }
-        else{
+        } else {
             throw new ClassroomAccessForbidden("You Don't have required Access to Delete this classroom");
         }
     }
-    public void addInstructorsToClassroom(AddInstructorsRequest request,String classroomSlug,Jwt jwt) throws ClassroomNotFound, ClassroomAccessForbidden {
-        CurrentUser currentUser=CurrentUser.fromJwt(jwt);
-        Classroom classroom=classroomRepository.getClassroomBySlug(classroomSlug)
+
+    public void addInstructorsToClassroom(AddInstructorsRequest request, String classroomSlug, Jwt jwt) throws ClassroomNotFound, ClassroomAccessForbidden {
+        CurrentUser currentUser = CurrentUser.fromJwt(jwt);
+        Classroom classroom = classroomRepository.getClassroomBySlug(classroomSlug)
                 .orElseThrow(() -> new ClassroomNotFound("The Classroom doesn't exists"));
-        if(classroom.getOwnerEmail().equals(currentUser.getEmail())
-                ||classroom.getInstructors().contains(currentUser.getEmail())){
+        if (classroom.getOwnerEmail().equals(currentUser.getEmail())
+                || classroom.getInstructors().contains(currentUser.getEmail())) {
             userServiceClient.addInstructorToClass(classroomSlug, request.getInstructors(), jwt);
             classroom.getInstructors().addAll(request.getInstructors());
             classroomRepository.save(classroom);
-        }
-        else{
+        } else {
             throw new ClassroomAccessForbidden("you don't have Sufficient Authorization to add instructors.");
         }
     }
+
     public void removeInstructorsFromClassroom(RemoveInstructorsRequest request, String classroomSlug, Jwt jwt) throws ClassroomAccessForbidden, ClassroomNotFound {
-        CurrentUser currentUser=CurrentUser.fromJwt(jwt);
-        Classroom classroom=classroomRepository.getClassroomBySlug(classroomSlug)
+        CurrentUser currentUser = CurrentUser.fromJwt(jwt);
+        Classroom classroom = classroomRepository.getClassroomBySlug(classroomSlug)
                 .orElseThrow(() -> new ClassroomNotFound("The Classroom doesn't exists"));
-        if(classroom.getOwnerEmail().equals(currentUser.getEmail())
-                ||classroom.getInstructors().contains(currentUser.getEmail())){
+        if (classroom.getOwnerEmail().equals(currentUser.getEmail())
+                || classroom.getInstructors().contains(currentUser.getEmail())) {
             userServiceClient.removeInstructorFromClass(classroomSlug, request.getInstructors(), jwt);
             classroom.getInstructors().removeAll(request.getInstructors());
             classroomRepository.save(classroom);
-        }
-        else{
+        } else {
             throw new ClassroomAccessForbidden("you don't have Sufficient Authorization to remove Instructors.");
         }
     }
-    public void enrollUsersToClassroom(EnrollUsersRequest request,String classroomSlug,Jwt jwt) throws ClassroomNotFound, ClassroomAccessForbidden {
-        CurrentUser currentUser=CurrentUser.fromJwt(jwt);
-        Classroom classroom=classroomRepository.getClassroomBySlug(classroomSlug)
+
+    public void enrollUsersToClassroom(EnrollUsersRequest request, String classroomSlug, Jwt jwt) throws ClassroomNotFound, ClassroomAccessForbidden {
+        CurrentUser currentUser = CurrentUser.fromJwt(jwt);
+        Classroom classroom = classroomRepository.getClassroomBySlug(classroomSlug)
                 .orElseThrow(() -> new ClassroomNotFound("The Classroom doesn't exists"));
-        if(classroom.getOwnerEmail().equals(currentUser.getEmail())
-                ||classroom.getInstructors().contains(currentUser.getEmail())){
-            userServiceClient.enrollUsersToClass(classroomSlug,request.getUsers(),jwt);
+        if (classroom.getOwnerEmail().equals(currentUser.getEmail())
+                || classroom.getInstructors().contains(currentUser.getEmail())) {
+            userServiceClient.enrollUsersToClass(classroomSlug, request.getUsers(), jwt);
             classroom.getEnrolledUsers().addAll(request.getUsers());
             classroomRepository.save(classroom);
-        }else{
+        } else {
             throw new ClassroomAccessForbidden("you don't have Sufficient Authorization to Enroll Users.");
         }
 
     }
-    public void unrollUsersFromClassroom(RemoveUsersRequest request,String classroomSlug,Jwt jwt) throws ClassroomNotFound, ClassroomAccessForbidden {
-        CurrentUser currentUser=CurrentUser.fromJwt(jwt);
-        Classroom classroom=classroomRepository.getClassroomBySlug(classroomSlug)
+
+    public void unrollUsersFromClassroom(RemoveUsersRequest request, String classroomSlug, Jwt jwt) throws ClassroomNotFound, ClassroomAccessForbidden {
+        CurrentUser currentUser = CurrentUser.fromJwt(jwt);
+        Classroom classroom = classroomRepository.getClassroomBySlug(classroomSlug)
                 .orElseThrow(() -> new ClassroomNotFound("The Classroom doesn't exists"));
-        if(classroom.getOwnerEmail().equals(currentUser.getEmail())
-                ||classroom.getInstructors().contains(currentUser.getEmail())){
-            userServiceClient.unrollUsersFromClass(classroomSlug,request.getUsers(),jwt);
+        if (classroom.getOwnerEmail().equals(currentUser.getEmail())
+                || classroom.getInstructors().contains(currentUser.getEmail())) {
+            userServiceClient.unrollUsersFromClass(classroomSlug, request.getUsers(), jwt);
             classroom.getEnrolledUsers().removeAll(request.getUsers());
             classroomRepository.save(classroom);
-        }else{
+        } else {
             throw new ClassroomAccessForbidden("you don't have Sufficient Authorization to unroll Users.");
         }
     }

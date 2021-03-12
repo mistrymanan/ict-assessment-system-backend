@@ -6,8 +6,8 @@ import javax.validation.constraints.NotNull;
 
 @Data
 public class DeleteQuestionRequest {
-  @NotNull
-  private String assignmentId;
-  @NotNull
-  private String questionId;
+    @NotNull
+    private String assignmentId;
+    @NotNull
+    private String questionId;
 }

@@ -16,14 +16,15 @@ import java.util.List;
 @Data
 public class PythonExecutor extends BaseExecutor implements InterpretedExecutor {
     //private long memoryConsumption;
-        String runCommandString;
+    String runCommandString;
+
     public PythonExecutor(ProgramInput program) throws IOException {
         super(program);
         List<String> command = new ArrayList<>();
         command.add("chroot /jail/");
         command.add("timeout " + this.getTimeout());
         command.add("python3 ." + getBaseExecutionPath() + "Solution.py");
-        this.setRunCommandString( String.join(" ", command));
+        this.setRunCommandString(String.join(" ", command));
     }
 
     @Override

@@ -16,9 +16,16 @@ public class BuildService {
     public BuildService(BuildRepository buildRepository) {
         this.buildRepository = buildRepository;
     }
-    public BuildEntity getBuildById(String id){
+
+    public BuildEntity getBuildById(String id) {
         return this.buildRepository.findById(id).get();
     }
-    public void save(BuildEntity buildEntity) { this.buildRepository.save(buildEntity); }
-    public List<BuildEntity> getAllBuild(){ return  this.buildRepository.findAll();}
+
+    public void save(BuildEntity buildEntity) {
+        this.buildRepository.save(buildEntity);
+    }
+
+    public List<BuildEntity> getAllBuild() {
+        return this.buildRepository.findAll();
+    }
 }

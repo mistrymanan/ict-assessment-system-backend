@@ -7,7 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class LanguageNotAllowedException extends Exception {
-    private Status status= Status.LANGUAGE_NOT_ALLOWED;
+    private Status status = Status.LANGUAGE_NOT_ALLOWED;
+
     public LanguageNotAllowedException(String message) {
         super(message);
     }

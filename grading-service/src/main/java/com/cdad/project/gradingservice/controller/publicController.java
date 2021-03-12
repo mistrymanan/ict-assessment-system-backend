@@ -57,9 +57,9 @@ public class publicController {
             throw new InvalidSecretKeyException("secret not valid");
         }
     }
-    @ExceptionHandler({SubmissionEntityNotFoundException.class,QuestionEntityNotFoundException.class})
+
+    @ExceptionHandler({SubmissionEntityNotFoundException.class, QuestionEntityNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public void handle(Exception error)
-    {
+    public void handle(Exception error) {
     }
 }

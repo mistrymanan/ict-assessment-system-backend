@@ -9,5 +9,6 @@ import java.util.HashSet;
 @Data
 @NoArgsConstructor
 public class EnrollUsersRequest {
-    @NotNull HashSet<String> users;
+    @NotNull
+    HashSet<String> users;
 }

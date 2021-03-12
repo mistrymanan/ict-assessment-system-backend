@@ -22,51 +22,52 @@ import java.util.List;
 @RequestMapping("{classroomSlug}/active-assignments")
 public class AssignmentsController {
 
-  private final ActiveAssignmentService activeAssignmentService;
+    private final ActiveAssignmentService activeAssignmentService;
 
-  public AssignmentsController(ActiveAssignmentService activeAssignmentService) {
-    this.activeAssignmentService = activeAssignmentService;
-  }
+    public AssignmentsController(ActiveAssignmentService activeAssignmentService) {
+        this.activeAssignmentService = activeAssignmentService;
+    }
 
-  @GetMapping("/all")
-  public GetAllActiveAssignmentsResponse getAllActiveAssignments(@PathVariable String classroomSlug
-            ,@AuthenticationPrincipal Jwt jwt) {
-    GetAllActiveAssignmentsResponse response = new GetAllActiveAssignmentsResponse();
-    List<ActiveAssignmentDTO> activeAssignments = this.activeAssignmentService.getAll(classroomSlug,jwt);
-    response.setActiveAssignments(activeAssignments);
-    return response;
-  }
+    @GetMapping("/all")
+    public GetAllActiveAssignmentsResponse getAllActiveAssignments(@PathVariable String classroomSlug
+            , @AuthenticationPrincipal Jwt jwt) {
+        GetAllActiveAssignmentsResponse response = new GetAllActiveAssignmentsResponse();
+        List<ActiveAssignmentDTO> activeAssignments = this.activeAssignmentService.getAll(classroomSlug, jwt);
+        response.setActiveAssignments(activeAssignments);
+        return response;
+    }
 
-  @GetMapping("slug/{slug}")
-  public ActiveAssignmentDetailsDTO getActiveAssignment(@PathVariable String classroomSlug,
-                                                        @PathVariable String slug,
-                                                        @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException {
-    return this.activeAssignmentService.getDetails(classroomSlug,slug, jwt);
-  }
+    @GetMapping("slug/{slug}")
+    public ActiveAssignmentDetailsDTO getActiveAssignment(@PathVariable String classroomSlug,
+                                                          @PathVariable String slug,
+                                                          @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException {
+        return this.activeAssignmentService.getDetails(classroomSlug, slug, jwt);
+    }
 
-  @GetMapping("id/{id}")
-  public ActiveAssignmentDetailsDTO getActiveAssignmentById(@PathVariable String classroomSlug,
-                                                            @PathVariable String id,
-                                                            @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException {
-    return this.activeAssignmentService.getDetailsById(id,classroomSlug, jwt);
-  }
+    @GetMapping("id/{id}")
+    public ActiveAssignmentDetailsDTO getActiveAssignmentById(@PathVariable String classroomSlug,
+                                                              @PathVariable String id,
+                                                              @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException {
+        return this.activeAssignmentService.getDetailsById(id, classroomSlug, jwt);
+    }
 
-  @GetMapping("get-question")
-  public UserQuestionDTO getQuestion(@PathVariable String classroomSlug,
-                                     @Valid GetActiveQuestionRequest request,
-                                     @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, QuestionNotFoundException {
-    return this.activeAssignmentService.getActiveQuestion(request,classroomSlug, jwt);
-  }
+    @GetMapping("get-question")
+    public UserQuestionDTO getQuestion(@PathVariable String classroomSlug,
+                                       @Valid GetActiveQuestionRequest request,
+                                       @AuthenticationPrincipal Jwt jwt) throws AssignmentNotFoundException, QuestionNotFoundException {
+        return this.activeAssignmentService.getActiveQuestion(request, classroomSlug, jwt);
+    }
 
-  @ExceptionHandler(AssignmentNotFoundException.class)
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  public ErrorResponse handle(Exception e) {
-    return new ErrorResponse("Not Found", e.getMessage());
-  }
-  @ExceptionHandler(AccessForbiddenException.class)
-  @ResponseStatus(HttpStatus.FORBIDDEN)
-  public ErrorResponse handle(AccessForbiddenException e){
-    return new ErrorResponse("Forbidden",e.getMessage());
-  }
+    @ExceptionHandler(AssignmentNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handle(Exception e) {
+        return new ErrorResponse("Not Found", e.getMessage());
+    }
+
+    @ExceptionHandler(AccessForbiddenException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handle(AccessForbiddenException e) {
+        return new ErrorResponse("Forbidden", e.getMessage());
+    }
 
 }

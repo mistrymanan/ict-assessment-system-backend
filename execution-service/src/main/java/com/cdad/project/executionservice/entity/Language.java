@@ -14,11 +14,13 @@ public enum Language {
     C("c"),
     CPP("cpp");
     private final String value;
-    Language(){
-        this.value=this.getValue();
+
+    Language() {
+        this.value = this.getValue();
     }
+
     @JsonValue
-    final String value(){
+    final String value() {
         return this.getValue();
     }
 

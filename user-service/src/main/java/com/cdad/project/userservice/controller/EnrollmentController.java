@@ -23,21 +23,24 @@ public class EnrollmentController {
     }
 
     @PostMapping("")
-    void enrollUsers(@RequestBody @Valid EnrollUsersRequest enrollUsersRequest,HttpServletRequest request) throws InvalidSecretKeyException {
+    void enrollUsers(@RequestBody @Valid EnrollUsersRequest enrollUsersRequest, HttpServletRequest request) throws InvalidSecretKeyException {
         checkSecret(request);
-    this.userService.enrollUsers(enrollUsersRequest);
+        this.userService.enrollUsers(enrollUsersRequest);
     }
+
     @DeleteMapping("")
-    void unrollUsers(@RequestBody @Valid UnrollUsersRequest unrollUsersRequest,HttpServletRequest request) throws InvalidSecretKeyException {
+    void unrollUsers(@RequestBody @Valid UnrollUsersRequest unrollUsersRequest, HttpServletRequest request) throws InvalidSecretKeyException {
         checkSecret(request);
         this.userService.unrollUsers(unrollUsersRequest);
     }
+
     public void checkSecret(HttpServletRequest req) throws InvalidSecretKeyException {
         String key = req.getHeader("X-Secret");
         if (Objects.isNull(key) || !key.equals("top-secret-communication")) {
             throw new InvalidSecretKeyException("secret not valid");
         }
     }
+
     @ExceptionHandler(InvalidSecretKeyException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public void forbidden() {

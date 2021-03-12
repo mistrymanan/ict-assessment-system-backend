@@ -9,6 +9,6 @@ public class RunCodeCompilationErrorException extends Exception {
 
     public RunCodeCompilationErrorException(String message, Status status) {
         super(message);
-        this.status=status;
+        this.status = status;
     }
 }

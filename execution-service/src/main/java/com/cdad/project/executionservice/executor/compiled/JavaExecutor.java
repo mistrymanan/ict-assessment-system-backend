@@ -18,7 +18,7 @@ public class JavaExecutor extends BaseExecutor implements CompiledExecutor {
     //private long memoryConsumption;
     public JavaExecutor(ProgramInput program) throws IOException, InterruptedException {
         super(program);
-        if(!this.compile().equals(0)){
+        if (!this.compile().equals(0)) {
             setStatus(Status.COMPILE_ERROR);
         }
         List<String> command = new ArrayList<>();
@@ -34,14 +34,15 @@ public class JavaExecutor extends BaseExecutor implements CompiledExecutor {
         List<String> command = new ArrayList<>();
         command.add("chroot /jail/");
         //command.add("cd java/"+getUniquePath()+"");
-        command.add("javac ./"+getBaseExecutionPath()+"Solution.java");
+        command.add("javac ./" + getBaseExecutionPath() + "Solution.java");
 
-        ProcessBuilder processBuilder=new ProcessBuilder().command("/bin/bash","-c",String.join(" ",command))
+        ProcessBuilder processBuilder = new ProcessBuilder().command("/bin/bash", "-c", String.join(" ", command))
                 .directory(new File(getJailPath()))
-                .redirectError(new File(this.getContainerPath()+"Error.txt"));
-        Process process=processBuilder.start();
+                .redirectError(new File(this.getContainerPath() + "Error.txt"));
+        Process process = processBuilder.start();
         return process.waitFor();
     }
+
     @Override
     public TestOutput run(String testInput) throws InterruptedException, IOException, CompilationErrorException {
         return super.run(getRunCommandString(), testInput);

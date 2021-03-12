@@ -3,7 +3,7 @@ server:
 spring:
   data:
     mongodb:
-#      authentication-database: admin
+      #      authentication-database: admin
       uri: mongodb://root:Root_123@172.16.10.101:27017/execution-service-db?authSource=admin
       auto-index-creation: true
   application:

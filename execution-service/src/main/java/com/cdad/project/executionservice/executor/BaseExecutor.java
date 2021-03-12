@@ -66,7 +66,7 @@ abstract public class BaseExecutor implements Executor {
     }
 
     @Override
-    public void setupEnvironment(List<TestInput> testInputs) throws IOException{
+    public void setupEnvironment(List<TestInput> testInputs) throws IOException {
         if (this.creteWorkingDirectory()) {
             this.createUtilityFiles(testInputs);
         }
@@ -98,9 +98,9 @@ abstract public class BaseExecutor implements Executor {
     }
 
     @Override
-    public void createInputFile(String input) throws IOException{
+    public void createInputFile(String input) throws IOException {
         if (input != null) {
-            Files.writeString(Paths.get(getContainerPath() + "Input.txt"),input);
+            Files.writeString(Paths.get(getContainerPath() + "Input.txt"), input);
         } else {
             new File(this.getContainerPath() + "Input.txt").createNewFile();
         }
@@ -119,7 +119,7 @@ abstract public class BaseExecutor implements Executor {
                                         + ".txt")
                                 , testCase.getInput());
                     } else {
-                        new File(getContainerPath() +  testCase.getId() + ".txt").createNewFile();
+                        new File(getContainerPath() + testCase.getId() + ".txt").createNewFile();
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -149,7 +149,7 @@ abstract public class BaseExecutor implements Executor {
     }
 
     @Override
-    public void createErrorFile() throws IOException{
+    public void createErrorFile() throws IOException {
         new File(this.getContainerPath() + "Error.txt").createNewFile();
     }
 
@@ -173,28 +173,27 @@ abstract public class BaseExecutor implements Executor {
     }
 
 
-
-    public TestOutput run(String commandString,String input) throws InterruptedException, IOException, CompilationErrorException {
+    public TestOutput run(String commandString, String input) throws InterruptedException, IOException, CompilationErrorException {
         if (this.getStatus() != null && this.getStatus().equals(Status.COMPILE_ERROR)) {
             throw new CompilationErrorException(getErrorMessage());
         }
         this.createInputFile(input);
-            TestOutput testOutput=new TestOutput();
-            long startTime, endTime;
-            ProcessBuilder processBuilder = new ProcessBuilder().command("/bin/bash", "-c", commandString)
-                    .directory(new File(getJailPath()))
-                    .redirectInput(new File(this.getContainerPath() + "Input.txt"))
-                    .redirectOutput(new File(this.getContainerPath() + "Output.txt"))
-                    .redirectError(new File(this.getContainerPath() + "Error.txt"));
-            startTime = System.currentTimeMillis();
-            Process process = processBuilder.start();
-            Integer statusCode = process.waitFor();
-            endTime = System.currentTimeMillis();
-            Status status1=getStatusBasedOnStatusCode(statusCode);
-            testOutput.setExecutionTime(endTime - startTime);
-            testOutput.setStatus(status1);
-            testOutput.setOutput(getOutput(status1));
-            return testOutput;
+        TestOutput testOutput = new TestOutput();
+        long startTime, endTime;
+        ProcessBuilder processBuilder = new ProcessBuilder().command("/bin/bash", "-c", commandString)
+                .directory(new File(getJailPath()))
+                .redirectInput(new File(this.getContainerPath() + "Input.txt"))
+                .redirectOutput(new File(this.getContainerPath() + "Output.txt"))
+                .redirectError(new File(this.getContainerPath() + "Error.txt"));
+        startTime = System.currentTimeMillis();
+        Process process = processBuilder.start();
+        Integer statusCode = process.waitFor();
+        endTime = System.currentTimeMillis();
+        Status status1 = getStatusBasedOnStatusCode(statusCode);
+        testOutput.setExecutionTime(endTime - startTime);
+        testOutput.setStatus(status1);
+        testOutput.setOutput(getOutput(status1));
+        return testOutput;
 
     }
 
@@ -231,10 +230,10 @@ abstract public class BaseExecutor implements Executor {
             throw new CompilationErrorException(getErrorMessage());
         }
         this.setupEnvironment(testInputs);
-        List<TestOutput> testOutputs=new LinkedList<>();
+        List<TestOutput> testOutputs = new LinkedList<>();
         testInputs.forEach(testCase -> {
 
-            TestOutput testOutput=new TestOutput();
+            TestOutput testOutput = new TestOutput();
             testOutput.setId(testCase.getId());
 
             long startTime, endTime;
@@ -243,7 +242,7 @@ abstract public class BaseExecutor implements Executor {
                     .directory(new File(Executor.getJailPath()))
                     .redirectInput(new File(getContainerPath() + "Input-" + testCase.getId() + ".txt"))
                     .redirectOutput(new File(getContainerPath() + "Output-" + testCase.getId() + ".txt"))
-                    .redirectError(new File(getContainerPath() + "Error-" +testCase.getId()+ ".txt"));
+                    .redirectError(new File(getContainerPath() + "Error-" + testCase.getId() + ".txt"));
             startTime = System.currentTimeMillis();
             Process process = null;
             Integer statusCode = null;
@@ -254,22 +253,22 @@ abstract public class BaseExecutor implements Executor {
                 e.printStackTrace();
             }
             endTime = System.currentTimeMillis();
-            Status status=this.getStatusBasedOnStatusCode(statusCode);
+            Status status = this.getStatusBasedOnStatusCode(statusCode);
 
             testOutput.setExecutionTime(endTime - startTime);
             testOutput.setStatus(status);
             testOutput.setInput(testCase.getInput());
 
             try {
-                testOutput.setOutput(this.getOutput(testCase.getId(),status));
+                testOutput.setOutput(this.getOutput(testCase.getId(), status));
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        testOutputs.add(testOutput);
+            testOutputs.add(testOutput);
         });
 
         boolean testSucceed = testOutputs.stream().allMatch(testCase -> testCase.getStatus().equals(Status.SUCCEED));
-       setStatus(testSucceed ? Status.SUCCEED : Status.TEST_FAILED);
+        setStatus(testSucceed ? Status.SUCCEED : Status.TEST_FAILED);
 
         return testOutputs;
     }
@@ -285,13 +284,13 @@ abstract public class BaseExecutor implements Executor {
     }
 
     @Override
-    public String getOutput(String testCaseId,Status status) throws IOException {
+    public String getOutput(String testCaseId, Status status) throws IOException {
         if (status.equals(Status.RUNTIME_ERROR)) {
             return this.getErrorMessage(testCaseId);
         } else if (status.equals(Status.TIMEOUT)) {
             return "TIMEOUT";
         }
-        return Files.readString(Paths.get(this.getContainerPath() + "Output-"+testCaseId+".txt"));
+        return Files.readString(Paths.get(this.getContainerPath() + "Output-" + testCaseId + ".txt"));
     }
 
     @Override
@@ -301,7 +300,7 @@ abstract public class BaseExecutor implements Executor {
 
     @Override
     public String getErrorMessage(String testId) throws IOException {
-        return Files.readString(Paths.get(this.getContainerPath()+"Error-"+testId+".txt"));
+        return Files.readString(Paths.get(this.getContainerPath() + "Error-" + testId + ".txt"));
     }
 
 

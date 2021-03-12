@@ -19,6 +19,7 @@ public class InstructorController {
 
     final private ClassroomService classroomService;
     final private ModelMapper modelMapper;
+
     public InstructorController(ClassroomService classroomService, ModelMapper modelMapper) {
         this.classroomService = classroomService;
         this.modelMapper = modelMapper;
@@ -30,29 +31,30 @@ public class InstructorController {
     }
 
     @DeleteMapping("")
-    void removeInstructorsFromClassroom(@PathVariable String classroomSlug, @RequestBody RemoveInstructorsRequest request,@AuthenticationPrincipal Jwt jwt) throws ClassroomAccessForbidden, ClassroomNotFound {
+    void removeInstructorsFromClassroom(@PathVariable String classroomSlug, @RequestBody RemoveInstructorsRequest request, @AuthenticationPrincipal Jwt jwt) throws ClassroomAccessForbidden, ClassroomNotFound {
         classroomService.removeInstructorsFromClassroom(request, classroomSlug, jwt);
     }
 
     @ExceptionHandler(ClassroomNotFound.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    ErrorResponse handleClassroomNotFound(ClassroomNotFound e){
-        ErrorResponse errorResponse=modelMapper.map(e,ErrorResponse.class);
+    ErrorResponse handleClassroomNotFound(ClassroomNotFound e) {
+        ErrorResponse errorResponse = modelMapper.map(e, ErrorResponse.class);
         errorResponse.setError("Not Found");
         return errorResponse;
     }
 
     @ExceptionHandler(ClassroomAlreadyExists.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    ErrorResponse handleClassroomAlreadyExists(ClassroomAlreadyExists e){
-        ErrorResponse errorResponse=modelMapper.map(e,ErrorResponse.class);
+    ErrorResponse handleClassroomAlreadyExists(ClassroomAlreadyExists e) {
+        ErrorResponse errorResponse = modelMapper.map(e, ErrorResponse.class);
         errorResponse.setError("Already Exists");
         return errorResponse;
     }
+
     @ExceptionHandler(ClassroomAccessForbidden.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    ErrorResponse handleClassroomAccessForbidden(ClassroomAccessForbidden e){
-        ErrorResponse errorResponse=modelMapper.map(e,ErrorResponse.class);
+    ErrorResponse handleClassroomAccessForbidden(ClassroomAccessForbidden e) {
+        ErrorResponse errorResponse = modelMapper.map(e, ErrorResponse.class);
         errorResponse.setError("Classroom Access Forbidden");
         return errorResponse;
     }

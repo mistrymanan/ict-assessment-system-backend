@@ -3,7 +3,7 @@
     "title": "DS Programming Test",
     "slug": "ds-programming-test",
     "status": "ACTIVE",
-    "isTimed" : true,
+    "isTimed": true,
     "duration": 120,
     "hasStartTime": false,
     "startTime": null,
@@ -16,7 +16,7 @@
     "title": "Algorithms Programming Test",
     "slug": "algorithms-programming-test",
     "status": "ACTIVE",
-    "isTimed" : true,
+    "isTimed": true,
     "duration": 120,
     "hasStartTime": false,
     "startTime": null,
@@ -24,7 +24,7 @@
     "deadline": null,
     "questions": [
       {
-        "id" : "e917f38a-1d74-4331-858a-47ea341394a4",
+        "id": "e917f38a-1d74-4331-858a-47ea341394a4",
         "title": "Fibonacci Numbers",
         "slug": "fibonacci-numbers",
         "allowedLanguages": [

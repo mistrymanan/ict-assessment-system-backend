@@ -5,8 +5,8 @@ import lombok.Data;
 
 @Data
 public class PostRunResponse {
-private String output;
-private Status status;
-private String message;
-private long executionTime;
+    private String output;
+    private Status status;
+    private String message;
+    private long executionTime;
 }

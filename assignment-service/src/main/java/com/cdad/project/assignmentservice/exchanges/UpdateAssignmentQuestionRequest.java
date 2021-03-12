@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data
 public class UpdateAssignmentQuestionRequest {
-  private String assignmentId;
-  private QuestionDTO question;
+    private String assignmentId;
+    private QuestionDTO question;
 }

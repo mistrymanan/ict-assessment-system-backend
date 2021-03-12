@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class TestCase {
-  private String id;
-  private String input;
-  private String output;
+    private String id;
+    private String input;
+    private String output;
 }

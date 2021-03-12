@@ -15,8 +15,8 @@ public class ProgramInput {
     public ProgramInput() {
     }
 
-    public ProgramInput(String sourceCode,Language language) {
+    public ProgramInput(String sourceCode, Language language) {
         this.sourceCode = sourceCode;
-        this.language=language;
+        this.language = language;
     }
 }

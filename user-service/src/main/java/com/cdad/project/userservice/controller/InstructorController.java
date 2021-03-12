@@ -21,12 +21,13 @@ public class InstructorController {
     }
 
     @PostMapping("")
-    void addInstructorToClass(@RequestBody @Valid AddInstructorsRequest addInstructorsRequest,HttpServletRequest request) throws InvalidSecretKeyException {
+    void addInstructorToClass(@RequestBody @Valid AddInstructorsRequest addInstructorsRequest, HttpServletRequest request) throws InvalidSecretKeyException {
         checkSecret(request);
         this.userService.addInstructorToClassroom(addInstructorsRequest);
     }
+
     @DeleteMapping("")
-    void removeInstructorFromClass(@RequestBody @Valid RemoveInstructorsRequest removeInstructorsRequest,HttpServletRequest request) throws InvalidSecretKeyException {
+    void removeInstructorFromClass(@RequestBody @Valid RemoveInstructorsRequest removeInstructorsRequest, HttpServletRequest request) throws InvalidSecretKeyException {
         checkSecret(request);
         this.userService.removeInstructorsFromClassroom(removeInstructorsRequest);
     }
@@ -37,6 +38,7 @@ public class InstructorController {
             throw new InvalidSecretKeyException("secret not valid");
         }
     }
+
     @ExceptionHandler(InvalidSecretKeyException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public void forbidden() {

@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 public class AssignmentNotStartedException extends Exception {
-    private Status status=Status.ASSIGNMENT_NOT_STARTED;
+    private Status status = Status.ASSIGNMENT_NOT_STARTED;
 
     public AssignmentNotStartedException(String message) {
         super(message);

@@ -13,12 +13,13 @@ import lombok.ToString;
 @NoArgsConstructor
 @ToString
 public class Build {
-private String id;
-private Status status;
-private String output;
-public Build(BuildEntity entity){
-    this.setId(entity.getId());
-    //this.setOutput(entity.getOutput());
-    this.setStatus(entity.getStatus());
-}
+    private String id;
+    private Status status;
+    private String output;
+
+    public Build(BuildEntity entity) {
+        this.setId(entity.getId());
+        //this.setOutput(entity.getOutput());
+        this.setStatus(entity.getStatus());
+    }
 }

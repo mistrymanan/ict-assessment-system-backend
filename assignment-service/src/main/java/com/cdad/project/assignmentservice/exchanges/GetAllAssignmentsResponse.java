@@ -7,5 +7,5 @@ import java.util.List;
 
 @Data
 public class GetAllAssignmentsResponse {
-  List<AssignmentDTO> assignments;
+    List<AssignmentDTO> assignments;
 }
