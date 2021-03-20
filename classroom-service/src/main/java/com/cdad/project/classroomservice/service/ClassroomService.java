@@ -9,9 +9,9 @@ import com.cdad.project.classroomservice.exceptions.ClassroomAlreadyExists;
 import com.cdad.project.classroomservice.exceptions.ClassroomNotFound;
 import com.cdad.project.classroomservice.exchanges.*;
 import com.cdad.project.classroomservice.repository.ClassroomRepository;
+import com.cdad.project.classroomservice.serviceclient.notificationservice.NotificationServiceClient;
 import com.cdad.project.classroomservice.serviceclient.userservice.UserServiceClient;
 import com.cdad.project.classroomservice.serviceclient.userservice.dtos.UserDetailsDTO;
-import com.cdad.project.classroomservice.serviceclient.userservice.dtos.UserDetail;
 import com.cdad.project.classroomservice.serviceclient.userservice.exceptions.UserNotFoundException;
 import com.cdad.project.classroomservice.serviceclient.userservice.exchanges.GetUsersDetailRequest;
 import com.cdad.project.classroomservice.serviceclient.userservice.exchanges.GetUsersDetailsResponse;
@@ -26,11 +26,12 @@ public class ClassroomService {
     final private ClassroomRepository classroomRepository;
     final private ModelMapper modelMapper;
     final private UserServiceClient userServiceClient;
-
-    public ClassroomService(ClassroomRepository classroomRepository, ModelMapper modelMapper, UserServiceClient userServiceClient) {
+    final private NotificationServiceClient notificationServiceClient;
+    public ClassroomService(ClassroomRepository classroomRepository, ModelMapper modelMapper, UserServiceClient userServiceClient, NotificationServiceClient notificationServiceClient) {
         this.classroomRepository = classroomRepository;
         this.modelMapper = modelMapper;
         this.userServiceClient = userServiceClient;
+        this.notificationServiceClient = notificationServiceClient;
     }
 
     private String slugify(String str) {
@@ -188,6 +189,15 @@ public class ClassroomService {
             userServiceClient.enrollUsersToClass(classroomSlug, request.getUsers(), jwt);
             classroom.getEnrolledUsers().addAll(request.getUsers());
             classroomRepository.save(classroom);
+            notificationServiceClient
+                    .sendEmailNotification(
+                            request.getUsers()
+                            ,"Assessment-System:Classroom Enrollment:"
+                                    +classroom.getTitle(),
+                            "dear student,"
+                                    +"\n \t you have been added to Classroom:"+classroom.getTitle()+" by "
+                                    +currentUser.getName()+".");
+
         } else {
             throw new ClassroomAccessForbidden("you don't have Sufficient Authorization to Enroll Users.");
         }
