@@ -12,6 +12,9 @@ import com.cdad.project.gradingservice.serviceclient.assignmentservice.dto.Quest
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.dto.QuestionDetails;
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.dto.TestCase;
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.exchanges.GetQuestionRequest;
+import com.cdad.project.gradingservice.serviceclient.classroomservice.ClassroomServiceClient;
+import com.cdad.project.gradingservice.serviceclient.classroomservice.dto.ClassroomAndUserDetailsDTO;
+import com.cdad.project.gradingservice.serviceclient.classroomservice.dto.UserDetail;
 import com.cdad.project.gradingservice.serviceclient.executionservice.ExecutionServiceClient;
 import com.cdad.project.gradingservice.serviceclient.executionservice.dto.TestCaseResult;
 import com.cdad.project.gradingservice.serviceclient.executionservice.exceptions.BuildCompilationErrorException;
@@ -19,8 +22,6 @@ import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.
 import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.PostBuildResponse;
 import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.PostRunRequest;
 import com.cdad.project.gradingservice.serviceclient.executionservice.exchanges.PostRunResponse;
-import lombok.extern.log4j.Log4j;
-import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
@@ -29,10 +30,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,12 +40,13 @@ public class SubmissionService {
     final private AssignmentServiceClient assignmentServiceClient;
     final private SubmissionRepository submissionRepository;
     final private ExecutionServiceClient executionServiceClient;
-
-    public SubmissionService(ModelMapper modelMapper, AssignmentServiceClient assignmentServiceClient, SubmissionRepository submissionRepository, ExecutionServiceClient executionServiceClient) {
+    final private ClassroomServiceClient classroomServiceClient;
+    public SubmissionService(ModelMapper modelMapper, AssignmentServiceClient assignmentServiceClient, SubmissionRepository submissionRepository, ExecutionServiceClient executionServiceClient, ClassroomServiceClient classroomServiceClient) {
         this.modelMapper = modelMapper;
         this.assignmentServiceClient = assignmentServiceClient;
         this.submissionRepository = submissionRepository;
         this.executionServiceClient = executionServiceClient;
+        this.classroomServiceClient = classroomServiceClient;
     }
 
     public SubmissionEntity save(SubmissionEntity submissionEntity) {
@@ -337,14 +336,29 @@ public class SubmissionService {
                 .anyMatch(testResult -> testResult.getStatus().equals(ResultStatus.FAILED));
     }
 
-    public List<SubmissionDetailsDTO> getSubmissionDetails(String classroomSlug, String assignmentId) {
+    public GetSubmissionDetails getSubmissionDetails(String classroomSlug, String assignmentId,String token) {
+        Set<String> userDetails=this.classroomServiceClient
+                .getClassroomDetails(classroomSlug,token)
+                .getEnrolledUsers()
+                .stream().map(UserDetail::getEmailId)
+                .collect(Collectors.toSet());
 
         List<SubmissionDetailsDTO> submissionDetailDTOS = this.submissionRepository
                 .findAllByClassroomSlugAndAssignmentId(classroomSlug, assignmentId)
                 .stream()
                 .map(submissionEntity -> modelMapper.map(submissionEntity, SubmissionDetailsDTO.class))
                 .collect(Collectors.toList());
-        return submissionDetailDTOS;
+
+        Set<String> submissionRecords=submissionDetailDTOS
+                .stream()
+                .map(SubmissionDetailsDTO::getEmail)
+                .collect(Collectors.toSet());
+        userDetails.removeAll(submissionRecords);
+
+        GetSubmissionDetails response=new GetSubmissionDetails();
+        response.setCompleted(submissionDetailDTOS);
+        response.setDue(userDetails);
+        return response;
     }
 
     public List<TestResult> checkTestCases(PostBuildResponse userResponse, List<TestCase> expectedTestCase) {
