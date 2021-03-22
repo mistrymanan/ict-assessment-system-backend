@@ -11,6 +11,6 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 public class GetSubmissionDetails {
-    private List<SubmissionDetailsDTO> completed;
+    private List<SubmissionDetailsDTO> recorded;
     private Set<String> due;
 }

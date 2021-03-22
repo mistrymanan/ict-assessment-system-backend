@@ -356,7 +356,7 @@ public class SubmissionService {
         userDetails.removeAll(submissionRecords);
 
         GetSubmissionDetails response=new GetSubmissionDetails();
-        response.setCompleted(submissionDetailDTOS);
+        response.setRecorded(submissionDetailDTOS);
         response.setDue(userDetails);
         return response;
     }
