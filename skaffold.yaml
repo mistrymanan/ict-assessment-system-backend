@@ -7,16 +7,16 @@ build:
 #    - image: mananmistry/assignment-service
 #      jib:
 #        project: assignment-service
-    - image: mananmistry/submission-service
-      jib:
-        project: grading-service
+#    - image: mananmistry/submission-service
+#      jib:
+#        project: grading-service
 #    - image: mananmistry/execution-service
 #      jib:
 #        fromImage: mananmistry/jail
 #        project: execution-service
-#    - image: mananmistry/classroom-service
-#      jib:
-#        project: classroom-service
+    - image: mananmistry/classroom-service
+      jib:
+        project: classroom-service
 #    - image: mananmistry/user-service
 #      jib:
 #        project: user-service
@@ -27,10 +27,10 @@ deploy:
   kubectl:
     manifests:
 #    - assignment-service/k8s*
-    - grading-service/k8s*
+#    - grading-service/k8s*
 #    - execution-service/k8*
 #    - notification-service/k8s*
-#    - classroom-service/k8s*
+    - classroom-service/k8s*
 
 #profiles:
 #  - name: gcp
