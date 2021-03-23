@@ -4,6 +4,7 @@ import com.cdad.project.classroomservice.dto.AdminClassroomDetailsDTO;
 import com.cdad.project.classroomservice.dto.ClassroomAndUserDetailsDTO;
 import com.cdad.project.classroomservice.entity.Classroom;
 import com.cdad.project.classroomservice.entity.CurrentUser;
+import com.cdad.project.classroomservice.exceptions.AdminClassroomAccessDenied;
 import com.cdad.project.classroomservice.exceptions.ClassroomAccessForbidden;
 import com.cdad.project.classroomservice.exceptions.ClassroomNotFound;
 import com.cdad.project.classroomservice.repository.ClassroomRepository;
@@ -29,7 +30,9 @@ public class AdminClassroomService {
         this.modelMapper = modelMapper;
         this.userServiceClient = userServiceClient;
     }
-    public List<AdminClassroomDetailsDTO> getAllClassrooms(){
+    public List<AdminClassroomDetailsDTO> getAllClassrooms(Jwt jwt) throws AdminClassroomAccessDenied {
+        CurrentUser currentUser=CurrentUser.fromJwt(jwt);
+        if(currentUser.getIsAdmin()){
         List<Classroom> classrooms=this.classroomRepository.findAll();
         return classrooms.stream().map(classroom -> {
             AdminClassroomDetailsDTO adminClassroomDetailsDTO= this.modelMapper.map(classroom,AdminClassroomDetailsDTO.class);
@@ -37,6 +40,10 @@ public class AdminClassroomService {
             adminClassroomDetailsDTO.setTotalInstructors(classroom.getInstructors().size());
             return adminClassroomDetailsDTO;
         }).collect(Collectors.toList());
+        }
+        else{
+            throw new AdminClassroomAccessDenied("You are not Admin.");
+        }
     }
 
     public void removeClassroom(String classroomSlug, Jwt jwt) throws ClassroomNotFound{
@@ -53,42 +60,42 @@ public class AdminClassroomService {
 //        }
     }
 
-    public ClassroomAndUserDetailsDTO getClassroom(String classroomSlug, Jwt jwt)  throws ClassroomNotFound{
-        CurrentUser user = CurrentUser.fromJwt(jwt);
-        Optional<Classroom> optionalClassroom = classroomRepository.getClassroomBySlug(classroomSlug);
-        if (optionalClassroom.isPresent()) {
-            Classroom classroom = optionalClassroom.orElseThrow(() -> new ClassroomNotFound("Classroom Not Found."));
-            //check user authorization then send the details
-//            if (classroom.getEnrolledUsers().contains(user.getEmail())
-//                    || classroom.getInstructors().contains(user.getEmail()) || classroom.getOwnerEmail().equals(user.getEmail())) {
-                return getClassroomAndUserDetails(classroom, jwt);
-//            } else {
-//                throw new ClassroomAccessForbidden("You are neither Instructor nor Student for Title: "
-//                        + classroom.getTitle() + " Class.");
-//            }
-        }
-        return null;
-    }
+//    public ClassroomAndUserDetailsDTO getClassroom(String classroomSlug, Jwt jwt)  throws ClassroomNotFound{
+//        CurrentUser user = CurrentUser.fromJwt(jwt);
+//        Optional<Classroom> optionalClassroom = classroomRepository.getClassroomBySlug(classroomSlug);
+//        if (optionalClassroom.isPresent()) {
+//            Classroom classroom = optionalClassroom.orElseThrow(() -> new ClassroomNotFound("Classroom Not Found."));
+//            //check user authorization then send the details
+////            if (classroom.getEnrolledUsers().contains(user.getEmail())
+////                    || classroom.getInstructors().contains(user.getEmail()) || classroom.getOwnerEmail().equals(user.getEmail())) {
+//                return getClassroomAndUserDetails(classroom, jwt);
+////            } else {
+////                throw new ClassroomAccessForbidden("You are neither Instructor nor Student for Title: "
+////                        + classroom.getTitle() + " Class.");
+////            }
+//        }
+//        return null;
+//    }
 
-    public ClassroomAndUserDetailsDTO getClassroomAndUserDetails(Classroom classroom, Jwt jwt) {
-        ClassroomAndUserDetailsDTO classroomAndUserDetailsDTO = this.modelMapper.map(classroom, ClassroomAndUserDetailsDTO.class);
-        GetUsersDetailsResponse instructorsDetails;
-        GetUsersDetailsResponse enrolledUserDetails;
-        if (classroom.getInstructors() != null && classroom.getInstructors().size() > 0) {
-            instructorsDetails = getUsersDetail(classroom.getInstructors(), jwt);
-            classroomAndUserDetailsDTO.setInstructors(instructorsDetails.getUsersDetail());
-        }
-        if (classroom.getEnrolledUsers() != null && classroom.getEnrolledUsers().size() > 0) {
-            enrolledUserDetails = getUsersDetail(classroom.getEnrolledUsers(), jwt);
-            classroomAndUserDetailsDTO.setEnrolledUsers(enrolledUserDetails.getUsersDetail());
-        }
-        return classroomAndUserDetailsDTO;
-    }
+//    public ClassroomAndUserDetailsDTO getClassroomAndUserDetails(Classroom classroom, Jwt jwt) {
+//        ClassroomAndUserDetailsDTO classroomAndUserDetailsDTO = this.modelMapper.map(classroom, ClassroomAndUserDetailsDTO.class);
+//        GetUsersDetailsResponse instructorsDetails;
+//        GetUsersDetailsResponse enrolledUserDetails;
+//        if (classroom.getInstructors() != null && classroom.getInstructors().size() > 0) {
+//            instructorsDetails = getUsersDetail(classroom.getInstructors(), jwt);
+//            classroomAndUserDetailsDTO.setInstructors(instructorsDetails.getUsersDetail());
+//        }
+//        if (classroom.getEnrolledUsers() != null && classroom.getEnrolledUsers().size() > 0) {
+//            enrolledUserDetails = getUsersDetail(classroom.getEnrolledUsers(), jwt);
+//            classroomAndUserDetailsDTO.setEnrolledUsers(enrolledUserDetails.getUsersDetail());
+//        }
+//        return classroomAndUserDetailsDTO;
+//    }
 
-    private GetUsersDetailsResponse getUsersDetail(HashSet<String> users, Jwt jwt) {
-        GetUsersDetailRequest request = new GetUsersDetailRequest();
-        request.setUsersEmail(users);
-        return this.userServiceClient.getUsersDetails(request, jwt);
-    }
+//    private GetUsersDetailsResponse getUsersDetail(HashSet<String> users, Jwt jwt) {
+//        GetUsersDetailRequest request = new GetUsersDetailRequest();
+//        request.setUsersEmail(users);
+//        return this.userServiceClient.getUsersDetails(request, jwt);
+//    }
 
 }

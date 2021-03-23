@@ -6,6 +6,7 @@ import com.cdad.project.classroomservice.entity.Classroom;
 import com.cdad.project.classroomservice.exceptions.ClassroomAccessForbidden;
 import com.cdad.project.classroomservice.exceptions.ClassroomAlreadyExists;
 import com.cdad.project.classroomservice.exceptions.ClassroomNotFound;
+import com.cdad.project.classroomservice.exceptions.NotAuthorizedForClassroomCreation;
 import com.cdad.project.classroomservice.exchanges.CreateClassroomRequest;
 import com.cdad.project.classroomservice.exchanges.GetClassroomsResponse;
 import com.cdad.project.classroomservice.service.ClassroomService;
@@ -43,7 +44,7 @@ public class ClassroomController {
 
     @PostMapping("")
     @ResponseStatus(HttpStatus.CREATED)
-    Classroom createClassroom(@RequestBody @Valid CreateClassroomRequest createClassroomRequest, @AuthenticationPrincipal Jwt jwt) throws ClassroomAlreadyExists {
+    Classroom createClassroom(@RequestBody @Valid CreateClassroomRequest createClassroomRequest, @AuthenticationPrincipal Jwt jwt) throws ClassroomAlreadyExists, NotAuthorizedForClassroomCreation {
         return classroomService.addClassroom(createClassroomRequest, jwt);
     }
 
@@ -74,6 +75,14 @@ public class ClassroomController {
     ErrorResponse handleClassroomAccessForbidden(ClassroomAccessForbidden e) {
         ErrorResponse errorResponse = modelMapper.map(e, ErrorResponse.class);
         errorResponse.setError("Classroom Access Forbidden");
+        return errorResponse;
+    }
+
+    @ExceptionHandler(NotAuthorizedForClassroomCreation.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    ErrorResponse handle(NotAuthorizedForClassroomCreation e) {
+        ErrorResponse errorResponse = modelMapper.map(e, ErrorResponse.class);
+        errorResponse.setError("Not Authorized");
         return errorResponse;
     }
 }

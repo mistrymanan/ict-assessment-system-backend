@@ -7,6 +7,7 @@ import com.cdad.project.classroomservice.entity.CurrentUser;
 import com.cdad.project.classroomservice.exceptions.ClassroomAccessForbidden;
 import com.cdad.project.classroomservice.exceptions.ClassroomAlreadyExists;
 import com.cdad.project.classroomservice.exceptions.ClassroomNotFound;
+import com.cdad.project.classroomservice.exceptions.NotAuthorizedForClassroomCreation;
 import com.cdad.project.classroomservice.exchanges.*;
 import com.cdad.project.classroomservice.repository.ClassroomRepository;
 import com.cdad.project.classroomservice.serviceclient.notificationservice.NotificationServiceClient;
@@ -87,8 +88,10 @@ public class ClassroomService {
         Optional<Classroom> optionalClassroom = classroomRepository.getClassroomBySlug(classroomSlug);
         if (optionalClassroom.isPresent()) {
             Classroom classroom = optionalClassroom.orElseThrow(() -> new ClassroomNotFound("Classroom Not Found."));
-            if (classroom.getEnrolledUsers().contains(user.getEmail())
-                    || classroom.getInstructors().contains(user.getEmail()) || classroom.getOwnerEmail().equals(user.getEmail())) {
+            if (user.getIsAdmin()
+                    || classroom.getEnrolledUsers().contains(user.getEmail())
+                    || classroom.getInstructors().contains(user.getEmail())
+                    || classroom.getOwnerEmail().equals(user.getEmail())) {
                 return getClassroomAndUserDetails(classroom, jwt);
             } else {
                 throw new ClassroomAccessForbidden("You are neither Instructor nor Student for Title: "
@@ -119,8 +122,9 @@ public class ClassroomService {
         return this.userServiceClient.getUsersDetails(request, jwt);
     }
 
-    public Classroom addClassroom(CreateClassroomRequest request, Jwt jwt) throws ClassroomAlreadyExists {
+    public Classroom addClassroom(CreateClassroomRequest request, Jwt jwt) throws ClassroomAlreadyExists, NotAuthorizedForClassroomCreation {
         CurrentUser currentUser = CurrentUser.fromJwt(jwt);
+        if(currentUser.getAllowedClassroomCreation()){
         String classroomSlug = slugify(request.getTitle());
         if (!classroomRepository.existsBySlug(classroomSlug)) {
             Classroom classroom = saveNew(request, jwt);
@@ -135,6 +139,10 @@ public class ClassroomService {
                     "Classroom With Name:"
                             + request.getTitle()
                             + " already exists. please try again with different name.");
+        }
+        }
+        else{
+            throw new NotAuthorizedForClassroomCreation("You are not Authorized to Create Classroom.");
         }
     }
 
