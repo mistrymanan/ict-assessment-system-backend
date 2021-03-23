@@ -15,6 +15,8 @@ import com.cdad.project.executionservice.service.BuildService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -42,37 +44,8 @@ public class BuildController {
     }
 
     @PostMapping("/builds")
-    public BuildOutput postBuild(@RequestBody PostBuildRequest postBuildRequest) throws IOException, InterruptedException, BuildCompilationErrorException {
-        ProgramInput programInput = new ProgramInput();
-        programInput.setSourceCode(postBuildRequest.getSourceCode());
-        programInput.setLanguage(postBuildRequest.getLanguage());
-        List<TestInput> testInputs = postBuildRequest.getInputs();
-        BaseExecutor executor = (BaseExecutor) this.executorFactory.createExecutor(programInput);
-        List<TestOutput> testOutputs = null;
-        try {
-            testOutputs = executor.run(testInputs);
-        } catch (CompilationErrorException e) {
-            BuildCompilationErrorException buildCompilationErrorException = new BuildCompilationErrorException(e.getMessage());
-            modelMapper.map(programInput, buildCompilationErrorException);
-            modelMapper.map(executor, buildCompilationErrorException);
-
-            throw buildCompilationErrorException;
-        } finally {
-            executor.clean();
-        }
-
-        BuildOutput buildOutput = new BuildOutput();
-        buildOutput.setId(executor.getBuildId());
-        buildOutput.setTestOutputs(testOutputs);
-        buildOutput.setStatus(executor.getStatus());
-        BuildEntity buildEntity = modelMapper.map(buildOutput, BuildEntity.class);
-        buildEntity.setLanguage(programInput.getLanguage());
-        buildEntity.setSourceCode(programInput.getSourceCode());
-        buildEntity.setTimeStamp(LocalDateTime.now());
-        this.buildService.save(buildEntity);
-
-
-        return buildOutput;
+    public BuildOutput postBuild(@RequestBody PostBuildRequest postBuildRequest, @AuthenticationPrincipal Jwt jwt) throws IOException, InterruptedException, BuildCompilationErrorException {
+        return this.buildService.postBuild(postBuildRequest,jwt);
     }
 
     @GetMapping("/builds/{buildId}")
@@ -90,31 +63,13 @@ public class BuildController {
     }
 
     @PostMapping("/run")
-    public TestOutput postRun(@RequestBody PostRunRequest postRunRequest) throws IOException, InterruptedException, CompilationErrorException {
-        ProgramInput programInput = new ProgramInput();
-        programInput.setSourceCode(postRunRequest.getSourceCode());
-        programInput.setLanguage(postRunRequest.getLanguage());
-        Executor executor = this.executorFactory.createExecutor(programInput);
-        TestOutput testOutput = executor.run(postRunRequest.getInput());
-        executor.clean(); // we don't need it in synchronous manner. clean up task can be asynchronous.
-        return testOutput;
+    public TestOutput postRun(@RequestBody PostRunRequest postRunRequest,@AuthenticationPrincipal Jwt jwt) throws IOException, InterruptedException, CompilationErrorException {
+        return this.buildService.postRun(postRunRequest,jwt);
     }
 
     @PostMapping("/run-multiple")
-    public BuildOutput postRunMultiple(@RequestBody PostBuildRequest postBuildRequest) throws IOException, InterruptedException, CompilationErrorException {
-        ProgramInput programInput = new ProgramInput();
-        programInput.setSourceCode(postBuildRequest.getSourceCode());
-        programInput.setLanguage(postBuildRequest.getLanguage());
-        List<TestInput> testInputs = postBuildRequest.getInputs();
-        BaseExecutor executor = (BaseExecutor) this.executorFactory.createExecutor(programInput);
-        List<TestOutput> testOutputs = executor.run(testInputs);
-        BuildOutput buildOutput = new BuildOutput();
-        buildOutput.setId(executor.getBuildId());
-        buildOutput.setTestOutputs(testOutputs);
-        buildOutput.setStatus(executor.getStatus());
-        executor.clean();
-
-        return buildOutput;
+    public BuildOutput postRunMultiple(@RequestBody PostBuildRequest postBuildRequest,@AuthenticationPrincipal Jwt jwt) throws IOException, InterruptedException, CompilationErrorException {
+        return this.buildService.postRunMultiple(postBuildRequest,jwt);
     }
 
     @ExceptionHandler(CompilationErrorException.class)
@@ -125,8 +80,7 @@ public class BuildController {
     @ExceptionHandler(NoSuchElementException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handle(Exception e) {
-        ErrorResponse errorResponse = modelMapper.map(e, ErrorResponse.class);
-        return errorResponse;
+        return modelMapper.map(e, ErrorResponse.class);
     }
 
     @ExceptionHandler(BuildCompilationErrorException.class)
