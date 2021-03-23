@@ -3,6 +3,7 @@ package com.cdad.project.userservice.service;
 import com.cdad.project.userservice.dto.UserDetails;
 import com.cdad.project.userservice.entity.CurrentUser;
 import com.cdad.project.userservice.entity.User;
+import com.cdad.project.userservice.exceptions.NotAuthorized;
 import com.cdad.project.userservice.exceptions.UserNotFoundException;
 import com.cdad.project.userservice.exchanges.*;
 import com.cdad.project.userservice.repository.UserRepository;
@@ -110,6 +111,29 @@ public class UserService {
         } else {
             throw new UserNotFoundException("User with EmailId:" + emailId + " Not Found");
         }
+    }
+    public void toggleAdminRights(String emailId,Jwt jwt) throws UserNotFoundException, NotAuthorized {
+        if(CurrentUser.fromJwt(jwt).getIsAdmin()){
+            User user=getByEmailId(emailId);
+            Boolean adminStatus=user.getIsAdmin();
+            user.setIsAdmin(!adminStatus);
+            this.userRepository.save(user);
+        }
+        else{
+            throw new NotAuthorized("You don't have access to update Admin Rights");
+        }
+
+    }
+    public void toggleClassroomCreationPermission(String emailId,Jwt jwt) throws UserNotFoundException, NotAuthorized {
+        if(CurrentUser.fromJwt(jwt).getIsAdmin()){
+        User user=getByEmailId(emailId);
+        Boolean allowedClassroomCreation=user.getAllowedClassroomCreation();
+        user.setAllowedClassroomCreation(!allowedClassroomCreation);
+        this.userRepository.save(user);
+    }
+        else{
+        throw new NotAuthorized("You don't have access to update Classroom Creation Rights");
+    }
     }
 
     public GetUsersDetailsResponse getUsersData(GetUsersDetailRequest request) {

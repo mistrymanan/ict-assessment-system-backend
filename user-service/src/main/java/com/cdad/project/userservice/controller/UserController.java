@@ -3,6 +3,7 @@ package com.cdad.project.userservice.controller;
 import com.cdad.project.userservice.dto.ErrorResponse;
 import com.cdad.project.userservice.entity.User;
 import com.cdad.project.userservice.exceptions.InvalidSecretKeyException;
+import com.cdad.project.userservice.exceptions.NotAuthorized;
 import com.cdad.project.userservice.exceptions.UserNotFoundException;
 import com.cdad.project.userservice.exchanges.CreateUserRequest;
 import com.cdad.project.userservice.exchanges.GetUsersDetailRequest;
@@ -50,6 +51,18 @@ public class UserController {
     User updateUserInfo(@PathVariable String emailId, @AuthenticationPrincipal Jwt jwt) throws UserNotFoundException {
         return userService.updateUserMetadata(emailId, jwt);
     }
+
+    @PatchMapping("{emailId}/adminAccess")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    void updateUserAdminStatus(@PathVariable String emailId,@AuthenticationPrincipal Jwt jwt) throws UserNotFoundException, NotAuthorized {
+        userService.toggleAdminRights(emailId,jwt);
+    }
+    @PatchMapping("{emailId}/createClassroomAccess")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    void updateUserClassroomCreateAccess(@PathVariable String emailId,@AuthenticationPrincipal Jwt jwt) throws UserNotFoundException, NotAuthorized {
+        userService.toggleClassroomCreationPermission(emailId,jwt);
+    }
+
 
     public void checkSecret(HttpServletRequest req) throws InvalidSecretKeyException {
         String key = req.getHeader("X-Secret");

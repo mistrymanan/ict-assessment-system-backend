@@ -14,9 +14,11 @@ import java.util.HashSet;
 @ToString
 public class User {
     @Id
-    String emailId;
-    String name;
-    String picture;
+    private String emailId;
+    private String name;
+    private String picture;
+    private Boolean isAdmin;
+    private Boolean allowedClassroomCreation;
     HashSet<String> instructClassrooms;
     HashSet<String> enrolledClassrooms;
 }
