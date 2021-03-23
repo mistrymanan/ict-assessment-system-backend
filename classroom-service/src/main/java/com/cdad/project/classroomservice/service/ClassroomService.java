@@ -204,14 +204,16 @@ public class ClassroomService {
 
     }
 
-    public void unrollUsersFromClassroom(RemoveUsersRequest request, String classroomSlug, Jwt jwt) throws ClassroomNotFound, ClassroomAccessForbidden {
+    public void unrollUsersFromClassroom(String  email, String classroomSlug, Jwt jwt) throws ClassroomNotFound, ClassroomAccessForbidden {
         CurrentUser currentUser = CurrentUser.fromJwt(jwt);
         Classroom classroom = classroomRepository.getClassroomBySlug(classroomSlug)
                 .orElseThrow(() -> new ClassroomNotFound("The Classroom doesn't exists"));
         if (classroom.getOwnerEmail().equals(currentUser.getEmail())
                 || classroom.getInstructors().contains(currentUser.getEmail())) {
-            userServiceClient.unrollUsersFromClass(classroomSlug, request.getUsers(), jwt);
-            classroom.getEnrolledUsers().removeAll(request.getUsers());
+            HashSet<String> userSet=new HashSet<>();
+            userSet.add(email);
+            userServiceClient.unrollUsersFromClass(classroomSlug,userSet, jwt);
+            classroom.getEnrolledUsers().remove(email);
             classroomRepository.save(classroom);
         } else {
             throw new ClassroomAccessForbidden("you don't have Sufficient Authorization to unroll Users.");
