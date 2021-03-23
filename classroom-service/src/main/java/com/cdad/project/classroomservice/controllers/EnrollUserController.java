@@ -31,9 +31,9 @@ public class EnrollUserController {
         classroomService.enrollUsersToClassroom(request, classroomSlug, jwt);
     }
 
-    @DeleteMapping("")
-    void removeUsers(@PathVariable String classroomSlug, @RequestBody @Valid RemoveUsersRequest request, @AuthenticationPrincipal Jwt jwt) throws ClassroomAccessForbidden, ClassroomNotFound {
-        classroomService.unrollUsersFromClassroom(request, classroomSlug, jwt);
+    @DeleteMapping("{email}")
+    void removeUsers(@PathVariable String classroomSlug, @PathVariable String email, @AuthenticationPrincipal Jwt jwt) throws ClassroomAccessForbidden, ClassroomNotFound {
+        classroomService.unrollUsersFromClassroom(email, classroomSlug, jwt);
     }
 
     @ExceptionHandler(ClassroomNotFound.class)
