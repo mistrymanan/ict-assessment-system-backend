@@ -39,7 +39,7 @@ public class AdminClassroomService {
         }).collect(Collectors.toList());
     }
 
-    public void removeClassroom(String classroomSlug, Jwt jwt) throws ClassroomNotFound, ClassroomAccessForbidden {
+    public void removeClassroom(String classroomSlug, Jwt jwt) throws ClassroomNotFound{
         CurrentUser currentUser = CurrentUser.fromJwt(jwt);
         Classroom classroom = classroomRepository.getClassroomBySlug(classroomSlug)
                 .orElseThrow(() -> new ClassroomNotFound("The Classroom that you are trying to delete doesn't exists"));
@@ -53,7 +53,7 @@ public class AdminClassroomService {
 //        }
     }
 
-    public ClassroomAndUserDetailsDTO getClassroom(String classroomSlug, Jwt jwt)  throws ClassroomNotFound, ClassroomAccessForbidden {
+    public ClassroomAndUserDetailsDTO getClassroom(String classroomSlug, Jwt jwt)  throws ClassroomNotFound{
         CurrentUser user = CurrentUser.fromJwt(jwt);
         Optional<Classroom> optionalClassroom = classroomRepository.getClassroomBySlug(classroomSlug);
         if (optionalClassroom.isPresent()) {
