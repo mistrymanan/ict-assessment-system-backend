@@ -14,12 +14,12 @@ build:
 #      jib:
 #        fromImage: mananmistry/jail
 #        project: execution-service
-    - image: mananmistry/classroom-service
-      jib:
-        project: classroom-service
-#    - image: mananmistry/user-service
+#    - image: mananmistry/classroom-service
 #      jib:
-#        project: user-service
+#        project: classroom-service
+    - image: mananmistry/user-service
+      jib:
+        project: user-service
 #    - image: mananmistry/notification-service
 #      jib:
 #        project: notification-service-v1
@@ -30,7 +30,8 @@ deploy:
 #    - grading-service/k8s*
 #    - execution-service/k8*
 #    - notification-service/k8s*
-    - classroom-service/k8s*
+#    - classroom-service/k8s*
+    - user-service/k8s*
 
 #profiles:
 #  - name: gcp

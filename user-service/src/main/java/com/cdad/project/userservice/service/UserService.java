@@ -1,5 +1,6 @@
 package com.cdad.project.userservice.service;
 
+import com.cdad.project.userservice.dto.AdminUserDetails;
 import com.cdad.project.userservice.dto.UserDetails;
 import com.cdad.project.userservice.entity.CurrentUser;
 import com.cdad.project.userservice.entity.User;
@@ -13,6 +14,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -154,6 +156,17 @@ public class UserService {
         GetUsersDetailsResponse response = new GetUsersDetailsResponse();
         response.setUsersDetail(usersDetail);
         return response;
+    }
+    public List<AdminUserDetails> getAllUser(Jwt jwt) throws NotAuthorized {
+        CurrentUser currentUser=CurrentUser.fromJwt(jwt);
+        if (currentUser.getIsAdmin()){
+            return this.userRepository.findAll().stream().map(user -> modelMapper
+                    .map(user,AdminUserDetails.class))
+                    .collect(Collectors.toList());
+        }
+        else{
+            throw new NotAuthorized("You are not Authorized to perform this action.");
+        }
     }
 
 }

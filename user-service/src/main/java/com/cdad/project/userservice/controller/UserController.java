@@ -1,5 +1,6 @@
 package com.cdad.project.userservice.controller;
 
+import com.cdad.project.userservice.dto.AdminUserDetails;
 import com.cdad.project.userservice.dto.ErrorResponse;
 import com.cdad.project.userservice.entity.User;
 import com.cdad.project.userservice.exceptions.InvalidSecretKeyException;
@@ -17,6 +18,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.Objects;
 
 
@@ -45,6 +47,10 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     User createUser(@RequestBody CreateUserRequest user, @AuthenticationPrincipal Jwt jwt) {
         return userService.save(user);
+    }
+    @GetMapping("admin")
+    List<AdminUserDetails> getAllUsers(@AuthenticationPrincipal Jwt jwt) throws NotAuthorized {
+    return userService.getAllUser(jwt);
     }
 
     @PatchMapping("{emailId:.+}")
@@ -78,7 +84,7 @@ public class UserController {
         return new ErrorResponse("Not Found", e.getMessage());
     }
 
-    @ExceptionHandler(InvalidSecretKeyException.class)
+    @ExceptionHandler({InvalidSecretKeyException.class,NotAuthorized.class})
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public void forbidden() {
     }
