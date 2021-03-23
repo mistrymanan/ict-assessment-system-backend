@@ -7,6 +7,7 @@ import com.cdad.project.userservice.exceptions.NotAuthorized;
 import com.cdad.project.userservice.exceptions.UserNotFoundException;
 import com.cdad.project.userservice.exchanges.*;
 import com.cdad.project.userservice.repository.UserRepository;
+import com.google.firebase.auth.FirebaseAuthException;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
@@ -17,15 +18,20 @@ import java.util.*;
 public class UserService {
     final private ModelMapper modelMapper;
     final private UserRepository userRepository;
+    final private FirebaseAdminManagementService firebaseAdminManagementService;
 
-    public UserService(ModelMapper modelMapper, UserRepository userRepository) {
+    public UserService(ModelMapper modelMapper, UserRepository userRepository, FirebaseAdminManagementService firebaseAdminManagementService) {
         this.modelMapper = modelMapper;
         this.userRepository = userRepository;
+        this.firebaseAdminManagementService = firebaseAdminManagementService;
     }
 
     public User save(CreateUserRequest userRequest) {
         System.out.println(userRequest.getEmailId());
-        return this.userRepository.save(modelMapper.map(userRequest, User.class));
+        User user=modelMapper.map(userRequest, User.class);
+        user.setAllowedClassroomCreation(false);
+        user.setIsAdmin(false);
+        return this.userRepository.save(user);
     }
 
     public void enrollUsers(EnrollUsersRequest request) {
@@ -112,23 +118,24 @@ public class UserService {
             throw new UserNotFoundException("User with EmailId:" + emailId + " Not Found");
         }
     }
-    public void toggleAdminRights(String emailId,Jwt jwt) throws UserNotFoundException, NotAuthorized {
+    public void toggleAdminRights(String emailId,Jwt jwt) throws UserNotFoundException, NotAuthorized, FirebaseAuthException {
         if(CurrentUser.fromJwt(jwt).getIsAdmin()){
             User user=getByEmailId(emailId);
             Boolean adminStatus=user.getIsAdmin();
             user.setIsAdmin(!adminStatus);
+            firebaseAdminManagementService.setAdminRights(emailId,!adminStatus);
             this.userRepository.save(user);
         }
         else{
             throw new NotAuthorized("You don't have access to update Admin Rights");
         }
-
     }
-    public void toggleClassroomCreationPermission(String emailId,Jwt jwt) throws UserNotFoundException, NotAuthorized {
+    public void toggleClassroomCreationPermission(String emailId,Jwt jwt) throws UserNotFoundException, NotAuthorized, FirebaseAuthException {
         if(CurrentUser.fromJwt(jwt).getIsAdmin()){
         User user=getByEmailId(emailId);
         Boolean allowedClassroomCreation=user.getAllowedClassroomCreation();
         user.setAllowedClassroomCreation(!allowedClassroomCreation);
+        firebaseAdminManagementService.setClassroomCreationRights(emailId,!allowedClassroomCreation);
         this.userRepository.save(user);
     }
         else{

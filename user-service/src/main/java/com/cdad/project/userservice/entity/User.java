@@ -17,6 +17,7 @@ public class User {
     private String emailId;
     private String name;
     private String picture;
+    private String userId;
     private Boolean isAdmin;
     private Boolean allowedClassroomCreation;
     HashSet<String> instructClassrooms;

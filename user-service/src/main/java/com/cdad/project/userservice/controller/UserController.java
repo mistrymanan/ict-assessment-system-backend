@@ -9,6 +9,7 @@ import com.cdad.project.userservice.exchanges.CreateUserRequest;
 import com.cdad.project.userservice.exchanges.GetUsersDetailRequest;
 import com.cdad.project.userservice.exchanges.GetUsersDetailsResponse;
 import com.cdad.project.userservice.service.UserService;
+import com.google.firebase.auth.FirebaseAuthException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -54,12 +55,12 @@ public class UserController {
 
     @PatchMapping("{emailId}/adminAccess")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    void updateUserAdminStatus(@PathVariable String emailId,@AuthenticationPrincipal Jwt jwt) throws UserNotFoundException, NotAuthorized {
+    void updateUserAdminStatus(@PathVariable String emailId,@AuthenticationPrincipal Jwt jwt) throws UserNotFoundException, NotAuthorized, FirebaseAuthException {
         userService.toggleAdminRights(emailId,jwt);
     }
     @PatchMapping("{emailId}/createClassroomAccess")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    void updateUserClassroomCreateAccess(@PathVariable String emailId,@AuthenticationPrincipal Jwt jwt) throws UserNotFoundException, NotAuthorized {
+    void updateUserClassroomCreateAccess(@PathVariable String emailId,@AuthenticationPrincipal Jwt jwt) throws UserNotFoundException, NotAuthorized, FirebaseAuthException {
         userService.toggleClassroomCreationPermission(emailId,jwt);
     }
 

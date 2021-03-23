@@ -16,12 +16,15 @@ public class CurrentUser {
     private String picture;
     private Boolean isAdmin;
     private Boolean allowedClassroomCreation;
+    private String userId;
+
     public static CurrentUser fromJwt(Jwt jwt) {
         String name = jwt.getClaimAsString("name");
         String email = jwt.getClaimAsString("email");
         String picture = jwt.getClaimAsString("picture");
         Boolean isAdmin= jwt.getClaimAsBoolean("isAdmin");
         Boolean hasCreateClassroomRights= jwt.getClaimAsBoolean("hasCreateClassroomRights");
-        return new CurrentUser(name, email, picture,isAdmin,hasCreateClassroomRights);
+        String userId=jwt.getClaimAsString("user_id");
+        return new CurrentUser(name, email, picture,isAdmin,hasCreateClassroomRights,userId);
     }
 }
