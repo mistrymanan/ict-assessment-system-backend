@@ -1,5 +1,6 @@
 package com.cdad.project.classroomservice.dto;
 
+import com.fasterxml.jackson.annotation.JacksonAnnotation;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import com.cdad.project.classroomservice.serviceclient.userservice.dtos.UserDetail;
