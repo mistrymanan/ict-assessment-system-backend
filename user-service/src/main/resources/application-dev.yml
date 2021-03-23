@@ -1,13 +1,13 @@
 spring:
   data:
     mongodb:
-      uri: mongodb://localhost:27017/user-service-db?authSource=admin
+      uri: mongodb://192.168.0.2:27017/user-service-db?authSource=admin
       database: user-service-db
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://securetoken.google.com/assessment-system-auth
+          issuer-uri: https://securetoken.google.com/assessment-system-ff99e
           jwk-set-uri: https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com
 
 server:

@@ -28,22 +28,29 @@ public class UserServiceApplication {
     }
 
     public static void main(String[] args) throws IOException, FirebaseAuthException, URISyntaxException {
+        URL resource = UserServiceApplication.class.getClassLoader().getResource("cred.json");
+        File file = new File(resource.toURI());
+        FileInputStream serviceAccount = new FileInputStream(file);
+        FirebaseOptions options = new FirebaseOptions.Builder()
+                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                .build();
+        FirebaseApp.initializeApp(options);
 //        FileInputStream serviceAccount =
   //              new FileInputStream(String.valueOf(UserServiceApplication.class.getClassLoader().getResource("cred.json")));
 //        InputStream is= UserServiceApplication.class.getClassLoader().getResourceAsStream("cred.json");
 
-        String uid="RSswiFamxocrEARR63DocvMHECM2";
-        UserRecord userRecord= FirebaseAuth.getInstance().getUser(uid);
-        System.out.println(userRecord.getCustomClaims());
-        Map<String, Object> additionalClaims = new HashMap<String, Object>();
-        additionalClaims.put("isAdmin", true);
-        additionalClaims.put("hasCreateClassroomRights", true);
-//        String customToken=FirebaseAuth.getInstance().createCustomToken("13EHylU27DPp12T2gqiRYSDE5hx2",additionalClaims);
-//        System.out.println(customToken);
-        FirebaseAuth.getInstance().setCustomUserClaims(uid,additionalClaims);
-        System.out.println(userRecord.getCustomClaims());
-        UserRecord user = FirebaseAuth.getInstance().getUser(uid);
-        System.out.println(user.getCustomClaims().get("isAdmin"));
+//        String uid="RSswiFamxocrEARR63DocvMHECM2";
+//        UserRecord userRecord= FirebaseAuth.getInstance().getUser(uid);
+//        System.out.println(userRecord.getCustomClaims());
+//        Map<String, Object> additionalClaims = new HashMap<String, Object>();
+//        additionalClaims.put("isAdmin", true);
+//        additionalClaims.put("hasCreateClassroomRights", true);
+////        String customToken=FirebaseAuth.getInstance().createCustomToken("13EHylU27DPp12T2gqiRYSDE5hx2",additionalClaims);
+////        System.out.println(customToken);
+//        FirebaseAuth.getInstance().setCustomUserClaims(uid,additionalClaims);
+//        System.out.println(userRecord.getCustomClaims());
+//        UserRecord user = FirebaseAuth.getInstance().getUser(uid);
+//        System.out.println(user.getCustomClaims().get("isAdmin"));
         SpringApplication.run(UserServiceApplication.class, args);
 
     }

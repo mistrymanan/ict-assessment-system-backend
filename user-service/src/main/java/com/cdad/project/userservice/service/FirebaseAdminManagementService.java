@@ -22,19 +22,14 @@ import java.util.Map;
 public class FirebaseAdminManagementService {
 
     public FirebaseAdminManagementService() throws URISyntaxException, IOException {
-        URL resource = UserServiceApplication.class.getClassLoader().getResource("cred.json");
-        File file = new File(resource.toURI());
-        FileInputStream serviceAccount = new FileInputStream(file);
-        FirebaseOptions options = new FirebaseOptions.Builder()
-                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                .build();
-        FirebaseApp.initializeApp(options);
+
     }
 
     public void setAdminRights(String email,Boolean isAllowed) throws FirebaseAuthException {
         Map<String, Object> additionalClaims = new HashMap<String, Object>();
         additionalClaims.put("isAdmin", isAllowed);
         setClaims(email,additionalClaims);
+
     }
     public void setClassroomCreationRights(String email,Boolean isAllowed) throws FirebaseAuthException{
         Map<String, Object> additionalClaims = new HashMap<String, Object>();
@@ -45,6 +40,7 @@ public class FirebaseAdminManagementService {
         UserRecord userRecord=FirebaseAuth.getInstance().getUserByEmail(email);
         String uid=userRecord.getUid();
         FirebaseAuth.getInstance().setCustomUserClaims(uid,additionalClaims);
+        FirebaseAuth.getInstance().revokeRefreshTokens(uid);
     }
 
 }

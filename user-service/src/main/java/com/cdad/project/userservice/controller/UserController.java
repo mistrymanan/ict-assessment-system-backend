@@ -59,7 +59,7 @@ public class UserController {
         return userService.updateUserMetadata(emailId, jwt);
     }
 
-    @PatchMapping("{emailId}/adminAccess")
+    @PatchMapping("{emailId:.+}/adminAccess")
     @ResponseStatus(HttpStatus.ACCEPTED)
     void updateUserAdminStatus(@PathVariable String emailId,@AuthenticationPrincipal Jwt jwt) throws UserNotFoundException, NotAuthorized, FirebaseAuthException {
         userService.toggleAdminRights(emailId,jwt);

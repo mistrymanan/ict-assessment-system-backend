@@ -124,8 +124,13 @@ public class UserService {
         if(CurrentUser.fromJwt(jwt).getIsAdmin()){
             User user=getByEmailId(emailId);
             Boolean adminStatus=user.getIsAdmin();
+            if(adminStatus==null){
+                user.setIsAdmin(true);
+            }
+            else{
             user.setIsAdmin(!adminStatus);
-            firebaseAdminManagementService.setAdminRights(emailId,!adminStatus);
+            }
+            firebaseAdminManagementService.setAdminRights(emailId,user.getIsAdmin());
             this.userRepository.save(user);
         }
         else{
@@ -136,8 +141,13 @@ public class UserService {
         if(CurrentUser.fromJwt(jwt).getIsAdmin()){
         User user=getByEmailId(emailId);
         Boolean allowedClassroomCreation=user.getAllowedClassroomCreation();
-        user.setAllowedClassroomCreation(!allowedClassroomCreation);
-        firebaseAdminManagementService.setClassroomCreationRights(emailId,!allowedClassroomCreation);
+        if(allowedClassroomCreation==null){
+            user.setAllowedClassroomCreation(true);
+        }
+        else{
+            user.setAllowedClassroomCreation(!allowedClassroomCreation);
+        }
+        firebaseAdminManagementService.setClassroomCreationRights(emailId,user.getAllowedClassroomCreation());
         this.userRepository.save(user);
     }
         else{
@@ -159,6 +169,7 @@ public class UserService {
     }
     public List<AdminUserDetails> getAllUser(Jwt jwt) throws NotAuthorized {
         CurrentUser currentUser=CurrentUser.fromJwt(jwt);
+        System.out.println(currentUser.getIsAdmin());
         if (currentUser.getIsAdmin()){
             return this.userRepository.findAll().stream().map(user -> modelMapper
                     .map(user,AdminUserDetails.class))
