@@ -32,7 +32,7 @@ public class AdminClassroomService {
     }
     public List<AdminClassroomDetailsDTO> getAllClassrooms(Jwt jwt) throws AdminClassroomAccessDenied {
         CurrentUser currentUser=CurrentUser.fromJwt(jwt);
-        if(currentUser.getIsAdmin()){
+        if(currentUser.getIsAdmin() !=null && currentUser.getIsAdmin()){
         List<Classroom> classrooms=this.classroomRepository.findAll();
         return classrooms.stream().map(classroom -> {
             AdminClassroomDetailsDTO adminClassroomDetailsDTO= this.modelMapper.map(classroom,AdminClassroomDetailsDTO.class);

@@ -88,7 +88,7 @@ public class ClassroomService {
         Optional<Classroom> optionalClassroom = classroomRepository.getClassroomBySlug(classroomSlug);
         if (optionalClassroom.isPresent()) {
             Classroom classroom = optionalClassroom.orElseThrow(() -> new ClassroomNotFound("Classroom Not Found."));
-            if (user.getIsAdmin()
+            if ((user.getIsAdmin() !=null && user.getIsAdmin())
                     || classroom.getEnrolledUsers().contains(user.getEmail())
                     || classroom.getInstructors().contains(user.getEmail())
                     || classroom.getOwnerEmail().equals(user.getEmail())) {
