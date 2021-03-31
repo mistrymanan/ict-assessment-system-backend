@@ -1,6 +1,7 @@
 package com.cdad.project.userservice.service;
 
 import com.cdad.project.userservice.UserServiceApplication;
+import com.cdad.project.userservice.entity.User;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
@@ -25,17 +26,24 @@ public class FirebaseAdminManagementService {
 
     }
 
-    public void setAdminRights(String email,Boolean isAllowed) throws FirebaseAuthException {
+    public void setRights(User user) throws FirebaseAuthException {
         Map<String, Object> additionalClaims = new HashMap<String, Object>();
-        additionalClaims.put("isAdmin", isAllowed);
-        setClaims(email,additionalClaims);
-
+        Boolean adminStatus=user.getIsAdmin();
+        additionalClaims.put("isAdmin", user.getIsAdmin());
+        additionalClaims.put("hasCreateClassroomRights", user.getAllowedClassroomCreation());
+        this.setClaims(user.getEmailId(),additionalClaims);
     }
-    public void setClassroomCreationRights(String email,Boolean isAllowed) throws FirebaseAuthException{
-        Map<String, Object> additionalClaims = new HashMap<String, Object>();
-        additionalClaims.put("hasCreateClassroomRights", isAllowed);
-        setClaims(email,additionalClaims);
-    }
+//    public void setAdminRights(String email,Boolean isAllowed) throws FirebaseAuthException {
+//        Map<String, Object> additionalClaims = new HashMap<String, Object>();
+//        additionalClaims.put("isAdmin", isAllowed);
+//        setClaims(email,additionalClaims);
+//
+//    }
+//    public void setClassroomCreationRights(String email,Boolean isAllowed) throws FirebaseAuthException{
+//        Map<String, Object> additionalClaims = new HashMap<String, Object>();
+//        additionalClaims.put("hasCreateClassroomRights", isAllowed);
+//        setClaims(email,additionalClaims);
+//    }
     public void setClaims(String email,Map<String,Object> additionalClaims) throws FirebaseAuthException {
         UserRecord userRecord=FirebaseAuth.getInstance().getUserByEmail(email);
         String uid=userRecord.getUid();

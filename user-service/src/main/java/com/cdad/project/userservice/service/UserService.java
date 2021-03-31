@@ -130,7 +130,7 @@ public class UserService {
             else{
             user.setIsAdmin(!adminStatus);
             }
-            firebaseAdminManagementService.setAdminRights(emailId,user.getIsAdmin());
+            firebaseAdminManagementService.setRights(user);
             this.userRepository.save(user);
         }
         else{
@@ -147,7 +147,7 @@ public class UserService {
         else{
             user.setAllowedClassroomCreation(!allowedClassroomCreation);
         }
-        firebaseAdminManagementService.setClassroomCreationRights(emailId,user.getAllowedClassroomCreation());
+        firebaseAdminManagementService.setRights(user);
         this.userRepository.save(user);
     }
         else{
