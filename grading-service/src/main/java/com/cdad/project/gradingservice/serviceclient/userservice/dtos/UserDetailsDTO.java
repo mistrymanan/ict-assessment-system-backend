@@ -1,4 +1,4 @@
-package com.cdad.project.classroomservice.serviceclient.userservice.dtos;
+package com.cdad.project.gradingservice.serviceclient.userservice.dtos;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

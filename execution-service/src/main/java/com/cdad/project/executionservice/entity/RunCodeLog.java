@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
-@Builder
 public class RunCodeLog {
     @MongoId
     private String id;

@@ -1,10 +1,10 @@
-package com.cdad.project.classroomservice.serviceclient.userservice.exchanges;
+package com.cdad.project.gradingservice.serviceclient.userservice.exchanges;
 
-import com.cdad.project.classroomservice.serviceclient.userservice.dtos.UserDetail;
+
+import com.cdad.project.gradingservice.serviceclient.userservice.dtos.UserDetail;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.HashMap;
 import java.util.List;
 
 @Data

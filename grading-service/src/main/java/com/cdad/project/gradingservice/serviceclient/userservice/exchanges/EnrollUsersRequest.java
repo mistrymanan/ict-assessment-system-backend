@@ -1,4 +1,4 @@
-package com.cdad.project.classroomservice.serviceclient.userservice.exchanges;
+package com.cdad.project.gradingservice.serviceclient.userservice.exchanges;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

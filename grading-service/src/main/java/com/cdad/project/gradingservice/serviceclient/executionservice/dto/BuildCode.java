@@ -1,7 +1,9 @@
-package com.cdad.project.executionservice.dto;
+package com.cdad.project.gradingservice.serviceclient.executionservice.dto;
 
-import com.cdad.project.executionservice.entity.Language;
+import com.cdad.project.gradingservice.entity.Language;
+import lombok.Data;
 
+@Data
 public class BuildCode {
     private String sourceCode;
     private Language language;

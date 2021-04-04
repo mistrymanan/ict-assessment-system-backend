@@ -1,11 +1,12 @@
-package com.cdad.project.classroomservice.serviceclient.userservice;
+package com.cdad.project.gradingservice.serviceclient.userservice;
 
-import com.cdad.project.classroomservice.entity.CurrentUser;
-import com.cdad.project.classroomservice.exchanges.DeleteClassroomRequest;
-import com.cdad.project.classroomservice.exchanges.GetClassroomsResponse;
-import com.cdad.project.classroomservice.serviceclient.userservice.dtos.UserDetailsDTO;
-import com.cdad.project.classroomservice.serviceclient.userservice.exceptions.UserNotFoundException;
-import com.cdad.project.classroomservice.serviceclient.userservice.exchanges.*;
+import com.cdad.project.gradingservice.entity.CurrentUser;
+import com.cdad.project.gradingservice.serviceclient.userservice.dtos.UserDetailsDTO;
+import com.cdad.project.gradingservice.serviceclient.userservice.exceptions.UserNotFoundException;
+import com.cdad.project.gradingservice.serviceclient.userservice.exchanges.AddInstructorsRequest;
+import com.cdad.project.gradingservice.serviceclient.userservice.exchanges.GetUsersDetailRequest;
+import com.cdad.project.gradingservice.serviceclient.userservice.exchanges.GetUsersDetailsResponse;
+import com.cdad.project.gradingservice.serviceclient.userservice.exchanges.RemoveInstructorsRequest;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -45,85 +46,4 @@ public class UserServiceClient {
         return getClassroomsResponse.get();
     }
 
-    public UserDetailsDTO getUserDetails(Jwt jwt) throws UserNotFoundException {
-        CurrentUser currentUser = CurrentUser.fromJwt(jwt);
-        Optional<UserDetailsDTO> userDetailsDTOOptional = webClient.get()
-                .uri(uriBuilder -> {
-                    uriBuilder.path(GET_USER_DETAILS);
-                    return uriBuilder.build(currentUser.getEmail());
-                })
-                .headers(httpHeaders -> {
-                    httpHeaders.setBearerAuth(jwt.getTokenValue());
-                    httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-                })
-                .retrieve()
-                .bodyToMono(UserDetailsDTO.class)
-                .blockOptional();
-        return userDetailsDTOOptional.orElseThrow(() -> new UserNotFoundException("User Doesn't Exist."));
-    }
-
-    public Void addInstructorToClass(String classroomSlug, HashSet<String> users, Jwt jwt) {
-        AddInstructorsRequest addInstructorsRequest = new AddInstructorsRequest(classroomSlug, users);
-        System.out.println("Sending Req to User Service");
-        return webClient.post()
-                .uri(uriBuilder -> {
-                    uriBuilder.path(INSTRUCTORS);
-                    return uriBuilder.build();
-                })
-                .headers(httpHeaders -> {
-                    httpHeaders.setBearerAuth(jwt.getTokenValue());
-                    httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-                })
-                .header("X-Secret", "top-secret-communication")
-                //.header(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON_VALUE)
-                .body(Mono.just(addInstructorsRequest), AddInstructorsRequest.class)
-                .retrieve()
-                .bodyToMono(Void.class).block();
-    }
-
-    public Void removeInstructorFromClass(String classroomSlug, HashSet<String> users, Jwt jwt) {
-        RemoveInstructorsRequest removeInstructorsRequest = new RemoveInstructorsRequest(classroomSlug, users);
-        return webClient.method(HttpMethod.DELETE)
-                .uri(INSTRUCTORS)
-                .headers(httpHeaders -> {
-                    httpHeaders.setBearerAuth(jwt.getTokenValue());
-                    httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-                })
-                .header("X-Secret", "top-secret-communication")
-                .body(Mono.just(removeInstructorsRequest), DeleteClassroomRequest.class)
-                .retrieve()
-                .bodyToMono(Void.class)
-                .block();
-    }
-
-    public Void unrollUsersFromClass(String classroomSlug, HashSet<String> users, Jwt jwt) {
-        UnrollUsersRequest unrollUsersRequest = new UnrollUsersRequest(classroomSlug, users);
-        return webClient.method(HttpMethod.DELETE)
-                .uri(ENROLL)
-                .headers(httpHeaders -> {
-                    httpHeaders.setBearerAuth(jwt.getTokenValue());
-                    httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-                })
-                .header("X-Secret", "top-secret-communication")
-                .body(Mono.just(unrollUsersRequest), UnrollUsersRequest.class)
-                .retrieve()
-                .bodyToMono(Void.class)
-                .block();
-    }
-
-    public Void enrollUsersToClass(String classroomSlug, HashSet<String> users, Jwt jwt) {
-        EnrollUsersRequest enrollUsersRequest = new EnrollUsersRequest(classroomSlug, users);
-        return webClient.post()
-                .uri(ENROLL)
-                .headers(httpHeaders -> {
-                    httpHeaders.setBearerAuth(jwt.getTokenValue());
-                    httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-                })
-                .header("X-Secret", "top-secret-communication")
-                //.header(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON_VALUE)
-                .body(Mono.just(enrollUsersRequest), EnrollUsersRequest.class)
-                .retrieve()
-                .bodyToMono(Void.class)
-                .block();
-    }
 }
