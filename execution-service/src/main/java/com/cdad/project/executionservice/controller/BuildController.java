@@ -6,6 +6,8 @@ import com.cdad.project.executionservice.entity.Status;
 import com.cdad.project.executionservice.exceptions.BuildCompilationErrorException;
 import com.cdad.project.executionservice.exceptions.BuildNotFoundException;
 import com.cdad.project.executionservice.exceptions.CompilationErrorException;
+import com.cdad.project.executionservice.exchange.GetBuildsRequest;
+import com.cdad.project.executionservice.exchange.GetBuildsResponse;
 import com.cdad.project.executionservice.exchange.PostBuildRequest;
 import com.cdad.project.executionservice.exchange.PostRunRequest;
 import com.cdad.project.executionservice.executor.BaseExecutor;
@@ -55,6 +57,11 @@ public class BuildController {
             throw new BuildNotFoundException("Build:" + buildId + " Not Found");
         }
         return this.buildService.getBuildById(buildId);
+    }
+
+    @GetMapping("/builds")
+    public GetBuildsResponse getBuilds(@RequestBody GetBuildsRequest request){
+        return this.buildService.getBuilds(request);
     }
 
     @GetMapping("/builds/all")

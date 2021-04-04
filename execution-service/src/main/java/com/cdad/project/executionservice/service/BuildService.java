@@ -5,6 +5,8 @@ import com.cdad.project.executionservice.entity.BuildEntity;
 import com.cdad.project.executionservice.entity.CurrentUser;
 import com.cdad.project.executionservice.exceptions.BuildCompilationErrorException;
 import com.cdad.project.executionservice.exceptions.CompilationErrorException;
+import com.cdad.project.executionservice.exchange.GetBuildsRequest;
+import com.cdad.project.executionservice.exchange.GetBuildsResponse;
 import com.cdad.project.executionservice.exchange.PostBuildRequest;
 import com.cdad.project.executionservice.exchange.PostRunRequest;
 import com.cdad.project.executionservice.executor.BaseExecutor;
@@ -20,7 +22,10 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class BuildService {
@@ -114,5 +119,14 @@ public class BuildService {
         executor.clean();
         this.runCodeLogService.save(postBuildRequest,buildOutput,CurrentUser.fromJwt(jwt));
         return buildOutput;
+    }
+    public GetBuildsResponse getBuilds(GetBuildsRequest request){
+        Map<String, BuildCode> data=this.buildRepository.getBuildEntitiesByIdIn(request.getBuildIds())
+                .stream().collect(Collectors.toMap(BuildEntity::getId,buildEntity -> {
+                    return this.modelMapper.map(buildEntity,BuildCode.class);
+        }));
+        GetBuildsResponse getBuildsResponse=new GetBuildsResponse();
+        getBuildsResponse.setBuilds(data);
+        return getBuildsResponse;
     }
 }
