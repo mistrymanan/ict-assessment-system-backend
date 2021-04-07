@@ -13,7 +13,8 @@ import java.util.Map;
 @Service
 public class ClassroomServiceClient {
 
-    private final String BASE_URL = "http://classroom-service.default.svc.cluster.local:8080";
+    private final String BASE_URL = "http://aas.ict.gnu.ac.in/api/classrooms";
+//    private final String BASE_URL = "http://classroom-service.default.svc.cluster.local:8080";
     private final WebClient webClient = WebClient.create(BASE_URL);
     private final String GET_CLASSROOM_DETAILS = "{classroomSlug}";
 

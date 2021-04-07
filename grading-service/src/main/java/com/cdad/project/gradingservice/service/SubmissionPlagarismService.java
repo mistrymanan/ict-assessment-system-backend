@@ -35,13 +35,18 @@ public class SubmissionPlagarismService {
         List<SubmissionEntity> submissionEntities=this.submissionRepository.findAllByAssignmentId(assignmentId);
         HashMap<String,String> userBuildIds=new HashMap<>();
         submissionEntities.forEach(submissionEntity -> {
-            submissionEntity.getQuestionEntities().forEach(
-                    questionEntity -> {
-                        if(questionEntity.getQuestionId().equals(questionId)){
-                            userBuildIds.put(submissionEntity.getEmail(), questionEntity.getBuildId());
+            try{
+                submissionEntity.getQuestionEntities().forEach(
+                        questionEntity -> {
+                            if(questionEntity.getQuestionId().equals(questionId)){
+                                userBuildIds.put(submissionEntity.getEmail(), questionEntity.getBuildId());
+                            }
                         }
-                    }
-            );
+                );
+            }
+            catch(NullPointerException nullPointerException){
+                System.out.println(submissionEntity.getEmail()+"have not submitted the question");
+            }
         });
         List<String> buildIds= new LinkedList<>(userBuildIds.values());
         Set<String> set=userBuildIds.keySet();

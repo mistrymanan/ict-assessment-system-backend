@@ -16,8 +16,8 @@ import java.util.Map;
 @Configuration
 public class AssignmentServiceClient {
     //private final String BASE_URL = "http://localhost:8082";
-    //private final String BASE_URL = "http://35.184.28.10/api/assignments";
-    private final String BASE_URL = "http://assignment-service-v2.default.svc.cluster.local:8080";
+        private final String BASE_URL = "http://aas.ict.gnu.ac.in/api/v2/assignments";
+//    private final String BASE_URL = "http://assignment-service-v2.default.svc.cluster.local:8080";
     private final WebClient webClient = WebClient.create(BASE_URL);
     private final String GET_QUESTION = "{classroomSlug}/public/questions/id";
     private final String GET_ASSIGNMENT = "{classroomSlug}/public/assignments/{assignmentId}";
