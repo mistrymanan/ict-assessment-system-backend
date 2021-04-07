@@ -1,6 +1,7 @@
 package com.cdad.project.gradingservice.service;
 
 import com.cdad.project.gradingservice.dto.UserQuestionResponseDTO;
+import com.cdad.project.gradingservice.entity.ResultStatus;
 import com.cdad.project.gradingservice.entity.SubmissionEntity;
 import com.cdad.project.gradingservice.repository.SubmissionRepository;
 import com.cdad.project.gradingservice.serviceclient.assignmentservice.AssignmentServiceClient;
@@ -38,7 +39,7 @@ public class SubmissionPlagarismService {
             try{
                 submissionEntity.getQuestionEntities().forEach(
                         questionEntity -> {
-                            if(questionEntity.getQuestionId().equals(questionId)){
+                            if(questionEntity.getQuestionId().equals(questionId)&& !questionEntity.getResultStatus().equals(ResultStatus.NOT_ACCEPTED)){
                                 userBuildIds.put(submissionEntity.getEmail(), questionEntity.getBuildId());
                             }
                         }

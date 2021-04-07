@@ -1,0 +1,18 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://root:Root_123@172.16.10.101:27017/grading-service-db?authSource=admin
+      database: grading-service-db
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://securetoken.google.com/assessment-system-ff99e
+          jwk-set-uri: https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com
+
+logging:
+  level:
+    org.springframework.security: debug
+    com.cdad.project.gradingservice: debug
+server:
+  port: 8080

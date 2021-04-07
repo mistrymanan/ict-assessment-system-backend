@@ -55,9 +55,9 @@ public class SubmissionController {
     @GetMapping("{assignmentId}")
     public GetSubmissionDetails getSubmissions(@PathVariable String classroomSlug, @PathVariable String assignmentId, @AuthenticationPrincipal Jwt jwt) throws AccessForbiddenException {
         CurrentUser currentUser = CurrentUser.fromJwt(jwt);
-        Assignment assignment = this.assignmentServiceClient
-                .getUserAssignment(assignmentId, classroomSlug, jwt.getTokenValue())
-                .block();
+//        Assignment assignment = this.assignmentServiceClient
+//                .getUserAssignment(assignmentId, classroomSlug, jwt.getTokenValue())
+//                .block();
 //        checkAccess(currentUser,assignment);
         return this.submissionService.getSubmissionDetails(classroomSlug, assignmentId,jwt.getTokenValue());
     }

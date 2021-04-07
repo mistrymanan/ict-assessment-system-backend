@@ -12,11 +12,11 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("public-plagarism")
-public class PublicPlagarismController {
+@RequestMapping("public-plagiarism")
+public class PublicPlagiarismController {
     private final SubmissionPlagarismService submissionPlagarismService;
 
-    public PublicPlagarismController(SubmissionPlagarismService submissionPlagarismService) {
+    public PublicPlagiarismController(SubmissionPlagarismService submissionPlagarismService) {
         this.submissionPlagarismService = submissionPlagarismService;
     }
 
