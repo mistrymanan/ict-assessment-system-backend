@@ -1,8 +1,8 @@
 spring:
   data:
     mongodb:
-      uri: mongodb://root:Root_123@172.16.10.101:27017/grading-service-db?authSource=admin
-      database: grading-service-db
+      uri: mongodb://root:Root_123@172.16.10.101:27017/plagiarism-service-db?authSource=admin
+      database: plagiarism-service-db
   security:
     oauth2:
       resourceserver:

@@ -1,11 +1,12 @@
-package com.cdad.project.gradingservice.dto;
+package com.cdad.project.plagiarismservice.ServiceClients;
 
-import com.cdad.project.gradingservice.entity.Language;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class UserQuestionResponseDTO {
     private String name;
     private String sourceCode;

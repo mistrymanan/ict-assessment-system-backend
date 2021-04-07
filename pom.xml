@@ -23,6 +23,8 @@
         <module>execution-service</module>
         <module>classroom-service</module>
         <module>notification-service-v1</module>
+<!--        <module>plagarism-service</module>-->
+        <module>plagiarism-service</module>
     </modules>
     <dependencies>
         <dependency>

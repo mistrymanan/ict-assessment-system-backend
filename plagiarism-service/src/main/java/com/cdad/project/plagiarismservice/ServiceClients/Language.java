@@ -1,4 +1,4 @@
-package com.cdad.project.gradingservice.entity;
+package com.cdad.project.plagiarismservice.ServiceClients;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.AllArgsConstructor;
