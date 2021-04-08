@@ -29,6 +29,7 @@ public class PlagiarismController {
         this.rabbitTemplate = rabbitTemplate;
         this.modelMapper = modelMapper;
     }
+//    @GetMapping("{questionId}")
     @GetMapping("{classroomSlug}/{assignmentId}/{questionId}")
     public List<PlagiarismDTO> checkPlagiarism(@PathVariable String classroomSlug, @PathVariable String assignmentId
             , @PathVariable String questionId

@@ -70,12 +70,12 @@ public class PlagiarismService {
     }
 
 
-    public void  createFiles(List<UserQuestionResponseDTO> submissions, String classroomSlug,String assignmentId,String questionId){
+    public void  createFiles(List<UserQuestionResponseDTO> submissions, String classroomSlug,String assignmentId,String questionId,String time){
         submissions.stream().forEach(
                 submission->{
                     try {
                         String name=submission.getName().replaceAll("\\s+","-");
-                        Path userDirectoryPath=Files.createDirectories(Path.of(classroomSlug,assignmentId,questionId,submission.getLanguage().toString(),name));
+                        Path userDirectoryPath=Files.createDirectories(Path.of(time,classroomSlug,assignmentId,questionId,submission.getLanguage().toString(),name));
                         System.out.println(userDirectoryPath.toAbsolutePath());
                         Path path=Files.createFile(Path.of(userDirectoryPath.toAbsolutePath().toString(),
                                 "Solution"+"."+this.getFileExtension(submission.getLanguage())
@@ -87,9 +87,18 @@ public class PlagiarismService {
                     }
                 }
         );
+
     }
-    public void cleanUpDirectory(String classroomSlug,String assignmentId,String questionId) throws IOException {
-        Files.deleteIfExists(Path.of(classroomSlug,assignmentId,questionId));
+    public void cleanUpDirectory(String time) {
+
+        try {
+            System.out.println("trying to delete"+Path.of(time).toAbsolutePath().toFile());
+            FileUtils.deleteDirectory(Path.of(time).toAbsolutePath().toFile());
+            System.out.println("seems like deleted");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     public String checkPlagiarismBasedOnLanguage(Language language,String pathString) throws MossException, IOException {
@@ -118,12 +127,13 @@ public class PlagiarismService {
         return results.toString();
     }
 
-    public void plagiarismCheck(String id,String classroomSlug, String assignmentId, String questionId, Jwt jwt) throws IOException {
+    public void plagiarismCheck(String id,String classroomSlug, String assignmentId, String questionId,String time, Jwt jwt) throws IOException {
+
             Plagiarism plagiarism=this.plagiarismRepository.getPlagiarismById(id);
             List<UserQuestionResponseDTO> userQuestionResponseDTOS=this.submissionServiceClient
                     .getSubmittedCodes(assignmentId,questionId,jwt);
 
-            this.createFiles(userQuestionResponseDTOS,classroomSlug,assignmentId,questionId);
+            this.createFiles(userQuestionResponseDTOS,classroomSlug,assignmentId,questionId,time);
 
         Set<Language> languages=userQuestionResponseDTOS.stream().map(UserQuestionResponseDTO::getLanguage)
                 .collect(Collectors.toSet());
@@ -131,13 +141,13 @@ public class PlagiarismService {
 //        System.out.println("printing files name");
         languages.stream().forEach(language -> {
             try {
-                String resultLink=this.checkPlagiarismBasedOnLanguage(language,classroomSlug+"/"+assignmentId+"/"+questionId+"/"+language.toString());
+                String resultLink=this.checkPlagiarismBasedOnLanguage(language,time+"/"+classroomSlug+"/"+assignmentId+"/"+questionId+"/"+language.toString());
                 plagiarism.getResultLinkMap().put(language,resultLink);
             } catch (MossException | IOException e) {
                 e.printStackTrace();
             }
         });
-        this.cleanUpDirectory(classroomSlug,assignmentId,questionId);
+        this.cleanUpDirectory(time);
         this.save(plagiarism);
         System.out.println(plagiarism);
     }
