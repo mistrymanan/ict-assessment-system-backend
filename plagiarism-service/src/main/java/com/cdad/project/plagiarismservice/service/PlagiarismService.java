@@ -1,14 +1,19 @@
 package com.cdad.project.plagiarismservice.service;
 
-import ch.qos.logback.core.util.FileUtil;
 import com.cdad.project.plagiarismservice.ServiceClients.Language;
 import com.cdad.project.plagiarismservice.ServiceClients.SubmissionServiceClient;
 import com.cdad.project.plagiarismservice.ServiceClients.UserQuestionResponseDTO;
+import com.cdad.project.plagiarismservice.config.RabbitMQConfig;
+import com.cdad.project.plagiarismservice.dto.PlagiarismDTO;
+import com.cdad.project.plagiarismservice.dto.PlagiarismMessageDTO;
+import com.cdad.project.plagiarismservice.entity.Plagiarism;
+import com.cdad.project.plagiarismservice.entity.Status;
 import com.cdad.project.plagiarismservice.repository.PlagiarismRepository;
 import it.zielke.moji.MossException;
 import it.zielke.moji.SocketClient;
-import org.apache.catalina.User;
 import org.apache.commons.io.FileUtils;
+import org.modelmapper.ModelMapper;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +22,9 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,11 +32,43 @@ import java.util.stream.Collectors;
 public class PlagiarismService {
 
     private final PlagiarismRepository plagiarismRepository;
+    private final ModelMapper modelMapper;
+    final private RabbitTemplate rabbitTemplate;
     private final SubmissionServiceClient submissionServiceClient;
-    public PlagiarismService(PlagiarismRepository plagiarismRepository, SubmissionServiceClient submissionServiceClient) {
+    public PlagiarismService(PlagiarismRepository plagiarismRepository, ModelMapper modelMapper, RabbitTemplate rabbitTemplate, SubmissionServiceClient submissionServiceClient) {
         this.plagiarismRepository = plagiarismRepository;
+        this.modelMapper = modelMapper;
+        this.rabbitTemplate = rabbitTemplate;
         this.submissionServiceClient = submissionServiceClient;
     }
+
+    public Plagiarism save(Plagiarism plagiarism){
+        return this.plagiarismRepository.save(plagiarism);
+    }
+
+    public Plagiarism requestPlagiarismReportGeneration(String classroomSlug, String assignmentId, String questionId, Jwt jwt){
+        Plagiarism plagiarism =new Plagiarism();
+        plagiarism.setClassroomSlug(classroomSlug);
+        plagiarism.setAssignmentId(assignmentId);
+        plagiarism.setQuestionId(questionId);
+        plagiarism.setTime(LocalDateTime.ofInstant(Instant.now(), ZoneId.of("Asia/Kolkata")));
+        plagiarism.setStatus(Status.PROCESSING);
+        plagiarism.setResultLinkMap(new HashMap<>());
+        plagiarism=this.save(plagiarism);
+        PlagiarismMessageDTO plagiarismMessageDTO=this.modelMapper.map(plagiarism,PlagiarismMessageDTO.class);
+        plagiarismMessageDTO.setJwtToken(jwt);
+        rabbitTemplate.convertAndSend(RabbitMQConfig.QUEUE_DIRECT_EXCHANGE,
+                RabbitMQConfig.ROUTING_KEY,plagiarismMessageDTO);
+        return plagiarism;
+    }
+    public List<PlagiarismDTO> getPlagiarisms(String classroomSlug,String assignmentId,String questionId){
+        return this.plagiarismRepository.
+                getPlagiarismByClassroomSlugAndAssignmentIdAndQuestionId(classroomSlug
+                        , assignmentId, questionId)
+                .stream().map(plagiarism -> modelMapper.map(plagiarism,PlagiarismDTO.class))
+                .collect(Collectors.toList());
+    }
+
 
     public void  createFiles(List<UserQuestionResponseDTO> submissions, String classroomSlug,String assignmentId,String questionId){
         submissions.stream().forEach(
@@ -48,15 +88,17 @@ public class PlagiarismService {
                 }
         );
     }
+    public void cleanUpDirectory(String classroomSlug,String assignmentId,String questionId) throws IOException {
+        Files.deleteIfExists(Path.of(classroomSlug,assignmentId,questionId));
+    }
 
-    public void checkPlagiarismBasedOnLanguage(Language language,String pathString) throws MossException, IOException {
+    public String checkPlagiarismBasedOnLanguage(Language language,String pathString) throws MossException, IOException {
 
     Collection<File> fileCollection= FileUtils.listFiles(new File(pathString),
             new String[]{getFileExtension(language)},true);
-        System.out.println("in checkPlagiarism function");
-            fileCollection.stream().forEach(file -> {
-                System.out.println(file.getAbsolutePath());
-            });
+//            fileCollection.stream().forEach(file -> {
+//                System.out.println(file.getAbsolutePath());
+//            });
         SocketClient socketClient=new SocketClient();
         socketClient.setUserID("875085204");
         System.out.println(language.getValue());
@@ -71,22 +113,33 @@ public class PlagiarismService {
             }
             socketClient.sendQuery();
         URL results=socketClient.getResultURL();
+
         System.out.println("Result available at "+ results.toString());
+        return results.toString();
     }
 
-    public void plagiarismCheck(String classroomSlug, String assignmentId, String questionId, Jwt jwt){
-            List<UserQuestionResponseDTO> userQuestionResponseDTOS=this.submissionServiceClient.getSubmittedCodes(assignmentId,questionId,jwt);
+    public void plagiarismCheck(String id,String classroomSlug, String assignmentId, String questionId, Jwt jwt) throws IOException {
+            Plagiarism plagiarism=this.plagiarismRepository.getPlagiarismById(id);
+            List<UserQuestionResponseDTO> userQuestionResponseDTOS=this.submissionServiceClient
+                    .getSubmittedCodes(assignmentId,questionId,jwt);
+
             this.createFiles(userQuestionResponseDTOS,classroomSlug,assignmentId,questionId);
+
         Set<Language> languages=userQuestionResponseDTOS.stream().map(UserQuestionResponseDTO::getLanguage)
                 .collect(Collectors.toSet());
-        System.out.println("printing files name");
+
+//        System.out.println("printing files name");
         languages.stream().forEach(language -> {
             try {
-                this.checkPlagiarismBasedOnLanguage(language,classroomSlug+"/"+assignmentId+"/"+questionId+"/"+language.toString());
+                String resultLink=this.checkPlagiarismBasedOnLanguage(language,classroomSlug+"/"+assignmentId+"/"+questionId+"/"+language.toString());
+                plagiarism.getResultLinkMap().put(language,resultLink);
             } catch (MossException | IOException e) {
                 e.printStackTrace();
             }
         });
+        this.cleanUpDirectory(classroomSlug,assignmentId,questionId);
+        this.save(plagiarism);
+        System.out.println(plagiarism);
     }
     public String getFileExtension(Language language){
         if (language.equals(Language.PYTHON)) {
