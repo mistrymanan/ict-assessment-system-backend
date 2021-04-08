@@ -30,12 +30,12 @@ public class PlagiarismService {
         this.submissionServiceClient = submissionServiceClient;
     }
 
-    public void  createFiles(List<UserQuestionResponseDTO> submissions, String classroomSlug){
+    public void  createFiles(List<UserQuestionResponseDTO> submissions, String classroomSlug,String assignmentId,String questionId){
         submissions.stream().forEach(
                 submission->{
                     try {
                         String name=submission.getName().replaceAll("\\s+","-");
-                        Path userDirectoryPath=Files.createDirectories(Path.of("/home/manan/workspace/ict-assessment-system/temp",submission.getLanguage().toString(),name));
+                        Path userDirectoryPath=Files.createDirectories(Path.of(classroomSlug,assignmentId,questionId,submission.getLanguage().toString(),name));
                         System.out.println(userDirectoryPath.toAbsolutePath());
                         Path path=Files.createFile(Path.of(userDirectoryPath.toAbsolutePath().toString(),
                                 "Solution"+"."+this.getFileExtension(submission.getLanguage())
@@ -76,13 +76,13 @@ public class PlagiarismService {
 
     public void plagiarismCheck(String classroomSlug, String assignmentId, String questionId, Jwt jwt){
             List<UserQuestionResponseDTO> userQuestionResponseDTOS=this.submissionServiceClient.getSubmittedCodes(assignmentId,questionId,jwt);
-            this.createFiles(userQuestionResponseDTOS,classroomSlug);
+            this.createFiles(userQuestionResponseDTOS,classroomSlug,assignmentId,questionId);
         Set<Language> languages=userQuestionResponseDTOS.stream().map(UserQuestionResponseDTO::getLanguage)
                 .collect(Collectors.toSet());
         System.out.println("printing files name");
         languages.stream().forEach(language -> {
             try {
-                this.checkPlagiarismBasedOnLanguage(language,"/home/manan/workspace/ict-assessment-system/temp/"+language.toString());
+                this.checkPlagiarismBasedOnLanguage(language,classroomSlug+"/"+assignmentId+"/"+questionId+"/"+language.toString());
             } catch (MossException | IOException e) {
                 e.printStackTrace();
             }
