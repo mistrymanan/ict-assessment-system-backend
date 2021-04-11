@@ -23,9 +23,9 @@ build:
 #    - image: mananmistry/notification-service
 #      jib:
 #        project: notification-service-v1
-    - image: mananmistry/plagiarism-service
-      jib:
-        project: plagiarism-service
+#    - image: mananmistry/plagiarism-service
+#      jib:
+#        project: plagiarism-service
 deploy:
   kubectl:
     manifests:

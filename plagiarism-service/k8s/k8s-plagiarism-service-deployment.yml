@@ -15,7 +15,7 @@ spec:
         app: plagiarism-service
     spec:
       containers:
-        - image: mananmistry/plagiarism-service
+        - image: mananmistry/plagiarism-service:v2
           imagePullPolicy: IfNotPresent
           name: plagiarism-service
           ports:
