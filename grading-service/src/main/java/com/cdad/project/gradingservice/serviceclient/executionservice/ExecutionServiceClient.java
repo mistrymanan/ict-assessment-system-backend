@@ -18,9 +18,9 @@ import java.util.Optional;
 
 @Configuration
 public class ExecutionServiceClient {
-    private final String BASE_URL = "http://aas.ict.gnu.ac.in/api/executions";
+//    private final String BASE_URL = "http://aas.ict.gnu.ac.in/api/executions";
     //private final String BASE_URL = "http://localhost:8081";
-//    private final String BASE_URL = "http://execution-service.default.svc.cluster.local:8080";
+    private final String BASE_URL = "http://execution-service.default.svc.cluster.local:8080";
     private final WebClient webClient = WebClient.create(BASE_URL);
     private final String POST_RUN = "/run";
     private final String BUILDS = "/builds";

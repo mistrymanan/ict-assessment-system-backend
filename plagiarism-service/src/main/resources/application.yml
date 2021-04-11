@@ -9,10 +9,8 @@ spring:
         jwt:
           issuer-uri: https://securetoken.google.com/assessment-system-ff99e
           jwk-set-uri: https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com
-
-logging:
-  level:
-    org.springframework.security: debug
-    com.cdad.project.gradingservice: debug
+  rabbitmq:
+    addresses: 172.16.10.103
+    port: 5672
 server:
   port: 8080

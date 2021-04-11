@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: moss-api-service
+  name: moss-api-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: moss-api-service
+  template:
+    metadata:
+      labels:
+        app: moss-api-service
+    spec:
+      containers:
+        - image: nikstep/moss-api:0.1.1
+          imagePullPolicy: IfNotPresent
+          name: moss-api-service
+          ports:
+            - containerPort: 8082
+              name: http
+              protocol: TCP

@@ -1,9 +1,13 @@
 package com.cdad.project.plagiarismservice.controller;
 
+import com.cdad.project.plagiarismservice.ServiceClients.Language;
 import com.cdad.project.plagiarismservice.config.RabbitMQConfig;
 import com.cdad.project.plagiarismservice.dto.PlagiarismDTO;
 import com.cdad.project.plagiarismservice.dto.PlagiarismMessageDTO;
+import com.cdad.project.plagiarismservice.dto.PlagiarismResultDTO;
+import com.cdad.project.plagiarismservice.entity.GraphData;
 import com.cdad.project.plagiarismservice.entity.Plagiarism;
+import com.cdad.project.plagiarismservice.entity.Result;
 import com.cdad.project.plagiarismservice.entity.Status;
 import com.cdad.project.plagiarismservice.exchange.CreatePlagiarismReport;
 import com.cdad.project.plagiarismservice.service.PlagiarismService;
@@ -30,12 +34,22 @@ public class PlagiarismController {
         this.modelMapper = modelMapper;
     }
 //    @GetMapping("{questionId}")
+    @GetMapping("{plagiarismId}")
+    public PlagiarismResultDTO getPlagiarism(@PathVariable String plagiarismId){
+        return this.plagiarismService.getPlagiarismResultDTOById(plagiarismId);
+    }
+    @GetMapping("{plagiarismId}/results/{language}")
+    public GraphData getPlagiarismResultOfLanguage(@PathVariable String plagiarismId, @PathVariable Language language){
+        return this.plagiarismService.getPlagiarismResultByLanguage(plagiarismId,language);
+    }
+
     @GetMapping("{classroomSlug}/{assignmentId}/{questionId}")
     public List<PlagiarismDTO> checkPlagiarism(@PathVariable String classroomSlug, @PathVariable String assignmentId
             , @PathVariable String questionId
             , @AuthenticationPrincipal Jwt jwt){
         return plagiarismService.getPlagiarisms(classroomSlug, assignmentId, questionId);
     }
+
 
     @PostMapping("")
     public Plagiarism publishMessage(@RequestBody CreatePlagiarismReport request, @AuthenticationPrincipal Jwt jwt){

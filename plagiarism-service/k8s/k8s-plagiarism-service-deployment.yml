@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: plagiarism-service
+  name: plagiarism-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: plagiarism-service
+  template:
+    metadata:
+      labels:
+        app: plagiarism-service
+    spec:
+      containers:
+        - image: mananmistry/plagiarism-service
+          imagePullPolicy: IfNotPresent
+          name: plagiarism-service
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/info
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 0
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 10
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /actuator/health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 0
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 10

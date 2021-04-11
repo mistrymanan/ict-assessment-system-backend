@@ -11,6 +11,7 @@ import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -23,7 +24,16 @@ public class Plagiarism {
     private String assignmentId;
     private String questionId;
     private Status status;
-    private HashMap<Language,String> resultLinkMap;
+    private List<Result> results;
     private LocalDateTime time;
     private Integer numberOfSubmissions;
+
+    public Plagiarism(String classroomSlug, String assignmentId, String questionId, Status status, List<Result> results, LocalDateTime time) {
+        this.classroomSlug = classroomSlug;
+        this.assignmentId = assignmentId;
+        this.questionId = questionId;
+        this.status = status;
+        this.results = results;
+        this.time = time;
+    }
 }

@@ -11,8 +11,8 @@ import java.util.Map;
 
 @Service
 public class SubmissionServiceClient {
-    private final String BASE_URL = "http://aas.ict.gnu.ac.in/api/v2/submissions/";
-    //    private final String BASE_URL = "http://classroom-service.default.svc.cluster.local:8080";
+//    private final String BASE_URL = "http://aas.ict.gnu.ac.in/api/v2/submissions/";
+    private final String BASE_URL = "http://submission-service-v2.default.svc.cluster.local:8080";
     private final WebClient webClient = WebClient.create(BASE_URL);
     private final String GET_PUBLIC_PLAGIARISM = "public-plagiarism/{assignmentId}/{questionId}";
 

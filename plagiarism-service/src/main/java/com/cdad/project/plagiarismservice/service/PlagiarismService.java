@@ -3,10 +3,16 @@ package com.cdad.project.plagiarismservice.service;
 import com.cdad.project.plagiarismservice.ServiceClients.Language;
 import com.cdad.project.plagiarismservice.ServiceClients.SubmissionServiceClient;
 import com.cdad.project.plagiarismservice.ServiceClients.UserQuestionResponseDTO;
+import com.cdad.project.plagiarismservice.ServiceClients.mossapi.GraphDataProducerServiceClient;
+import com.cdad.project.plagiarismservice.ServiceClients.mossapi.dto.DataProducerUtility;
+import com.cdad.project.plagiarismservice.ServiceClients.mossapi.dto.GetProcessedData;
 import com.cdad.project.plagiarismservice.config.RabbitMQConfig;
 import com.cdad.project.plagiarismservice.dto.PlagiarismDTO;
 import com.cdad.project.plagiarismservice.dto.PlagiarismMessageDTO;
+import com.cdad.project.plagiarismservice.dto.PlagiarismResultDTO;
+import com.cdad.project.plagiarismservice.entity.GraphData;
 import com.cdad.project.plagiarismservice.entity.Plagiarism;
+import com.cdad.project.plagiarismservice.entity.Result;
 import com.cdad.project.plagiarismservice.entity.Status;
 import com.cdad.project.plagiarismservice.repository.PlagiarismRepository;
 import it.zielke.moji.MossException;
@@ -19,7 +25,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -35,26 +40,30 @@ public class PlagiarismService {
     private final ModelMapper modelMapper;
     final private RabbitTemplate rabbitTemplate;
     private final SubmissionServiceClient submissionServiceClient;
-    public PlagiarismService(PlagiarismRepository plagiarismRepository, ModelMapper modelMapper, RabbitTemplate rabbitTemplate, SubmissionServiceClient submissionServiceClient) {
+    private final GraphDataProducerServiceClient graphDataProducerServiceClient;
+    public PlagiarismService(PlagiarismRepository plagiarismRepository, ModelMapper modelMapper, RabbitTemplate rabbitTemplate, SubmissionServiceClient submissionServiceClient, GraphDataProducerServiceClient graphDataProducerServiceClient) {
         this.plagiarismRepository = plagiarismRepository;
         this.modelMapper = modelMapper;
         this.rabbitTemplate = rabbitTemplate;
         this.submissionServiceClient = submissionServiceClient;
+        this.graphDataProducerServiceClient = graphDataProducerServiceClient;
     }
 
     public Plagiarism save(Plagiarism plagiarism){
         return this.plagiarismRepository.save(plagiarism);
     }
-
+    public Plagiarism getPlagiarismById(String id){
+        return this.plagiarismRepository.getPlagiarismById(id);
+    }
     public Plagiarism requestPlagiarismReportGeneration(String classroomSlug, String assignmentId, String questionId, Jwt jwt){
-        Plagiarism plagiarism =new Plagiarism();
-        plagiarism.setClassroomSlug(classroomSlug);
-        plagiarism.setAssignmentId(assignmentId);
-        plagiarism.setQuestionId(questionId);
-        plagiarism.setTime(LocalDateTime.ofInstant(Instant.now(), ZoneId.of("Asia/Kolkata")));
-        plagiarism.setStatus(Status.PROCESSING);
-        plagiarism.setResultLinkMap(new HashMap<>());
+        Plagiarism plagiarism =new Plagiarism(classroomSlug
+                ,assignmentId
+                ,questionId
+                ,Status.PROCESSING
+                ,new LinkedList<>()
+                ,LocalDateTime.ofInstant(Instant.now(), ZoneId.of("Asia/Kolkata")));
         plagiarism=this.save(plagiarism);
+
         PlagiarismMessageDTO plagiarismMessageDTO=this.modelMapper.map(plagiarism,PlagiarismMessageDTO.class);
         plagiarismMessageDTO.setJwtToken(jwt);
         rabbitTemplate.convertAndSend(RabbitMQConfig.QUEUE_DIRECT_EXCHANGE,
@@ -101,7 +110,7 @@ public class PlagiarismService {
 
     }
 
-    public String checkPlagiarismBasedOnLanguage(Language language,String pathString) throws MossException, IOException {
+    public Result checkPlagiarismBasedOnLanguage(Language language,String pathString) throws MossException, IOException {
 
     Collection<File> fileCollection= FileUtils.listFiles(new File(pathString),
             new String[]{getFileExtension(language)},true);
@@ -121,10 +130,17 @@ public class PlagiarismService {
                 socketClient.uploadFile(f);
             }
             socketClient.sendQuery();
-        URL results=socketClient.getResultURL();
+        Result result=new Result();
+        result.setLink(socketClient.getResultURL().toString());
+        result.setLanguage(language);
 
-        System.out.println("Result available at "+ results.toString());
-        return results.toString();
+        GetProcessedData getProcessedData=DataProducerUtility.processData(this.graphDataProducerServiceClient
+                .fetchDataForGraph(result.getLink()));
+        GraphData graphData=this.modelMapper
+                .map(getProcessedData,GraphData.class);
+        result.setGraphData(graphData);
+        System.out.println("Result available at "+ result.getLink());
+        return result;
     }
 
     public void plagiarismCheck(String id,String classroomSlug, String assignmentId, String questionId,String time, Jwt jwt) throws IOException {
@@ -132,7 +148,7 @@ public class PlagiarismService {
             Plagiarism plagiarism=this.plagiarismRepository.getPlagiarismById(id);
             List<UserQuestionResponseDTO> userQuestionResponseDTOS=this.submissionServiceClient
                     .getSubmittedCodes(assignmentId,questionId,jwt);
-
+            plagiarism.setNumberOfSubmissions(userQuestionResponseDTOS.size());
             this.createFiles(userQuestionResponseDTOS,classroomSlug,assignmentId,questionId,time);
 
         Set<Language> languages=userQuestionResponseDTOS.stream().map(UserQuestionResponseDTO::getLanguage)
@@ -141,13 +157,14 @@ public class PlagiarismService {
 //        System.out.println("printing files name");
         languages.stream().forEach(language -> {
             try {
-                String resultLink=this.checkPlagiarismBasedOnLanguage(language,time+"/"+classroomSlug+"/"+assignmentId+"/"+questionId+"/"+language.toString());
-                plagiarism.getResultLinkMap().put(language,resultLink);
+                Result result=this.checkPlagiarismBasedOnLanguage(language,time+"/"+classroomSlug+"/"+assignmentId+"/"+questionId+"/"+language.toString());
+                plagiarism.getResults().add(result);
             } catch (MossException | IOException e) {
                 e.printStackTrace();
             }
         });
         this.cleanUpDirectory(time);
+        plagiarism.setStatus(Status.GENERATED);
         this.save(plagiarism);
         System.out.println(plagiarism);
     }
@@ -164,5 +181,19 @@ public class PlagiarismService {
         else {
             return "";
         }
+    }
+
+    public PlagiarismResultDTO getPlagiarismResultDTOById(String plagiarismId) {
+        Plagiarism plagiarism=this.getPlagiarismById(plagiarismId);
+        return this.modelMapper.map(plagiarism,PlagiarismResultDTO.class);
+    }
+
+    public GraphData getPlagiarismResultByLanguage(String plagiarismId, Language language) {
+        Plagiarism plagiarism=this.getPlagiarismById(plagiarismId);
+        return plagiarism.getResults()
+                .stream()
+                .filter(result1 -> result1.getLanguage().equals(language))
+                .collect(Collectors.toList())
+                .get(0).getGraphData();
     }
 }
