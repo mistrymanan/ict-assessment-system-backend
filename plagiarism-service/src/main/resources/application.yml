@@ -12,5 +12,7 @@ spring:
   rabbitmq:
     addresses: 172.16.10.103
     port: 5672
+    username: plagiarism-service
+    password: plagiarism@123
 server:
   port: 8080

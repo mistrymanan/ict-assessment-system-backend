@@ -4,16 +4,16 @@ metadata:
   name: assessment-system-backend
 build:
   artifacts:
-#    - image: mananmistry/assignment-service
+    - image: mananmistry/assignment-service
+      jib:
+        project: assignment-service
+#    - image: mananmistry/submission-service
 #      jib:
-#        project: assignment-service
-    - image: mananmistry/submission-service
-      jib:
-        project: grading-service
-    - image: mananmistry/execution-service
-      jib:
-        fromImage: mananmistry/jail
-        project: execution-service
+#        project: grading-service
+#    - image: mananmistry/execution-service
+#      jib:
+#        fromImage: mananmistry/jail
+#        project: execution-service
 #    - image: mananmistry/classroom-service
 #      jib:
 #        project: classroom-service
@@ -29,14 +29,14 @@ build:
 deploy:
   kubectl:
     manifests:
-#    - assignment-service/k8s*
-    - grading-service/k8s*
-    - execution-service/k8*
+    - assignment-service/k8s*
+#    - grading-service/k8s*
+#    - execution-service/k8*
 #    - notification-service/k8s*
 #    - classroom-service/k8s*
 #    - user-service/k8s*
-    - plagiarism-service/k8s*
-    - moss-api-service/k8s*
+#    - plagiarism-service/k8s*
+#    - moss-api-service/k8s*
 #profiles:
 #  - name: gcp
 #    activation:

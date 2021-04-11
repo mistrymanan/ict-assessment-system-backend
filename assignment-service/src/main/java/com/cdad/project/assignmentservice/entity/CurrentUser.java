@@ -12,10 +12,11 @@ import org.springframework.security.oauth2.jwt.Jwt;
 public class CurrentUser {
     private String name;
     private String email;
-
+    private Boolean isAdmin;
     public static CurrentUser fromJwt(Jwt jwt) {
         String name = jwt.getClaimAsString("name");
         String email = jwt.getClaimAsString("email");
-        return new CurrentUser(name, email);
+        Boolean isAdmin=jwt.getClaimAsBoolean("isAdmin");
+        return new CurrentUser(name, email,isAdmin);
     }
 }

@@ -131,7 +131,7 @@ public class AssignmentService {
         CurrentUser user = CurrentUser.fromJwt(jwt);
         UserDetailsDTO userDetails = userServiceClient.getUserDetails(user.getEmail(), jwt);
         if (userDetails.getInstructClassrooms().contains(classroomSlug)
-                || userDetails.getEnrolledClassrooms().contains(classroomSlug)) {
+                || userDetails.getEnrolledClassrooms().contains(classroomSlug) || user.getIsAdmin()) {
             Assignment assignment = getAssignment(id, classroomSlug);
             return mapper.map(assignment, AssignmentDTO.class);
         } else {
