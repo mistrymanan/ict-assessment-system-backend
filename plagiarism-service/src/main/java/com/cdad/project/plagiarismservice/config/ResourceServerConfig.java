@@ -23,7 +23,7 @@ public class ResourceServerConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/actuator/**").permitAll()
+                .antMatchers("/actuator/**","/public/**").permitAll()
                 .anyRequest()
                 .authenticated()
                 .and()

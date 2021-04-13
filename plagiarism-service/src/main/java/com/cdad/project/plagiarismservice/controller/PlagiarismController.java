@@ -38,7 +38,7 @@ public class PlagiarismController {
     public PlagiarismResultDTO getPlagiarism(@PathVariable String plagiarismId){
         return this.plagiarismService.getPlagiarismResultDTOById(plagiarismId);
     }
-    @GetMapping("{plagiarismId}/results/{language}")
+    @GetMapping("public/{plagiarismId}/results/{language}")
     public GraphData getPlagiarismResultOfLanguage(@PathVariable String plagiarismId, @PathVariable Language language){
         return this.plagiarismService.getPlagiarismResultByLanguage(plagiarismId,language);
     }
