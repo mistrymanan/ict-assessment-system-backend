@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: data2graph-service
+  name: data2graph-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: data2graph-service
+  template:
+    metadata:
+      labels:
+        app: data2graph-service
+    spec:
+      containers:
+        - image: flaxo/data2graph:0.5
+          imagePullPolicy: IfNotPresent
+          name: data2graph-service
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
